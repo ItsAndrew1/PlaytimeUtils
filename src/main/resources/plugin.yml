@@ -1,0 +1,28 @@
+name: PlaytimeUtils
+description: $description
+version: '${version}'
+
+main: me.itsandrew.playtimeUtils.PlaytimeUtils
+api-version: '26.1.1'
+load: POSTWORLD
+
+authors: [_ItsAndrew_]
+
+permissions:
+  playtimeutils.myplaytime:
+    description: Allows the player to see their own playtime.
+    default: true
+
+  playtimeutils.playtime:
+    description: Allows the player to see someone else's playtime.
+    default: op
+
+
+commands:
+  myplaytime:
+    description: See your own playtime.
+    permission: playtimeutils.myplaytime
+
+  playtime:
+    description: See someone else's playtime.
+    permission: playtimeutils.myplaytime

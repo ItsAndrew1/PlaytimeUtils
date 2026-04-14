@@ -1,0 +1,35 @@
+#Developed by _ItsAndrew_
+#Main configuration file for PlaytimeUtils.
+
+#The prefix for plugin chat messages. Leave blank for no prefix
+chat-prefix: "&f&l[&e&lPUtils&f&l]"
+
+#Configure the database manager
+database:
+  type: sqlite  #This is the type of the database. If you run a network with multiple servers, use 'mysql'! If you run only 1 server, use 'sqlite'!
+  file-name: "database.db" #This is ONLY for SQLite, and it is ONLY the name for the file.
+
+  #These are the settings for the MySQL database. If you don't use MySQL, you can ignore this.
+  host: ""
+  port: ""
+  database: ""
+  username: ""
+  password: ""
+
+#Configure general messages. Use '&' for colors/styles. You can also use PAPI placeholders!
+messages:
+  no-permission: "&cYou don't have permission to do that!"
+  my-playtime: "&aYour playtime is &e&l%playtime%&a!" #Use %playtime% to display the playtime
+  player-playtime: "&a%player%'s playtime is &e&l%playtime%&a!" #Use %player% to display the player's name and %playtime% to display their playtime'
+
+#Configure the sound / titles when a player joins for the first time. Use '&' for styles/colors.
+#First join means if the player is not registered in the database.
+#You can also use PAPI placeholders!
+first-join:
+  toggle: true #If you want this feature or not
+  title: "&d&lWELCOME!"
+  subtitle: ""
+
+  sound: ENTITY_PLAYER_LEVELUP
+  sound-volume: 1.0
+  sound-pitch: 1.0
