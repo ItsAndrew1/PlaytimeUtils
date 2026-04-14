@@ -120,4 +120,15 @@ public class DbManager {
             e.printStackTrace();
         }
     }
+
+    public void updatePlayerPlaytime(UUID playerUUID, int seconds){
+        String statement = "UPDATE playersPlaytime SET playtime = ? WHERE uuid = ?";
+        try(PreparedStatement ps = dbConnection.prepareStatement(statement)){
+            ps.setInt(1, seconds);
+            ps.setString(2, playerUUID.toString());
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
 }
