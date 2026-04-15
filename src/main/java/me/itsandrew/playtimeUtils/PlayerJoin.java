@@ -24,9 +24,6 @@ public class PlayerJoin implements Listener {
 
         //Checking if the player is registered or not in the db
         if(!plugin.getDatabaseManager().isPlayerRegistered(player.getUniqueId())){
-            //Inserts the player into the db
-            plugin.getDatabaseManager().createPlayerRow(player.getUniqueId());
-
             boolean toggleFirstJoin = plugin.getConfig().getBoolean("first-join.toggle", true);
             if(toggleFirstJoin){
                 String title = ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("first-join.title", "&aWelcome to the server!"));

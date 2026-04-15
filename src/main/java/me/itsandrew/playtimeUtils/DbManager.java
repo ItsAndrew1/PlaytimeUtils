@@ -1,6 +1,8 @@
 //Developed by _ItsAndrew_
 package me.itsandrew.playtimeUtils;
 
+import org.bukkit.event.inventory.PrepareSmithingEvent;
+
 import java.io.File;
 import java.sql.*;
 import java.util.UUID;
@@ -68,7 +70,7 @@ public class DbManager {
         }
     }
 
-    public String getPlaytime(UUID playerUUID){
+    public String getPlaytimeString(UUID playerUUID){
         //Getting the playtime of the player (in seconds)
         String statement = "SELECT playtime FROM playersPlaytime WHERE uuid = ?";
         long seconds = 0;
@@ -94,6 +96,22 @@ public class DbManager {
         if (minutes > 0) time.append(minutes).append("m ");
 
         return time.toString();
+    }
+
+    public int getPlaytime(UUID playerUUID){
+        String statement = "SELECT playtime FROM playersPlaytime WHERE uuid = ?";
+        try(PreparedStatement ps = dbConnection.prepareStatement(statement)){
+            ps.setString(1, playerUUID.toString());
+            try(ResultSet rs = ps.executeQuery()){
+                if(rs.next()){
+                    return rs.getInt("playtime");
+                }
+            }
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+
+        return 0;
     }
 
     public boolean isPlayerRegistered(UUID playerUUID){

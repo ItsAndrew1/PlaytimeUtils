@@ -36,7 +36,7 @@ public class CommandManager implements CommandExecutor {
 
             String playtimeMessage = ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("messages.your-playtime", "&aYour playtime is &e&l%playtime% &a!"));
             playtimeMessage = PlaceholderAPI.setPlaceholders(player, playtimeMessage);
-            player.sendMessage(playtimeMessage.replace("%playtime%", dbManager.getPlaytime(player.getUniqueId())));
+            player.sendMessage(playtimeMessage.replace("%playtime%", dbManager.getPlaytimeString(player.getUniqueId())));
             player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
             return true;
         }
@@ -64,7 +64,7 @@ public class CommandManager implements CommandExecutor {
 
             String playtimeMessage = ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("messages.player-playtime", "&e%player%'s playtime is &e&l%playtime% &a!"));
             playtimeMessage = playtimeMessage.replace("%player%", targetPlayer.getName())
-                    .replace("%playtime%", dbManager.getPlaytime(targetPlayer.getUniqueId()));
+                    .replace("%playtime%", dbManager.getPlaytimeString(targetPlayer.getUniqueId()));
             playtimeMessage = PlaceholderAPI.setPlaceholders(targetPlayer, playtimeMessage);
             player.sendMessage(playtimeMessage);
             player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
