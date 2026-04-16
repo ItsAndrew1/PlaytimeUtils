@@ -3,7 +3,7 @@ description: $description
 version: '${version}'
 
 main: me.itsandrew.playtimeUtils.PlaytimeUtils
-api-version: '26.1.1'
+api-version: '1.21'
 load: POSTWORLD
 
 authors: [_ItsAndrew_]

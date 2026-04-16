@@ -142,7 +142,7 @@ public class DbManager {
     public void updatePlayerPlaytime(UUID playerUUID, int seconds){
         String statement = "UPDATE playersPlaytime SET playtime = ? WHERE uuid = ?";
         try(PreparedStatement ps = dbConnection.prepareStatement(statement)){
-            ps.setInt(1, seconds);
+            ps.setInt(1, seconds + getPlaytime(playerUUID));
             ps.setString(2, playerUUID.toString());
             ps.executeUpdate();
         } catch (SQLException e) {

@@ -5,15 +5,12 @@ import io.papermc.paper.event.player.AsyncChatEvent;
 import me.clip.placeholderapi.PlaceholderAPI;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.player.AsyncPlayerChatEvent;
-import org.bukkit.event.player.PlayerChatEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -60,7 +57,16 @@ public final class PlaytimeUtils extends JavaPlugin implements Listener {
 
         //Starting the task to track the playtime of players
         getServer().getScheduler().runTaskTimer(this, () -> {
-            for(Player player: Bukkit.getOnlinePlayers()){
+            for(Player player : Bukkit.getOnlinePlayers()){
+                //Adding the player to the playtime map if they aren't already
+                if(!playtimeMap.containsKey(player.getUniqueId())){
+                    playtimeMap.put(player.getUniqueId(), 0);
+                    continue;
+                }
+
+                //Adding the player in the last activity map
+                lastActivity.put(player.getUniqueId(), 0L);
+
                 //Skipping if the player is already AFK
                 if(afkMap.containsKey(player.getUniqueId())) continue;
 
@@ -75,6 +81,12 @@ public final class PlaytimeUtils extends JavaPlugin implements Listener {
                 }
 
                 playtimeMap.compute(player.getUniqueId(), (k, playtime) -> playtime + 1);
+
+
+                //This was done for testing purposes
+                String message = "Playtime: %playtime_value%";
+                message = PlaceholderAPI.setPlaceholders(player, message);
+                player.sendMessage(message);
             }
         }, 0, 20);
     }
@@ -92,7 +104,8 @@ public final class PlaytimeUtils extends JavaPlugin implements Listener {
     }
 
     private boolean isPlayerAFK(UUID playerUUID){
-        return System.currentTimeMillis() - lastActivity.get(playerUUID) > 4000;
+        int afkSeconds = getConfig().getInt("afk-seconds", 4);
+        return System.currentTimeMillis() - lastActivity.get(playerUUID) > afkSeconds * 1000L;
     }
 
     @EventHandler
@@ -110,7 +123,10 @@ public final class PlaytimeUtils extends JavaPlugin implements Listener {
         if(event.getFrom().distanceSquared(event.getTo()) > 0 ||
                 event.getFrom().getYaw() != event.getTo().getYaw() ||
                 event.getFrom().getPitch() != event.getTo().getPitch()
-        ) lastActivity.put(event.getPlayer().getUniqueId(), System.currentTimeMillis());
+        ){
+            lastActivity.put(event.getPlayer().getUniqueId(), System.currentTimeMillis());
+            event.getPlayer().sendMessage("Salut");
+        }
     }
 
     @EventHandler
@@ -127,8 +143,26 @@ public final class PlaytimeUtils extends JavaPlugin implements Listener {
         lastActivity.put(event.getPlayer().getUniqueId(), System.currentTimeMillis());
     }
 
+    @EventHandler
+    public void onPlayerQuit(PlayerQuitEvent event){
+        Player player = event.getPlayer();
+
+        //Saving the playtime in the database
+        if(databaseManager.isPlayerRegistered(player.getUniqueId())) databaseManager.updatePlayerPlaytime(player.getUniqueId(), playtimeMap.get(player.getUniqueId()));
+        else{
+            databaseManager.createPlayerRow(player.getUniqueId());
+            databaseManager.updatePlayerPlaytime(player.getUniqueId(), playtimeMap.get(player.getUniqueId()));
+        }
+
+        //Removing the player from the Map
+        playtimeMap.remove(player.getUniqueId());
+    }
+
     //Getters
     public DbManager getDatabaseManager() {
         return databaseManager;
+    }
+    public Map<UUID, Integer> getPlaytimeMap() {
+        return playtimeMap;
     }
 }

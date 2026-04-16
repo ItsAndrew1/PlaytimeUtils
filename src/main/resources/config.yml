@@ -24,6 +24,9 @@ messages:
   player-afk: "&7You are now AFK! Note that the playtime won't be counted while you are AFK."
   player-no-more-afk: "&7You are not AFK anymore."
 
+#Set the seconds for when a player should be set on AFK
+afk-seconds: 4 #In seconds!
+
 #Configure the sound / titles when a player joins for the first time. Use '&' for styles/colors.
 #First join means if the player is not registered in the database.
 #You can also use PAPI placeholders!
