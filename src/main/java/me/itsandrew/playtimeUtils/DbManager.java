@@ -71,19 +71,11 @@ public class DbManager {
     }
 
     public String getPlaytimeString(UUID playerUUID){
-        //Getting the playtime of the player (in seconds)
-        String statement = "SELECT playtime FROM playersPlaytime WHERE uuid = ?";
-        long seconds = 0;
-        try(PreparedStatement ps = dbConnection.prepareStatement(statement)){
-            ps.setString(1, playerUUID.toString());
-            try(ResultSet rs = ps.executeQuery()){
-                if(rs.next()){
-                    seconds = rs.getInt("playtime");
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+        //Getting the playtime of the player from the db
+        long seconds = getPlaytime(playerUUID);
+
+        //Also adding the seconds from the playtime map
+        seconds += plugin.getPlaytimeMap().getOrDefault(playerUUID, 0);
 
         //Building the string
         StringBuilder time = new StringBuilder();
@@ -93,7 +85,11 @@ public class DbManager {
 
         if (days > 0) time.append(days).append("d ");
         if (hours > 0) time.append(hours).append("h ");
-        if (minutes > 0) time.append(minutes).append("m ");
+
+        if(minutes > 0 && seconds > 60) time.append(minutes).append("m");
+        else if (minutes > 0) time.append(minutes).append("m ");
+
+        if(seconds < 60) time.append(seconds).append("s");
 
         return time.toString();
     }

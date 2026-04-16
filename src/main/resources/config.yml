@@ -19,8 +19,8 @@ database:
 #Configure general messages. Use '&' for colors/styles. You can also use PAPI placeholders!
 messages:
   no-permission: "&cYou don't have permission to do that!"
-  my-playtime: "&aYour playtime is &e&l%playtime%&a!" #Use %playtime% to display the playtime
-  player-playtime: "&a%player%'s playtime is &e&l%playtime%&a!" #Use %player% to display the player's name and %playtime% to display their playtime'
+  my-playtime: "&aYour playtime is &e&l%playtime_value%&a!" #Use %playtime% to display the playtime
+  player-playtime: "&a%player%'s playtime is &e&l%playtime_value%&a!" #Use %player% to display the player's name and %playtime% to display their playtime'
   player-afk: "&7You are now AFK! Note that the playtime won't be counted while you are AFK."
   player-no-more-afk: "&7You are not AFK anymore."
 

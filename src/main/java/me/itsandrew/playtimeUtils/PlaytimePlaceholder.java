@@ -7,7 +7,7 @@ import org.jetbrains.annotations.NotNull;
 public class PlaytimePlaceholder extends PlaceholderExpansion {
     private final PlaytimeUtils plugin;
 
-    public  PlaytimePlaceholder(PlaytimeUtils plugin) {
+    public PlaytimePlaceholder(PlaytimeUtils plugin) {
         this.plugin = plugin;
     }
 
@@ -35,7 +35,7 @@ public class PlaytimePlaceholder extends PlaceholderExpansion {
     public String onRequest(OfflinePlayer player, @NotNull String params) {
         //Use '%playtime_value%' to display the playtime of a player
         if(params.equalsIgnoreCase("value")) {
-            return plugin.getDatabaseManager().getPlaytimeString(player.getUniqueId()) + plugin.getPlaytimeMap().get(player.getUniqueId());
+            return plugin.getDatabaseManager().getPlaytimeString(player.getUniqueId());
         }
 
         return null;

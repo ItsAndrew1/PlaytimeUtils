@@ -8,6 +8,8 @@ load: POSTWORLD
 
 authors: [_ItsAndrew_]
 
+softdepend: [PlaceholderAPI]
+
 permissions:
   playtimeutils.myplaytime:
     description: Allows the player to see their own playtime.

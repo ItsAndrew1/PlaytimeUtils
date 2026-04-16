@@ -24,32 +24,31 @@ public class CommandManager implements CommandExecutor {
         Player player = (Player) sender;
         String noPermissionMessage = ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("messages.no-permission", "&cYou don't have permission to do that!"));
         noPermissionMessage = PlaceholderAPI.setPlaceholders(player, noPermissionMessage);
-        DbManager dbManager = plugin.getDatabaseManager();
 
         if(command.getName().equalsIgnoreCase("myplaytime")){
             //Checking if the sender has permission
-            if(player.hasPermission("playtimeutils.myplaytime")){
+            if(!player.hasPermission("playtimeutils.myplaytime")){
                 player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
                 player.sendMessage(noPermissionMessage);
                 return true;
             }
 
-            String playtimeMessage = ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("messages.your-playtime", "&aYour playtime is &e&l%playtime% &a!"));
+            String playtimeMessage = ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("messages.your-playtime", "&aYour playtime is &e&l%playtime_value% &a!"));
             playtimeMessage = PlaceholderAPI.setPlaceholders(player, playtimeMessage);
-            player.sendMessage(playtimeMessage.replace("%playtime%", dbManager.getPlaytimeString(player.getUniqueId())));
+            player.sendMessage(playtimeMessage);
             player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
             return true;
         }
 
         if(command.getName().equalsIgnoreCase("playtime")){
             //Checking if the sender has permission
-            if(player.hasPermission("playtimeutils.playtime")){
+            if(!player.hasPermission("playtimeutils.playtime")){
                 player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
                 player.sendMessage(noPermissionMessage);
                 return true;
             }
 
-            if(args.length == 0){
+            if(args.length < 1){
                 player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&cUsage: &l/playtime <player>"));
                 player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
                 return true;
@@ -62,11 +61,9 @@ public class CommandManager implements CommandExecutor {
                 return true;
             }
 
-            String playtimeMessage = ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("messages.player-playtime", "&e%player%'s playtime is &e&l%playtime% &a!"));
-            playtimeMessage = playtimeMessage.replace("%player%", targetPlayer.getName())
-                    .replace("%playtime%", dbManager.getPlaytimeString(targetPlayer.getUniqueId()));
+            String playtimeMessage = ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("messages.player-playtime", "&e%player%'s playtime is &e&l%playtime_value% &a!"));
             playtimeMessage = PlaceholderAPI.setPlaceholders(targetPlayer, playtimeMessage);
-            player.sendMessage(playtimeMessage);
+            player.sendMessage(playtimeMessage.replace("%player%", targetPlayer.getName()));
             player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
             return true;
         }

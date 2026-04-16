@@ -8,6 +8,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -53,20 +54,15 @@ public final class PlaytimeUtils extends JavaPlugin implements Listener {
             return;
         }
 
+        //Enabling the PlaytimeUtils Placeholders Extension
+        if(Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null) new PlaytimePlaceholder(this).register();
+        else getLogger().warning("[PlaytimeUtils] PlaceholderAPI is not installed. Placeholders won't work.");
+
         getLogger().info("[PlaytimeUtils] Plugin enabled successfully.");
 
         //Starting the task to track the playtime of players
         getServer().getScheduler().runTaskTimer(this, () -> {
             for(Player player : Bukkit.getOnlinePlayers()){
-                //Adding the player to the playtime map if they aren't already
-                if(!playtimeMap.containsKey(player.getUniqueId())){
-                    playtimeMap.put(player.getUniqueId(), 0);
-                    continue;
-                }
-
-                //Adding the player in the last activity map
-                lastActivity.put(player.getUniqueId(), 0L);
-
                 //Skipping if the player is already AFK
                 if(afkMap.containsKey(player.getUniqueId())) continue;
 
@@ -81,12 +77,6 @@ public final class PlaytimeUtils extends JavaPlugin implements Listener {
                 }
 
                 playtimeMap.compute(player.getUniqueId(), (k, playtime) -> playtime + 1);
-
-
-                //This was done for testing purposes
-                String message = "Playtime: %playtime_value%";
-                message = PlaceholderAPI.setPlaceholders(player, message);
-                player.sendMessage(message);
             }
         }, 0, 20);
     }
@@ -110,37 +100,19 @@ public final class PlaytimeUtils extends JavaPlugin implements Listener {
 
     @EventHandler
     public void onPlayerMove(PlayerMoveEvent event){
-        //Checking if the player is already AFK
-        if(isPlayerAFK(event.getPlayer().getUniqueId())){
-            String message = getConfig().getString("messages.player-no-more-afk", "&7You are not AFK anymore.");
-            message = PlaceholderAPI.setPlaceholders(event.getPlayer(), message);
-            event.getPlayer().sendMessage(ChatColor.translateAlternateColorCodes('&', message));
+        //Checking if the player moves (with WASD SPACE etc.).
+        if(event.getFrom().toVector().distanceSquared(event.getTo().toVector()) > 0.15){
+            //Checking if the player is already AFK
+            if(isPlayerAFK(event.getPlayer().getUniqueId())){
+                String message = getConfig().getString("messages.player-no-more-afk", "&7You are not AFK anymore.");
+                message = PlaceholderAPI.setPlaceholders(event.getPlayer(), message);
+                event.getPlayer().sendMessage(ChatColor.translateAlternateColorCodes('&', message));
 
-            afkMap.remove(event.getPlayer().getUniqueId());
-        }
+                afkMap.remove(event.getPlayer().getUniqueId());
+            }
 
-        //Checking if the player changes their location or looks around.
-        if(event.getFrom().distanceSquared(event.getTo()) > 0 ||
-                event.getFrom().getYaw() != event.getTo().getYaw() ||
-                event.getFrom().getPitch() != event.getTo().getPitch()
-        ){
             lastActivity.put(event.getPlayer().getUniqueId(), System.currentTimeMillis());
-            event.getPlayer().sendMessage("Salut");
         }
-    }
-
-    @EventHandler
-    public void onPlayerChat(AsyncChatEvent event){
-        //Checking if the player is already AFK
-        if(isPlayerAFK(event.getPlayer().getUniqueId())){
-            String message = getConfig().getString("messages.player-no-more-afk", "&7You are not AFK anymore.");
-            message = PlaceholderAPI.setPlaceholders(event.getPlayer(), message);
-            event.getPlayer().sendMessage(ChatColor.translateAlternateColorCodes('&', message));
-
-            afkMap.remove(event.getPlayer().getUniqueId());
-        }
-
-        lastActivity.put(event.getPlayer().getUniqueId(), System.currentTimeMillis());
     }
 
     @EventHandler
@@ -164,5 +136,8 @@ public final class PlaytimeUtils extends JavaPlugin implements Listener {
     }
     public Map<UUID, Integer> getPlaytimeMap() {
         return playtimeMap;
+    }
+    public Map<UUID, Long> getLastActivity() {
+        return lastActivity;
     }
 }

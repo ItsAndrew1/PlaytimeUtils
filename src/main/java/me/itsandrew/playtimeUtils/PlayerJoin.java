@@ -41,5 +41,9 @@ public class PlayerJoin implements Listener {
                 player.playSound(player.getLocation(), firstJoinSound, fjsVolume, fjsPitch);
             }
         }
+
+        //Putting the player in the maps
+        plugin.getLastActivity().put(player.getUniqueId(), System.currentTimeMillis());
+        plugin.getPlaytimeMap().put(player.getUniqueId(), 0);
     }
 }
