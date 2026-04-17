@@ -52,6 +52,7 @@ public final class PlaytimeUtils extends JavaPlugin implements Listener {
         } catch (Exception e){
             getLogger().severe("[PlaytimeUtils] Failed to connect to the database. Shutting down the plugin. See message below for more details: ");
             getLogger().severe("[PlaytimeUtils] " + e.getMessage());
+            getServer().getPluginManager().disablePlugin(this);
             return;
         }
 
