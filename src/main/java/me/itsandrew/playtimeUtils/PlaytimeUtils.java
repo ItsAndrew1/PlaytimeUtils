@@ -21,9 +21,9 @@ import java.util.UUID;
 public final class PlaytimeUtils extends JavaPlugin implements Listener {
     private DbManager databaseManager;
 
-    private Map<UUID, Integer> playtimeMap = new HashMap<>();
-    private Map<UUID, Long> lastActivity = new HashMap<>();
-    private Map<UUID, Boolean> afkMap = new HashMap<>();
+    private final Map<UUID, Integer> playtimeMap = new HashMap<>();
+    private final Map<UUID, Long> lastActivity = new HashMap<>();
+    private final Map<UUID, Boolean> afkMap = new HashMap<>();
 
     @Override
     public void onEnable() {
@@ -36,6 +36,7 @@ public final class PlaytimeUtils extends JavaPlugin implements Listener {
         //Registering commands.
         getCommand("myplaytime").setExecutor(new CommandManager(this));
         getCommand("playtime").setExecutor(new CommandManager(this));
+        getCommand("topplaytime").setExecutor(new CommandManager(this));
 
         //Registering events.
         getServer().getPluginManager().registerEvents(new PlayerJoin(this), this);
@@ -68,7 +69,7 @@ public final class PlaytimeUtils extends JavaPlugin implements Listener {
 
                 //Checking if the player is now AFK (4 secs)
                 if(isPlayerAFK(player.getUniqueId())){
-                    String chatMessage = getConfig().getString("messages.player-afk", "&7You are now AFK! Note that the playtime won't be counted while you are AFK.");
+                    String chatMessage = getConfig().getString("messages.player-afk", "&7You are now AFK!");
                     chatMessage = PlaceholderAPI.setPlaceholders(player, chatMessage);
                     player.sendMessage(ChatColor.translateAlternateColorCodes('&', chatMessage));
 

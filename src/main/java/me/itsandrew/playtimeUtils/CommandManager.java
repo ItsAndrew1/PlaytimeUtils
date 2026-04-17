@@ -1,6 +1,7 @@
 //Developed by _ItsAndrew_
 package me.itsandrew.playtimeUtils;
 
+import com.mojang.brigadier.arguments.StringArgumentType;
 import me.clip.placeholderapi.PlaceholderAPI;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -11,6 +12,8 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.List;
 
 public class CommandManager implements CommandExecutor {
     private final PlaytimeUtils plugin;
@@ -66,6 +69,22 @@ public class CommandManager implements CommandExecutor {
             player.sendMessage(playtimeMessage.replace("%player%", targetPlayer.getName()));
             player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
             return true;
+        }
+
+        if(command.getName().equalsIgnoreCase("topplaytime")){
+            //Checking if the player has permission
+            if(!player.hasPermission("playtimeutils.topplaytime")){
+                player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
+                player.sendMessage(noPermissionMessage);
+                return true;
+            }
+
+            List<String> rawMessage = plugin.getConfig().getStringList("messages.top-3-players");
+            for(String line : rawMessage){
+                line = ChatColor.translateAlternateColorCodes('&', line);
+                line = PlaceholderAPI.setPlaceholders(player, line);
+                player.sendMessage(line);
+            }
         }
 
         return false;

@@ -1,10 +1,10 @@
 //Developed by _ItsAndrew_
 package me.itsandrew.playtimeUtils;
 
-import org.bukkit.event.inventory.PrepareSmithingEvent;
-
 import java.io.File;
 import java.sql.*;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -108,6 +108,33 @@ public class DbManager {
         }
 
         return 0;
+    }
+
+    public Map<UUID, String> getTop3Players(){
+        Map<UUID, Integer> top3PlayersSeconds = new HashMap<>();
+
+        //Getting the map in seconds
+        String statement = "SELECT playtime, uuid FROM playersPlaytime ORDER BY playtime DESC LIMIT 3";
+        try(PreparedStatement ps = dbConnection.prepareStatement(statement)){
+            try(ResultSet rs = ps.executeQuery()){
+                while(rs.next()){
+                    UUID playerUUID = UUID.fromString(rs.getString("uuid"));
+                    int playtime = rs.getInt("playtime") + plugin.getPlaytimeMap().getOrDefault(playerUUID, 0);
+                    top3PlayersSeconds.put(playerUUID, playtime);
+                }
+            }
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+
+        //Parsing the map into a <UUID, String>
+        Map<UUID, String> finalTop3Players = new HashMap<>();
+        for(Map.Entry<UUID, Integer> entry : top3PlayersSeconds.entrySet()){
+            UUID playerUUID = entry.getKey();
+            finalTop3Players.put(playerUUID, getPlaytimeString(playerUUID));
+        }
+
+        return finalTop3Players;
     }
 
     public boolean isPlayerRegistered(UUID playerUUID){
