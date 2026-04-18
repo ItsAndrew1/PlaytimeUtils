@@ -24,20 +24,24 @@ public class PlayerJoin implements Listener {
 
         //Checking if the player is registered or not in the db
         boolean toggleFirstJoin = plugin.getConfig().getBoolean("first-join.toggle", true);
-        if(!plugin.getDatabaseManager().isPlayerRegistered(player.getUniqueId()) && toggleFirstJoin){
-            String title = ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("first-join.title", "&aWelcome to the server!"));
-            title = PlaceholderAPI.setPlaceholders(player, title);
+        if(!plugin.getDatabaseManager().isPlayerRegistered(player.getUniqueId())){
+            plugin.getDatabaseManager().createPlayerRow(player.getUniqueId());
 
-            String subtitle = ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("first-join.subtitle", "&aEnjoy your stay!"));
-            subtitle = PlaceholderAPI.setPlaceholders(player, subtitle);
+            if(toggleFirstJoin){
+                String title = ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("first-join.title", "&aWelcome to the server!"));
+                title = PlaceholderAPI.setPlaceholders(player, title);
 
-            player.sendTitle(title, subtitle);
+                String subtitle = ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("first-join.subtitle", "&aEnjoy your stay!"));
+                subtitle = PlaceholderAPI.setPlaceholders(player, subtitle);
+
+                player.sendTitle(title, subtitle);
 
 
-            Sound firstJoinSound = Registry.SOUNDS.get(new NamespacedKey(plugin, plugin.getConfig().getString("first-join.sound", "ENTITY_PLAYER_LEVELUP").toUpperCase()));
-            float fjsVolume = plugin.getConfig().getInt("first-join.sound-volume", 1);
-            float fjsPitch = plugin.getConfig().getInt("first-join.sound-pitch", 1);
-            player.playSound(player.getLocation(), firstJoinSound, fjsVolume, fjsPitch);
+                Sound firstJoinSound = Registry.SOUNDS.get(new NamespacedKey(plugin, plugin.getConfig().getString("first-join.sound", "ENTITY_PLAYER_LEVELUP").toUpperCase()));
+                float fjsVolume = plugin.getConfig().getInt("first-join.sound-volume", 1);
+                float fjsPitch = plugin.getConfig().getInt("first-join.sound-pitch", 1);
+                player.playSound(player.getLocation(), firstJoinSound, fjsVolume, fjsPitch);
+            }
         }
 
         //Putting the player in the maps

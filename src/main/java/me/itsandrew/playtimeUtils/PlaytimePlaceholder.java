@@ -5,6 +5,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -42,55 +43,71 @@ public class PlaytimePlaceholder extends PlaceholderExpansion {
             return plugin.getDatabaseManager().getPlaytimeString(player.getUniqueId());
         }
 
-        Map<UUID, String> top3Map = plugin.getDatabaseManager().getTop3Players();
+        List<Map.Entry<UUID, Integer>> top3Map = plugin.getDatabaseManager().getTop3Players();
         //Use '%playtime_top1ign%' to display the top 1 player IGN
         if(params.equalsIgnoreCase("top1ign")) {
-            Map.Entry<UUID, String> top1 = top3Map.entrySet().stream().toList().getFirst();
-            if(top1 == null) return " ";
-
-            OfflinePlayer targetPlayer = Bukkit.getOfflinePlayer(top1.getKey());
-            return targetPlayer.getName();
+            try{
+                Map.Entry<UUID, Integer> top1 = top3Map.getFirst();
+                OfflinePlayer targetPlayer = Bukkit.getOfflinePlayer(top1.getKey());
+                return targetPlayer.getName();
+            } catch (Exception e){
+                return " ";
+            }
         }
         //Use '%playtime_top1%' to display the top 1 player playtime
         if(params.equalsIgnoreCase("top1")) {
-            Map.Entry<UUID, String> top1 = top3Map.entrySet().stream().toList().getFirst();
-            if(top1 == null) return " ";
-
-            return top1.getValue();
+            try{
+                Map.Entry<UUID, Integer> top1 = top3Map.getFirst();
+                OfflinePlayer targetPlayer = Bukkit.getOfflinePlayer(top1.getKey());
+                return plugin.getDatabaseManager().getPlaytimeString(targetPlayer.getUniqueId());
+            }
+            catch (Exception e){
+                return " ";
+            }
         }
 
 
         //Use '%playtime_top2ign%' to display the top 2 player IGN
         if(params.equalsIgnoreCase("top2ign")) {
-            Map.Entry<UUID, String> top2 = top3Map.entrySet().stream().toList().get(1);
-            if(top2 == null) return " ";
-
-            OfflinePlayer targetPlayer = Bukkit.getOfflinePlayer(top2.getKey());
-            return targetPlayer.getName();
+            try{
+                Map.Entry<UUID, Integer> top2 = top3Map.get(1);
+                OfflinePlayer targetPlayer = Bukkit.getOfflinePlayer(top2.getKey());
+                return targetPlayer.getName();
+            }catch (Exception e){
+                return " ";
+            }
         }
         //Use '%playtime_top2%' to display the top 2 player playtime
         if(params.equalsIgnoreCase("top2")) {
-            Map.Entry<UUID, String> top2 = top3Map.entrySet().stream().toList().get(1);
-            if(top2 == null) return " ";
-            return top2.getValue();
+            try{
+                Map.Entry<UUID, Integer> top2 = top3Map.get(1);
+                OfflinePlayer targetPlayer = Bukkit.getOfflinePlayer(top2.getKey());
+                return plugin.getDatabaseManager().getPlaytimeString(targetPlayer.getUniqueId());
+            } catch (Exception e){
+                return " ";
+            }
         }
 
         //Use '%playtime_top3ign%' to display the top 3 player IGN
         if(params.equalsIgnoreCase("top3ign")) {
-            Map.Entry<UUID, String> top3 = top3Map.entrySet().stream().toList().get(2);
-            if(top3 == null) return " ";
-
-            OfflinePlayer targetPlayer = Bukkit.getOfflinePlayer(top3.getKey());
-            return targetPlayer.getName();
+            try{
+                Map.Entry<UUID, Integer> top3 = top3Map.get(2);
+                OfflinePlayer targetPlayer = Bukkit.getOfflinePlayer(top3.getKey());
+                return targetPlayer.getName();
+            } catch (Exception e){
+                return " ";
+            }
         }
         //Use '%playtime_top3' to display the top 3 player playtime
         if(params.equalsIgnoreCase("top3")) {
-            Map.Entry<UUID, String> top3 = top3Map.entrySet().stream().toList().get(2);
-            if(top3 == null) return " ";
-            return top3.getValue();
+            try{
+                Map.Entry<UUID, Integer> top3 = top3Map.get(2);
+                OfflinePlayer targetPlayer = Bukkit.getOfflinePlayer(top3.getKey());
+                return plugin.getDatabaseManager().getPlaytimeString(targetPlayer.getUniqueId());
+            } catch (Exception e){
+                return " ";
+            }
         }
-
-
 
         return null;
     }

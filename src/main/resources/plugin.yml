@@ -23,6 +23,10 @@ permissions:
     description: Allows the player to view the top 3 playtime leaderboard
     default: true
 
+  playtimeutils.reload:
+    description: Allows the player to reload the plugin's configuration.
+    default: op
+
 
 commands:
   myplaytime:
@@ -36,3 +40,7 @@ commands:
   topplaytime:
     description: See the top 3 playtime leaderboard
     permission: playtimeutils.topplaytime
+
+  ptutilsreload:
+    description: Reloads the plugin's configuration.
+    permission: playtimeutils.reload

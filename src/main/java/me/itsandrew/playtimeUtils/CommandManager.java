@@ -36,7 +36,7 @@ public class CommandManager implements CommandExecutor {
                 return true;
             }
 
-            String playtimeMessage = ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("messages.your-playtime", "&aYour playtime is &e&l%playtime_value% &a!"));
+            String playtimeMessage = ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("messages.my-playtime", "&aYour playtime is &e&l%playtime_value%&a!"));
             playtimeMessage = PlaceholderAPI.setPlaceholders(player, playtimeMessage);
             player.sendMessage(playtimeMessage);
             player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
@@ -85,6 +85,21 @@ public class CommandManager implements CommandExecutor {
                 line = PlaceholderAPI.setPlaceholders(player, line);
                 player.sendMessage(line);
             }
+        }
+
+        if(command.getName().equalsIgnoreCase("ptutilsreload")){
+            //Checking if the player has permission.
+            if(!player.hasPermission("playtimeutils.reload")){
+                player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
+                player.sendMessage(noPermissionMessage);
+                return true;
+            }
+
+            plugin.reloadConfig();
+            String chatPrefix = ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("chat-prefix", "&f&l[&e&lPUtils&f&l]"));
+            player.sendMessage(ChatColor.translateAlternateColorCodes('&', chatPrefix + " &aPlaytimeUtils has been reloaded!"));
+            player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1, 1.4f);
+            return true;
         }
 
         return false;

@@ -29,14 +29,15 @@ messages:
   #                        '%playtime_top2ign%'/'%playtime_top2%' -> Top 2 player's IGN/Playtime
   #                        '%playtime_top3ign%'/'%playtime_top3%' -> Top 3 player's IGN/Playtime
   top-3-players:
-    - "&c&l------------------------------------------"
+    - "&c&l---------------------------------"
     - " "
     - "                  &d&lTOP PLAYTIME"
-    - "       &e&l1. &e%playtime_top1ign% &f%playtime_top1%"
-    - "       &7&l2. &7%playtime_top2ign% &f%playtime_top2%"
-    - "       &6&l3. &6%playtime_top3ign% &f%playtime_top3%"
     - " "
-    - "&c&l------------------------------------------"
+    - "           &e&l1. &e%playtime_top1ign%   &f%playtime_top1%"
+    - "           &7&l2. &7%playtime_top2ign%   &f%playtime_top2%"
+    - "           &6&l3. &6%playtime_top3ign%   &f%playtime_top3%"
+    - " "
+    - "&c&l---------------------------------"
 
 #Set the seconds for when a player should be set on AFK
 afk-seconds: 4 #In seconds!

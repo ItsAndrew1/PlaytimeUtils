@@ -37,6 +37,7 @@ public final class PlaytimeUtils extends JavaPlugin implements Listener {
         getCommand("myplaytime").setExecutor(new CommandManager(this));
         getCommand("playtime").setExecutor(new CommandManager(this));
         getCommand("topplaytime").setExecutor(new CommandManager(this));
+        getCommand("ptutilsreload").setExecutor(new CommandManager(this));
 
         //Registering events.
         getServer().getPluginManager().registerEvents(new PlayerJoin(this), this);
@@ -123,10 +124,7 @@ public final class PlaytimeUtils extends JavaPlugin implements Listener {
 
         //Saving the playtime in the database
         if(databaseManager.isPlayerRegistered(player.getUniqueId())) databaseManager.updatePlayerPlaytime(player.getUniqueId(), playtimeMap.get(player.getUniqueId()));
-        else{
-            databaseManager.createPlayerRow(player.getUniqueId());
-            databaseManager.updatePlayerPlaytime(player.getUniqueId(), playtimeMap.get(player.getUniqueId()));
-        }
+        else databaseManager.updatePlayerPlaytime(player.getUniqueId(), databaseManager.getPlaytime(player.getUniqueId()) + playtimeMap.get(player.getUniqueId()));
 
         //Removing the player from the Map
         playtimeMap.remove(player.getUniqueId());

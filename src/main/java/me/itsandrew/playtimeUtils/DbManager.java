@@ -3,9 +3,7 @@ package me.itsandrew.playtimeUtils;
 
 import java.io.File;
 import java.sql.*;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 //Main class for managing the database.
@@ -110,7 +108,7 @@ public class DbManager {
         return 0;
     }
 
-    public Map<UUID, String> getTop3Players(){
+    public List<Map.Entry<UUID, Integer>> getTop3Players(){
         Map<UUID, Integer> top3PlayersSeconds = new HashMap<>();
 
         //Getting the map in seconds
@@ -123,18 +121,16 @@ public class DbManager {
                     top3PlayersSeconds.put(playerUUID, playtime);
                 }
             }
-        } catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
-        //Parsing the map into a <UUID, String>
-        Map<UUID, String> finalTop3Players = new HashMap<>();
-        for(Map.Entry<UUID, Integer> entry : top3PlayersSeconds.entrySet()){
-            UUID playerUUID = entry.getKey();
-            finalTop3Players.put(playerUUID, getPlaytimeString(playerUUID));
-        }
+        //Sorting the map by seconds
+        List<Map.Entry<UUID, Integer>> sortedList = new ArrayList<>(top3PlayersSeconds.entrySet());
+        sortedList.sort((a, b) -> b.getValue().compareTo(a.getValue()));
+        if(sortedList.size() > 3) sortedList.subList(0, 3);
 
-        return finalTop3Players;
+        return sortedList;
     }
 
     public boolean isPlayerRegistered(UUID playerUUID){
