@@ -3,6 +3,7 @@ package me.itsandrew.playtimeUtils;
 
 import io.papermc.paper.event.player.AsyncChatEvent;
 import me.clip.placeholderapi.PlaceholderAPI;
+import net.luckperms.api.LuckPerms;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
@@ -11,6 +12,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.HashMap;
@@ -24,6 +26,7 @@ public final class PlaytimeUtils extends JavaPlugin implements Listener {
     private final Map<UUID, Integer> playtimeMap = new HashMap<>();
     private final Map<UUID, Long> lastActivity = new HashMap<>();
     private final Map<UUID, Boolean> afkMap = new HashMap<>();
+    private LuckPerms luckpermsAPI;
 
     @Override
     public void onEnable() {
@@ -56,6 +59,10 @@ public final class PlaytimeUtils extends JavaPlugin implements Listener {
             getServer().getPluginManager().disablePlugin(this);
             return;
         }
+
+        //Connecting the LuckPerms API (if LuckPerms plugin exists)
+        RegisteredServiceProvider<LuckPerms> provider = Bukkit.getServicesManager().getRegistration(LuckPerms.class);
+        if(provider != null) luckpermsAPI = provider.getProvider();
 
         //Enabling the PlaytimeUtils Placeholders Extension
         if(Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null) new PlaytimePlaceholder(this).register();
@@ -139,5 +146,8 @@ public final class PlaytimeUtils extends JavaPlugin implements Listener {
     }
     public Map<UUID, Long> getLastActivity() {
         return lastActivity;
+    }
+    public LuckPerms getLuckPermsAPI() {
+        return luckpermsAPI;
     }
 }
