@@ -4,6 +4,9 @@ package me.itsandrew.playtimeUtils;
 import io.papermc.paper.event.player.AsyncChatEvent;
 import me.clip.placeholderapi.PlaceholderAPI;
 import net.luckperms.api.LuckPerms;
+import net.luckperms.api.model.group.Group;
+import net.luckperms.api.model.user.User;
+import net.luckperms.api.node.Node;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
@@ -26,6 +29,7 @@ public final class PlaytimeUtils extends JavaPlugin implements Listener {
     private final Map<UUID, Integer> playtimeMap = new HashMap<>();
     private final Map<UUID, Long> lastActivity = new HashMap<>();
     private final Map<UUID, Boolean> afkMap = new HashMap<>();
+    private final Map<UUID, String> playerInitialGroups = new HashMap<>();
     private LuckPerms luckpermsAPI;
 
     @Override
@@ -62,7 +66,7 @@ public final class PlaytimeUtils extends JavaPlugin implements Listener {
 
         //Connecting the LuckPerms API (if LuckPerms plugin exists)
         RegisteredServiceProvider<LuckPerms> provider = Bukkit.getServicesManager().getRegistration(LuckPerms.class);
-        if(provider != null) luckpermsAPI = provider.getProvider();
+        if(provider != null && getServer().getPluginManager().isPluginEnabled("LuckPerms")) luckpermsAPI = provider.getProvider();
 
         //Enabling the PlaytimeUtils Placeholders Extension
         if(Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null) new PlaytimePlaceholder(this).register();
@@ -82,13 +86,42 @@ public final class PlaytimeUtils extends JavaPlugin implements Listener {
                     chatMessage = PlaceholderAPI.setPlaceholders(player, chatMessage);
                     player.sendMessage(ChatColor.translateAlternateColorCodes('&', chatMessage));
 
-                    afkMap.put(player.getUniqueId(), true);
+                    //Putting the player in an "AFK" group (if luckperms is enabled)
+                    if (luckpermsAPI != null){
+                        luckpermsAPI.getUserManager().modifyUser(player.getUniqueId(), user -> {
+                            //Saving the initial group in a map
+                            playerInitialGroups.put(player.getUniqueId(), user.getPrimaryGroup());
+
+                            //Setting the AFK group to the player
+                            try{
+                                Group afkGroup = luckpermsAPI.getGroupManager().getGroup(this.getConfig().getString("lp-afk-group-name"));
+                                user.setPrimaryGroup(afkGroup.getName());
+                                afkMap.put(player.getUniqueId(), true);
+                            } catch (Exception e){
+                                getLogger().warning("[PlaytimeUtils] The AFK group is invalid!");
+                                afkMap.put(player.getUniqueId(), true);
+                            }
+                        });
+                    }
                     continue;
                 }
 
                 playtimeMap.compute(player.getUniqueId(), (k, playtime) -> playtime + 1);
             }
         }, 0, 20);
+    }
+
+    private void removeAfkGroupFromPlayer(Player player){
+        if(luckpermsAPI == null) return;
+        if(!playerInitialGroups.containsKey(player.getUniqueId())) return;
+
+        luckpermsAPI.getUserManager().modifyUser(player.getUniqueId(), user -> {
+            String savedGroupName = playerInitialGroups.get(player.getUniqueId());
+            user.setPrimaryGroup(savedGroupName);
+        });
+
+        //Removing the saved group from the map
+        playerInitialGroups.remove(player.getUniqueId());
     }
 
     @Override
@@ -119,6 +152,9 @@ public final class PlaytimeUtils extends JavaPlugin implements Listener {
                 event.getPlayer().sendMessage(ChatColor.translateAlternateColorCodes('&', message));
 
                 afkMap.remove(event.getPlayer().getUniqueId());
+
+                //Removing the AFK group from the player
+                removeAfkGroupFromPlayer(event.getPlayer());
             }
 
             lastActivity.put(event.getPlayer().getUniqueId(), System.currentTimeMillis());
@@ -133,8 +169,13 @@ public final class PlaytimeUtils extends JavaPlugin implements Listener {
         if(databaseManager.isPlayerRegistered(player.getUniqueId())) databaseManager.updatePlayerPlaytime(player.getUniqueId(), playtimeMap.get(player.getUniqueId()));
         else databaseManager.updatePlayerPlaytime(player.getUniqueId(), databaseManager.getPlaytime(player.getUniqueId()) + playtimeMap.get(player.getUniqueId()));
 
-        //Removing the player from the Map
+        //Removing the player from the Maps
         playtimeMap.remove(player.getUniqueId());
+        afkMap.remove(player.getUniqueId());
+        lastActivity.remove(player.getUniqueId());
+
+        //Removing the AFK group from the player (if he is afk)
+        removeAfkGroupFromPlayer(player);
     }
 
     //Getters
