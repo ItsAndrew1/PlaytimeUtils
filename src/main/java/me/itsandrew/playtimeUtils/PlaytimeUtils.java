@@ -7,6 +7,7 @@ import net.luckperms.api.LuckPerms;
 import net.luckperms.api.model.group.Group;
 import net.luckperms.api.model.user.User;
 import net.luckperms.api.node.Node;
+import net.luckperms.api.node.types.PrefixNode;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
@@ -89,20 +90,20 @@ public final class PlaytimeUtils extends JavaPlugin implements Listener {
                     //Putting the player in an "AFK" group (if luckperms is enabled)
                     if (luckpermsAPI != null){
                         luckpermsAPI.getUserManager().modifyUser(player.getUniqueId(), user -> {
-                            //Saving the initial group in a map
-                            playerInitialGroups.put(player.getUniqueId(), user.getPrimaryGroup());
-
-                            //Setting the AFK group to the player
+                            //Setting the AFK prefix to the player
                             try{
-                                Group afkGroup = luckpermsAPI.getGroupManager().getGroup(this.getConfig().getString("lp-afk-group-name"));
-                                user.setPrimaryGroup(afkGroup.getName());
-                                afkMap.put(player.getUniqueId(), true);
+                                String prefixString = getConfig().getString("lp-afk-prefix", "&7&l[AFK] &7");
+                                PrefixNode prefix = PrefixNode.builder(prefixString, 100000).build();
+                                user.data().add(prefix);
+                                luckpermsAPI.getUserManager().saveUser(user);
                             } catch (Exception e){
-                                getLogger().warning("[PlaytimeUtils] The AFK group is invalid!");
-                                afkMap.put(player.getUniqueId(), true);
+                                getLogger().severe("[PlaytimeUtils] There was an error assigning the AFK Prefix. See message below:");
+                                getLogger().severe("[PlaytimeUtils] " + e.getMessage());
                             }
                         });
                     }
+
+                    afkMap.put(player.getUniqueId(), true);
                     continue;
                 }
 
@@ -111,17 +112,15 @@ public final class PlaytimeUtils extends JavaPlugin implements Listener {
         }, 0, 20);
     }
 
-    private void removeAfkGroupFromPlayer(Player player){
+    private void removeAfkPrefixNodeFromPlayer(Player player){
         if(luckpermsAPI == null) return;
-        if(!playerInitialGroups.containsKey(player.getUniqueId())) return;
 
         luckpermsAPI.getUserManager().modifyUser(player.getUniqueId(), user -> {
-            String savedGroupName = playerInitialGroups.get(player.getUniqueId());
-            user.setPrimaryGroup(savedGroupName);
+            String prefix = getConfig().getString("lp-afk-prefix", "&7&l[AFK] &7");
+            PrefixNode prefixNode = PrefixNode.builder(prefix, 100000).build();
+            user.data().remove(prefixNode);
+            luckpermsAPI.getUserManager().saveUser(user);
         });
-
-        //Removing the saved group from the map
-        playerInitialGroups.remove(player.getUniqueId());
     }
 
     @Override
@@ -154,7 +153,7 @@ public final class PlaytimeUtils extends JavaPlugin implements Listener {
                 afkMap.remove(event.getPlayer().getUniqueId());
 
                 //Removing the AFK group from the player
-                removeAfkGroupFromPlayer(event.getPlayer());
+                removeAfkPrefixNodeFromPlayer(event.getPlayer());
             }
 
             lastActivity.put(event.getPlayer().getUniqueId(), System.currentTimeMillis());
@@ -175,7 +174,7 @@ public final class PlaytimeUtils extends JavaPlugin implements Listener {
         lastActivity.remove(player.getUniqueId());
 
         //Removing the AFK group from the player (if he is afk)
-        removeAfkGroupFromPlayer(player);
+        removeAfkPrefixNodeFromPlayer(player);
     }
 
     //Getters
