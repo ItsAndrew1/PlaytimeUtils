@@ -1,19 +1,14 @@
 //Developed by _ItsAndrew_
 package me.itsandrew.playtimeUtils;
 
-import io.papermc.paper.event.player.AsyncChatEvent;
 import me.clip.placeholderapi.PlaceholderAPI;
 import net.luckperms.api.LuckPerms;
-import net.luckperms.api.model.group.Group;
-import net.luckperms.api.model.user.User;
-import net.luckperms.api.node.Node;
 import net.luckperms.api.node.types.PrefixNode;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.RegisteredServiceProvider;
@@ -186,8 +181,5 @@ public final class PlaytimeUtils extends JavaPlugin implements Listener {
     }
     public Map<UUID, Long> getLastActivity() {
         return lastActivity;
-    }
-    public LuckPerms getLuckPermsAPI() {
-        return luckpermsAPI;
     }
 }
