@@ -25,7 +25,6 @@ public final class PlaytimeUtils extends JavaPlugin implements Listener {
     private final Map<UUID, Integer> playtimeMap = new HashMap<>();
     private final Map<UUID, Long> lastActivity = new HashMap<>();
     private final Map<UUID, Boolean> afkMap = new HashMap<>();
-    private final Map<UUID, String> playerInitialGroups = new HashMap<>();
     private LuckPerms luckpermsAPI;
 
     @Override
