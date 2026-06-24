@@ -1,3 +1,5 @@
+<img src = "https://img.shields.io/github/v/release/ItsAndrew1/PlaytimeUtils?display_name=tag&style=flat&label=Plugin%20Version"> <img src = "https://img.shields.io/badge/Minecraft%20Version-1.21%2B-green?style=flat">  <img src = "https://img.shields.io/modrinth/dt/MJmnDxVw?style=flat&label=Modrinth%20Downloads">
+
 # PlaytimeUtils 
 
 **PlaytimeUtils** is a powerful, lightweight **playtime tracking plugin** for Minecraft servers, designed to effortlessly monitor player activity. Track engagement with a top 3 leaderboard and manage active players with ease!
