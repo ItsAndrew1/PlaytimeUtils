@@ -70,7 +70,7 @@ public final class PlaytimeUtils extends JavaPlugin implements Listener {
         getLogger().info("[PlaytimeUtils] Plugin enabled successfully.");
 
         //Starting the task to track the playtime of players
-        getServer().getScheduler().runTaskTimerAsynchronously(this, () -> {
+        getServer().getScheduler().runTaskTimer(this, () -> {
             for(Player player : Bukkit.getOnlinePlayers()){
                 //Skipping if the player is already AFK
                 if(afkMap.containsKey(player.getUniqueId())) continue;
@@ -137,7 +137,7 @@ public final class PlaytimeUtils extends JavaPlugin implements Listener {
     @EventHandler
     public void onPlayerMove(PlayerMoveEvent event){
         //Checking if the player moves (with WASD SPACE etc.).
-        if(event.getFrom().toVector().distanceSquared(event.getTo().toVector()) > 0.03){
+        if(event.getFrom().toVector().distanceSquared(event.getTo().toVector()) > 0.15){
             //Checking if the player is already AFK
             if(isPlayerAFK(event.getPlayer().getUniqueId())){
                 String message = getConfig().getString("messages.player-no-more-afk", "&7You are not AFK anymore.");
