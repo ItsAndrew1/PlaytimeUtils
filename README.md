@@ -3,10 +3,10 @@
 **PlaytimeUtils** is a powerful, lightweight **playtime tracking plugin** for Minecraft servers, designed to effortlessly monitor player activity. Track engagement with a top 3 leaderboard and manage active players with ease!
 
 ## 💎 Features
-* **⚡ Optimized AFK Detection:** Super-lightweight movement tracking (`distanceSquared`) to keep server performance pristine.
+* **⚡ Optimized AFK Detection:** Super-lightweight movement tracking to keep server performance clean.
 * **💾 Dual Database Support:** Works seamlessly with local **SQLite** (`.db`) or remote **MySQL** networks.
-* **🏆 Top 3 Leaderboard:** Reward and showcase your most dedicated players.
-* **🏷️ Dynamic AFK Prefix:** Automatically assign custom prefixes to active/inactive players.
+* **🏆 Top 3 Leaderboard:** Showcase your most dedicated players.
+* **🏷️ Dynamic AFK Prefix:** Automatically assign custom prefixes to inactive players.
 * **🎉 First-Join Celebrations:** Fully configurable titles, subtitles, and sounds for new players.
 
 And much more! See **config.yml** for all the features.
