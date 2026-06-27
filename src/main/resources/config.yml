@@ -54,3 +54,16 @@ first-join:
   sound: ENTITY_PLAYER_LEVELUP
   sound-volume: 1.0
   sound-pitch: 1.0
+
+
+#Configure the Reward System. This will be like a mini-tournament system.
+reward-system:
+  toggle: true #If you want to use Rewards or not.
+
+  #Set the timer for the tournament. (In DAYS)
+  tournament-timer: 7 #As you can see, by default it is set to 7 days/1 week.
+
+  #Configure the items/exp levels that will be given to players who win the tournament.
+  exp-levels:
+  items:
+

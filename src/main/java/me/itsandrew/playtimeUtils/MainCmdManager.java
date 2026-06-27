@@ -14,10 +14,10 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
-public class CommandManager implements CommandExecutor {
+public class MainCmdManager implements CommandExecutor {
     private final PlaytimeUtils plugin;
 
-    public CommandManager(PlaytimeUtils plugin) {
+    public MainCmdManager(PlaytimeUtils plugin) {
         this.plugin = plugin;
     }
 
@@ -95,6 +95,15 @@ public class CommandManager implements CommandExecutor {
             }
 
             plugin.reloadConfig();
+
+            //Checking if the reward system toggle is false;
+            boolean toggleRewardSystem = plugin.getConfig().getBoolean("reward-system.toggle", true);
+            if(!toggleRewardSystem){
+                Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+                    plugin.getDatabaseManager().wipeRewardPlaytime();
+                });
+            }
+
             String chatPrefix = ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("chat-prefix", "&f&l[&e&lPUtils&f&l]"));
             player.sendMessage(ChatColor.translateAlternateColorCodes('&', chatPrefix + " &aPlaytimeUtils has been reloaded!"));
             player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1, 1.4f);

@@ -40,7 +40,7 @@ public class PlaytimePlaceholder extends PlaceholderExpansion {
     public String onRequest(OfflinePlayer player, @NotNull String params) {
         //Use '%playtime_value%' to display the playtime of a player
         if(params.equalsIgnoreCase("value")) {
-            return plugin.getDatabaseManager().getPlaytimeString(player.getUniqueId());
+            return plugin.getDatabaseManager().getMainPlaytimeString(player.getUniqueId());
         }
 
         List<Map.Entry<UUID, Integer>> top3Map = plugin.getDatabaseManager().getTop3Players();
@@ -59,7 +59,7 @@ public class PlaytimePlaceholder extends PlaceholderExpansion {
             try{
                 Map.Entry<UUID, Integer> top1 = top3Map.getFirst();
                 OfflinePlayer targetPlayer = Bukkit.getOfflinePlayer(top1.getKey());
-                return plugin.getDatabaseManager().getPlaytimeString(targetPlayer.getUniqueId());
+                return plugin.getDatabaseManager().getMainPlaytimeString(targetPlayer.getUniqueId());
             }
             catch (Exception e){
                 return " ";
@@ -82,7 +82,7 @@ public class PlaytimePlaceholder extends PlaceholderExpansion {
             try{
                 Map.Entry<UUID, Integer> top2 = top3Map.get(1);
                 OfflinePlayer targetPlayer = Bukkit.getOfflinePlayer(top2.getKey());
-                return plugin.getDatabaseManager().getPlaytimeString(targetPlayer.getUniqueId());
+                return plugin.getDatabaseManager().getMainPlaytimeString(targetPlayer.getUniqueId());
             } catch (Exception e){
                 return " ";
             }
@@ -103,7 +103,7 @@ public class PlaytimePlaceholder extends PlaceholderExpansion {
             try{
                 Map.Entry<UUID, Integer> top3 = top3Map.get(2);
                 OfflinePlayer targetPlayer = Bukkit.getOfflinePlayer(top3.getKey());
-                return plugin.getDatabaseManager().getPlaytimeString(targetPlayer.getUniqueId());
+                return plugin.getDatabaseManager().getMainPlaytimeString(targetPlayer.getUniqueId());
             } catch (Exception e){
                 return " ";
             }

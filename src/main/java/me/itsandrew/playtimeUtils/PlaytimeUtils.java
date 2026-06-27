@@ -36,10 +36,10 @@ public final class PlaytimeUtils extends JavaPlugin implements Listener {
         databaseManager = new DbManager(this);
 
         //Registering commands.
-        getCommand("myplaytime").setExecutor(new CommandManager(this));
-        getCommand("playtime").setExecutor(new CommandManager(this));
-        getCommand("topplaytime").setExecutor(new CommandManager(this));
-        getCommand("ptutilsreload").setExecutor(new CommandManager(this));
+        getCommand("myplaytime").setExecutor(new MainCmdManager(this));
+        getCommand("playtime").setExecutor(new MainCmdManager(this));
+        getCommand("topplaytime").setExecutor(new MainCmdManager(this));
+        getCommand("ptutilsreload").setExecutor(new MainCmdManager(this));
 
         //Registering events.
         getServer().getPluginManager().registerEvents(new PlayerJoin(this), this);
@@ -70,7 +70,7 @@ public final class PlaytimeUtils extends JavaPlugin implements Listener {
         getLogger().info("[PlaytimeUtils] Plugin enabled successfully.");
 
         //Starting the task to track the playtime of players
-        getServer().getScheduler().runTaskTimerAsynchronously(this, () -> {
+        getServer().getScheduler().runTaskTimer(this, () -> {
             for(Player player : Bukkit.getOnlinePlayers()){
                 //Skipping if the player is already AFK
                 if(afkMap.containsKey(player.getUniqueId())) continue;
@@ -123,7 +123,9 @@ public final class PlaytimeUtils extends JavaPlugin implements Listener {
 
         //Saving the playtime of all players to the database
         for(UUID playerUUID : playtimeMap.keySet()){
-            databaseManager.updatePlayerPlaytime(playerUUID, databaseManager.getPlaytime(playerUUID) + playtimeMap.get(playerUUID));
+            databaseManager.updatePlayerMainPlaytime(playerUUID, playtimeMap.get(playerUUID));
+            boolean toggleRewardSystem = getConfig().getBoolean("reward-system.toggle", true);
+            if(toggleRewardSystem) databaseManager.updatePlayerRewardPlaytime(playerUUID, playtimeMap.get(playerUUID));
         }
 
         getLogger().info("[PlaytimeUtils] Plugin disabled successfully.");
@@ -159,8 +161,13 @@ public final class PlaytimeUtils extends JavaPlugin implements Listener {
         Player player = event.getPlayer();
 
         //Saving the playtime in the database
-        if(databaseManager.isPlayerRegistered(player.getUniqueId())) databaseManager.updatePlayerPlaytime(player.getUniqueId(), playtimeMap.get(player.getUniqueId()));
-        else databaseManager.updatePlayerPlaytime(player.getUniqueId(), databaseManager.getPlaytime(player.getUniqueId()) + playtimeMap.get(player.getUniqueId()));
+        UUID playerUUID = player.getUniqueId();
+        boolean toggleRewardSystem = getConfig().getBoolean("reward-system.toggle", true);
+        int currentPlaytime = playtimeMap.get(playerUUID);
+        Bukkit.getScheduler().runTaskAsynchronously(this, () -> {
+            databaseManager.updatePlayerMainPlaytime(playerUUID, currentPlaytime);
+            if(toggleRewardSystem) databaseManager.updatePlayerRewardPlaytime(playerUUID, currentPlaytime);
+        });
 
         //Removing the player from the Maps
         playtimeMap.remove(player.getUniqueId());

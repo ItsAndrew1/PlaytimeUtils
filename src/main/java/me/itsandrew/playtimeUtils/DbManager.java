@@ -59,7 +59,8 @@ public class DbManager {
         String playtimeTable = """
                 CREATE TABLE IF NOT EXISTS playersPlaytime (
                     uuid TEXT PRIMARY KEY,
-                    playtime INTEGER
+                    mainPlaytime INTEGER,
+                    rewardPlaytime INTEGER
                 )
                 """;
         try(PreparedStatement statement = dbConnection.prepareStatement(playtimeTable)) {
@@ -68,9 +69,9 @@ public class DbManager {
         }
     }
 
-    public String getPlaytimeString(UUID playerUUID){
+    public String getMainPlaytimeString(UUID playerUUID){
         //Getting the playtime of the player from the db
-        long seconds = getPlaytime(playerUUID);
+        long seconds = getMainPlaytime(playerUUID);
 
         //Also adding the seconds from the playtime map
         seconds += plugin.getPlaytimeMap().getOrDefault(playerUUID, 0);
@@ -92,8 +93,8 @@ public class DbManager {
         return time.toString();
     }
 
-    public int getPlaytime(UUID playerUUID){
-        String statement = "SELECT playtime FROM playersPlaytime WHERE uuid = ?";
+    public int getMainPlaytime(UUID playerUUID){
+        String statement = "SELECT mainPlaytime FROM playersPlaytime WHERE uuid = ?";
         try(PreparedStatement ps = dbConnection.prepareStatement(statement)){
             ps.setString(1, playerUUID.toString());
             try(ResultSet rs = ps.executeQuery()){
@@ -112,12 +113,12 @@ public class DbManager {
         Map<UUID, Integer> top3PlayersSeconds = new HashMap<>();
 
         //Getting the map in seconds
-        String statement = "SELECT playtime, uuid FROM playersPlaytime ORDER BY playtime DESC LIMIT 3";
+        String statement = "SELECT rewardPlaytime, uuid FROM playersPlaytime ORDER BY rewardPlaytime DESC LIMIT 3";
         try(PreparedStatement ps = dbConnection.prepareStatement(statement)){
             try(ResultSet rs = ps.executeQuery()){
                 while(rs.next()){
                     UUID playerUUID = UUID.fromString(rs.getString("uuid"));
-                    int playtime = rs.getInt("playtime") + plugin.getPlaytimeMap().getOrDefault(playerUUID, 0);
+                    int playtime = rs.getInt("rewardPlaytime") + plugin.getPlaytimeMap().getOrDefault(playerUUID, 0);
                     top3PlayersSeconds.put(playerUUID, playtime);
                 }
             }
@@ -148,21 +149,59 @@ public class DbManager {
     }
 
     public void createPlayerRow(UUID playerUUID){
-        String statement = "INSERT INTO playersPlaytime (uuid, playtime) VALUES (?, ?)";
+        String statement = "INSERT INTO playersPlaytime (uuid, mainPlaytime, rewardPlaytime) VALUES (?, ?, ?)";
         try(PreparedStatement ps = dbConnection.prepareStatement(statement)){
             ps.setString(1, playerUUID.toString());
             ps.setInt(2, 0);
+            ps.setInt(3, 0);
             ps.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
         }
     }
 
-    public void updatePlayerPlaytime(UUID playerUUID, int seconds){
-        String statement = "UPDATE playersPlaytime SET playtime = ? WHERE uuid = ?";
+    public int getRewardPlaytime(UUID playerUUID){
+        String SQL = "SELECT rewardPlaytime FROM playersPlaytime WHERE uuid = ?";
+        try(PreparedStatement ps = dbConnection.prepareStatement(SQL)){
+            ps.setString(1, playerUUID.toString());
+            try(ResultSet rs = ps.executeQuery()){
+                if(rs.next()){
+                    return rs.getInt("rewardPlaytime");
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
+    public void wipeRewardPlaytime(){
+        String SQL = "UPDATE playersPlaytime SET rewardPlaytime = 0";
+        try(PreparedStatement ps = dbConnection.prepareStatement(SQL)){
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void updatePlayerMainPlaytime(UUID playerUUID, int seconds){
+        String statement = "UPDATE playersPlaytime SET mainPlaytime = ? WHERE uuid = ?";
         try(PreparedStatement ps = dbConnection.prepareStatement(statement)){
-            ps.setInt(1, seconds + getPlaytime(playerUUID));
+            ps.setInt(1, seconds + getMainPlaytime(playerUUID));
             ps.setString(2, playerUUID.toString());
+
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void updatePlayerRewardPlaytime(UUID playerUUID, int seconds){
+        String statement = "UPDATE playersPlaytime SET rewardPlaytime = ? WHERE uuid = ?";
+        try(PreparedStatement ps = dbConnection.prepareStatement(statement)){
+            ps.setInt(1, seconds + getRewardPlaytime(playerUUID));
+            ps.setString(2, playerUUID.toString());
+
             ps.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();

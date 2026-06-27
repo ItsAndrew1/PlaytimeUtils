@@ -1,6 +1,6 @@
 name: PlaytimeUtils
 description: $description
-version: '${version}'
+version: '1.0'
 
 main: me.itsandrew.playtimeUtils.PlaytimeUtils
 api-version: '1.21'
@@ -8,7 +8,7 @@ load: POSTWORLD
 
 authors: [_ItsAndrew_]
 
-softdepend: [PlaceholderAPI]
+softdepend: [PlaceholderAPI, LuckPerms]
 
 permissions:
   playtimeutils.myplaytime:
@@ -23,24 +23,28 @@ permissions:
     description: Allows the player to view the top 3 playtime leaderboard
     default: true
 
-  playtimeutils.reload:
+  playtimeutils.ptutils:
+    description: Allows the player to use the managing command.
+    default: op
+
+  playtimeutils.ptutils.reload:
     description: Allows the player to reload the plugin's configuration.
     default: op
 
-
 commands:
+  ptutils:
+    description: Main command for PlaytimeUtils.
+    aliases: [ptu]
+    permission: playtimeutils.ptuils
+
   myplaytime:
     description: See your own playtime.
     permission: playtimeutils.myplaytime
 
   playtime:
     description: See someone else's playtime.
-    permission: playtimeutils.myplaytime
+    permission: playtimeutils.playtime
 
   topplaytime:
     description: See the top 3 playtime leaderboard
     permission: playtimeutils.topplaytime
-
-  ptutilsreload:
-    description: Reloads the plugin's configuration.
-    permission: playtimeutils.reload
