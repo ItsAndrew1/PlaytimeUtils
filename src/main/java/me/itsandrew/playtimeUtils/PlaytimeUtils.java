@@ -36,10 +36,10 @@ public final class PlaytimeUtils extends JavaPlugin implements Listener {
         databaseManager = new DbManager(this);
 
         //Registering commands.
-        getCommand("myplaytime").setExecutor(new MainCmdManager(this));
-        getCommand("playtime").setExecutor(new MainCmdManager(this));
-        getCommand("topplaytime").setExecutor(new MainCmdManager(this));
-        getCommand("ptutilsreload").setExecutor(new MainCmdManager(this));
+        getCommand("myplaytime").setExecutor(new CommandManager(this));
+        getCommand("playtime").setExecutor(new CommandManager(this));
+        getCommand("topplaytime").setExecutor(new CommandManager(this));
+        getCommand("ptutilsreload").setExecutor(new CommandManager(this));
 
         //Registering events.
         getServer().getPluginManager().registerEvents(new PlayerJoin(this), this);
