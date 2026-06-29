@@ -2,7 +2,11 @@
 package me.itsandrew.playtimeUtils;
 
 import me.clip.placeholderapi.PlaceholderAPI;
+import me.itsandrew.playtimeUtils.RewardSystem.States.AddRemoveChoice;
+import me.itsandrew.playtimeUtils.RewardSystem.States.StaffState;
+import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.OfflinePlayer;
@@ -192,10 +196,36 @@ public class CommandManager implements CommandExecutor {
                                 }
                             }
 
-                            case ""
+                            case "add" -> {
+                                //Checking if the player has permission.
+                                if(!player.hasPermission("playtimeutils.ptutils.rewards.add")) noPermission(player);
+
+                                //Creating a new StaffState for the specific staff
+                                StaffState newState = new StaffState(AddRemoveChoice.ADD, null, null);
+                                plugin.getStaffStates().put(player, newState);
+
+                                player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_PLING, 1, 1);
+                                plugin.getItemsOrExpGUI().openGUI(player);
+                                return true;
+                            }
+
+                            case "remove" -> {
+                                //Checking if the player has permission.
+                                if(!player.hasPermission("playtimeutils.ptutils.rewards.remove")) noPermission(player);
+
+                                //Creating a new StaffState for the specific staff
+                                StaffState newState = new StaffState(AddRemoveChoice.REMOVE, null, null);
+                                plugin.getStaffStates().put(player, newState);
+
+                                player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_PLING, 1, 1);
+                                plugin.getItemsOrExpGUI().openGUI(player);
+                                return true;
+                            }
 
                             default -> {
-
+                                player.sendMessage(MiniMessage.miniMessage().deserialize("Unknown command."));
+                                player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
+                                return true;
                             }
                         }
                     }
@@ -203,15 +233,17 @@ public class CommandManager implements CommandExecutor {
             }
 
             default -> {
-
+                player.sendMessage(MiniMessage.miniMessage().deserialize("Unknown command."));
+                player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
+                return true;
             }
         }
 
         return false;
     }
 
-    private void noPermission(Player player){
-        String noPermissionMessage = ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("messages.no-permission", "&cYou don't have permission to do that!"));
+    private void noPermission(Player player){;
+        String noPermissionMessage = LegacyComponentSerializer.legacyAmpersand().serialize(Component.text(plugin.getConfig().getString("messages.no-permission", "&cYou don't have permission to do that!")));
         noPermissionMessage = PlaceholderAPI.setPlaceholders(player, noPermissionMessage);
 
         player.sendMessage(noPermissionMessage);

@@ -1,22 +1,34 @@
 //Developed by _ItsAndrew_
 package me.itsandrew.playtimeUtils;
 
+import io.papermc.paper.event.player.AsyncChatEvent;
 import me.clip.placeholderapi.PlaceholderAPI;
+import me.itsandrew.playtimeUtils.RewardSystem.GUIs.AddRewardsGUI;
+import me.itsandrew.playtimeUtils.RewardSystem.GUIs.ChoosePlaceGUI;
+import me.itsandrew.playtimeUtils.RewardSystem.GUIs.ItemsOrExpGUI;
+import me.itsandrew.playtimeUtils.RewardSystem.GUIs.RemoveRewardsGUI;
+import me.itsandrew.playtimeUtils.RewardSystem.States.StaffState;
+import net.kyori.adventure.text.Component;
 import net.luckperms.api.LuckPerms;
 import net.luckperms.api.node.types.PrefixNode;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.function.Consumer;
 
 //Main plugin class.
 public final class PlaytimeUtils extends JavaPlugin implements Listener {
@@ -26,6 +38,13 @@ public final class PlaytimeUtils extends JavaPlugin implements Listener {
     private final Map<UUID, Long> lastActivity = new HashMap<>();
     private final Map<UUID, Boolean> afkMap = new HashMap<>();
     private LuckPerms luckpermsAPI;
+    private final Map<UUID, Consumer<Component>> chatInputMap = new HashMap<>();
+
+    private final Map<Player, StaffState> staffStates = new HashMap<>();
+    private final ItemsOrExpGUI itemsOrExpGUI = new ItemsOrExpGUI(this);
+    private final ChoosePlaceGUI choosePlaceGUI = new ChoosePlaceGUI(this);
+    private final AddRewardsGUI addRewardsGUI = new AddRewardsGUI(this);
+    private final RemoveRewardsGUI removeRewardsGUI = new RemoveRewardsGUI(this);
 
     @Override
     public void onEnable() {
@@ -35,15 +54,20 @@ public final class PlaytimeUtils extends JavaPlugin implements Listener {
         //Creating the necessary objects.
         databaseManager = new DbManager(this);
 
-        //Registering commands.
+        //Registering commands and the TABs.
         getCommand("myplaytime").setExecutor(new CommandManager(this));
         getCommand("playtime").setExecutor(new CommandManager(this));
         getCommand("topplaytime").setExecutor(new CommandManager(this));
-        getCommand("ptutilsreload").setExecutor(new CommandManager(this));
+        getCommand("ptutils").setExecutor(new CommandManager(this));
+        getCommand("ptutils").setTabCompleter(new CommandTABs());
 
         //Registering events.
         getServer().getPluginManager().registerEvents(new PlayerJoin(this), this);
         getServer().getPluginManager().registerEvents(this, this);
+        getServer().getPluginManager().registerEvents(itemsOrExpGUI, this);
+        getServer().getPluginManager().registerEvents(choosePlaceGUI, this);
+        getServer().getPluginManager().registerEvents(addRewardsGUI, this);
+        getServer().getPluginManager().registerEvents(removeRewardsGUI, this);
 
         //Connecting the database
         try{
@@ -156,6 +180,20 @@ public final class PlaytimeUtils extends JavaPlugin implements Listener {
         }
     }
 
+    //Building the functions to handle chat input from the player when needed.
+    @EventHandler
+    public void onPlayerChat(AsyncChatEvent event){
+        if(!chatInputMap.containsKey(event.getPlayer().getUniqueId())) return;
+        event.setCancelled(true);
+
+        Component message = event.message();
+        Consumer<Component> callback = chatInputMap.remove(event.getPlayer().getUniqueId());
+        Bukkit.getScheduler().runTask(this, () -> callback.accept(message));
+    }
+    public void playerInput(Player player, Consumer<Component> callback){
+        chatInputMap.put(player.getUniqueId(), callback);
+    }
+
     @EventHandler
     public void onPlayerQuit(PlayerQuitEvent event){
         Player player = event.getPlayer();
@@ -178,6 +216,23 @@ public final class PlaytimeUtils extends JavaPlugin implements Listener {
         removeAfkPrefixNodeFromPlayer(player);
     }
 
+    //Sets up the decoration for the GUIs
+    public void decorationSetup(Inventory GUI){
+        for(int i = 0; i < 9; i++) {
+            ItemStack decoGlass = new ItemStack(Material.BLACK_STAINED_GLASS_PANE);
+            ItemMeta decoGlassMeta = decoGlass.getItemMeta();
+            if(decoGlassMeta != null) decoGlassMeta.displayName(Component.text(" "));
+            decoGlass.setItemMeta(decoGlassMeta);
+            GUI.setItem(i, decoGlass);
+        }
+        for(int i = 45; i < 54; i++) {
+            ItemStack decoGlass = new ItemStack(Material.BLACK_STAINED_GLASS_PANE);
+            ItemMeta decoGlassMeta = decoGlass.getItemMeta();
+            if(decoGlassMeta != null) decoGlassMeta.displayName(Component.text(" "));
+            decoGlass.setItemMeta(decoGlassMeta);
+        }
+    }
+
     //Getters
     public DbManager getDatabaseManager() {
         return databaseManager;
@@ -187,5 +242,20 @@ public final class PlaytimeUtils extends JavaPlugin implements Listener {
     }
     public Map<UUID, Long> getLastActivity() {
         return lastActivity;
+    }
+    public Map<Player, StaffState> getStaffStates() {
+        return staffStates;
+    }
+    public ItemsOrExpGUI getItemsOrExpGUI() {
+        return itemsOrExpGUI;
+    }
+    public ChoosePlaceGUI getChoosePlaceGUI() {
+        return choosePlaceGUI;
+    }
+    public AddRewardsGUI getAddRewardsGUI() {
+        return addRewardsGUI;
+    }
+    public RemoveRewardsGUI getRemoveRewardsGUI() {
+        return removeRewardsGUI;
     }
 }
