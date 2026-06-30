@@ -7,9 +7,7 @@ import me.itsandrew.playtimeUtils.RewardSystem.States.PlacementChoice;
 import me.itsandrew.playtimeUtils.RewardSystem.States.RewardType;
 import me.itsandrew.playtimeUtils.RewardSystem.States.StaffState;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.minimessage.MiniMessage;
-import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -57,7 +55,7 @@ public class ChoosePlaceGUI implements Listener {
             line += " rewards for the First Place.";
             lore.add(MiniMessage.miniMessage().deserialize("<gray>" + line));
 
-            firstPlaceButtonMeta.displayName(MiniMessage.miniMessage().deserialize("<gradient:#ffee55:#ffaa00><b>1st Place"));
+            firstPlaceButtonMeta.displayName(PlacementChoice.FIRST.toDeserializedComponent());
             firstPlaceButtonMeta.lore(lore);
             firstPlaceButton.setItemMeta(firstPlaceButtonMeta);
             GUI.setItem(20, firstPlaceButton);
@@ -73,7 +71,7 @@ public class ChoosePlaceGUI implements Listener {
             line += " rewards for the Second Place.";
             lore.add(MiniMessage.miniMessage().deserialize("<gray>" + line));
 
-            secondPlaceButtonMeta.displayName(MiniMessage.miniMessage().deserialize("<gradient:#ffffff:#bbbacc><b>2nd Place"));
+            secondPlaceButtonMeta.displayName(PlacementChoice.SECOND.toDeserializedComponent());
             secondPlaceButtonMeta.lore(lore);
             secondPlaceButton.setItemMeta(secondPlaceButtonMeta);
             GUI.setItem(22, secondPlaceButton);
@@ -89,7 +87,7 @@ public class ChoosePlaceGUI implements Listener {
             line += " rewards for the Third Place.";
             lore.add(MiniMessage.miniMessage().deserialize("<gray>" + line));
 
-            thirdPlaceButtonMeta.displayName(MiniMessage.miniMessage().deserialize("<gradient:#ccc923:#e6765a><b>3rd Place"));
+            thirdPlaceButtonMeta.displayName(PlacementChoice.THIRD.toDeserializedComponent());
             thirdPlaceButtonMeta.lore(lore);
             thirdPlaceButton.setItemMeta(thirdPlaceButtonMeta);
             GUI.setItem(24, thirdPlaceButton);
@@ -156,7 +154,7 @@ public class ChoosePlaceGUI implements Listener {
 
                 plugin.getStaffStates().remove(player);
             }
-            else plugin.getRemoveRewardsGUI().openGUI(player);
+            else plugin.getRemoveRewardsGUI().openFirstGUI(player);
         }
     }
 }

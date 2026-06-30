@@ -201,7 +201,7 @@ public class CommandManager implements CommandExecutor {
                                 if(!player.hasPermission("playtimeutils.ptutils.rewards.add")) noPermission(player);
 
                                 //Creating a new StaffState for the specific staff
-                                StaffState newState = new StaffState(AddRemoveChoice.ADD, null, null);
+                                StaffState newState = new StaffState(AddRemoveChoice.ADD, null, null, null);
                                 plugin.getStaffStates().put(player, newState);
 
                                 player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_PLING, 1, 1);
@@ -214,7 +214,7 @@ public class CommandManager implements CommandExecutor {
                                 if(!player.hasPermission("playtimeutils.ptutils.rewards.remove")) noPermission(player);
 
                                 //Creating a new StaffState for the specific staff
-                                StaffState newState = new StaffState(AddRemoveChoice.REMOVE, null, null);
+                                StaffState newState = new StaffState(AddRemoveChoice.REMOVE, null, null, null);
                                 plugin.getStaffStates().put(player, newState);
 
                                 player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_PLING, 1, 1);
