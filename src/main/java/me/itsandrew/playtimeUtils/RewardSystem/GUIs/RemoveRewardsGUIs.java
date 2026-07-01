@@ -72,7 +72,19 @@ public class RemoveRewardsGUIs implements Listener {
             for(int i = 0; i < currentItems.size() && i < 36; i++){
                 ItemStack item = currentItems.get(i);
                 ItemMeta itemMeta = item.getItemMeta();
-                itemMeta.getPersistentDataContainer().set(container, PersistentDataType.STRING, "itemToRemove");
+
+                if(itemMeta != null){
+                    itemMeta.getPersistentDataContainer().set(container, PersistentDataType.STRING, "itemtoremove-"+i);
+
+                    List<Component> lore = new ArrayList<>();
+                    lore.add(Component.text(" "));
+                    lore.add(MiniMessage.miniMessage().deserialize("<gray>Click to remove this item."));
+                    itemMeta.lore(lore);
+
+                    itemMeta.displayName(MiniMessage.miniMessage().deserialize("<b>"+item.getType().name()+"<b>"));
+
+                    item.setItemMeta(itemMeta);
+                }
                 GUI.setItem(i+9, item);
             }
         }
@@ -143,20 +155,19 @@ public class RemoveRewardsGUIs implements Listener {
 
         if(clickedMeta.getPersistentDataContainer().has(container, PersistentDataType.STRING)){
             String data = clickedMeta.getPersistentDataContainer().get(container, PersistentDataType.STRING);
-            switch(data){
-                case "return" -> {
-                    player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
-                    plugin.getChoosePlaceGUI().openGUI(player);
-                }
-                case "itemToRemove" -> {
-                    StaffState state = plugin.getStaffStates().get(player);
-                    state.itemToRemove = clickedItem;
 
-                    player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
-                    openSecondGUI(player);
-                }
-                default -> event.setCancelled(true);
+            if(data.equalsIgnoreCase("return")){
+                player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
+                plugin.getChoosePlaceGUI().openGUI(player);
             }
+            else if(data.contains("itemtoremove")){
+                StaffState state = plugin.getStaffStates().get(player);
+                state.itemToRemove = clickedItem;
+
+                player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
+                openSecondGUI(player);
+            }
+            else event.setCancelled(true);
         }
     }
 
