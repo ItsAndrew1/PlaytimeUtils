@@ -8,6 +8,7 @@ import me.itsandrew.playtimeUtils.RewardSystem.States.RewardType;
 import me.itsandrew.playtimeUtils.RewardSystem.States.StaffState;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -55,7 +56,7 @@ public class ChoosePlaceGUI implements Listener {
             line += " rewards for the First Place.";
             lore.add(MiniMessage.miniMessage().deserialize("<gray>" + line));
 
-            firstPlaceButtonMeta.displayName(PlacementChoice.FIRST.toDeserializedComponent());
+            firstPlaceButtonMeta.displayName(MiniMessage.miniMessage().deserialize("<gradient:#ffee55:#ffaa00><b>1st Place"));
             firstPlaceButtonMeta.lore(lore);
             firstPlaceButton.setItemMeta(firstPlaceButtonMeta);
             GUI.setItem(20, firstPlaceButton);
@@ -71,7 +72,7 @@ public class ChoosePlaceGUI implements Listener {
             line += " rewards for the Second Place.";
             lore.add(MiniMessage.miniMessage().deserialize("<gray>" + line));
 
-            secondPlaceButtonMeta.displayName(PlacementChoice.SECOND.toDeserializedComponent());
+            secondPlaceButtonMeta.displayName(MiniMessage.miniMessage().deserialize("<gradient:#ffffff:#bbbacc><b>2nd Place"));
             secondPlaceButtonMeta.lore(lore);
             secondPlaceButton.setItemMeta(secondPlaceButtonMeta);
             GUI.setItem(22, secondPlaceButton);
@@ -87,7 +88,7 @@ public class ChoosePlaceGUI implements Listener {
             line += " rewards for the Third Place.";
             lore.add(MiniMessage.miniMessage().deserialize("<gray>" + line));
 
-            thirdPlaceButtonMeta.displayName(PlacementChoice.THIRD.toDeserializedComponent());
+            thirdPlaceButtonMeta.displayName(MiniMessage.miniMessage().deserialize("<gradient:#ccc923:#e6765a><b>3rd Place"));
             thirdPlaceButtonMeta.lore(lore);
             thirdPlaceButton.setItemMeta(thirdPlaceButtonMeta);
             GUI.setItem(24, thirdPlaceButton);
@@ -96,38 +97,20 @@ public class ChoosePlaceGUI implements Listener {
         player.openInventory(GUI);
     }
 
-    @EventHandler
-    public void onGuiClick(InventoryClickEvent event){
-        if(!event.getView().title().contains(Component.text("Choose The Placement"))) return;
-        event.setCancelled(true);
-
-        ItemStack clickedItem = event.getCurrentItem();
-        if(clickedItem == null || clickedItem.getType().equals(Material.BLACK_STAINED_GLASS_PANE)) return;
-
-        Player player = (Player) event.getWhoClicked();
+    private void continuing(Player player){
         StaffState staffState = plugin.getStaffStates().get(player);
-
-        Material clickedMat = clickedItem.getType();
-        switch(clickedMat){
-            case IRON_INGOT -> staffState.placement = PlacementChoice.SECOND;
-            case GOLD_INGOT -> staffState.placement = PlacementChoice.FIRST;
-            case COAL -> staffState.placement = PlacementChoice.THIRD;
-            case ARROW -> {
-                player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
-                plugin.getItemsOrExpGUI().openGUI(player);
-                return;
-            }
-        }
-
         if(staffState.choice == AddRemoveChoice.ADD)
             if(staffState.rewardType == RewardType.EXP){
                 FileConfiguration config = plugin.getConfig();
 
                 player.closeInventory();
+
+                player.sendMessage(MiniMessage.miniMessage().deserialize("<green>Enter the amount of <b>exp levels</b>:"));
                 plugin.playerInput(player, message -> {
                     try{
-                        double expLevels = Double.parseDouble(String.valueOf(message));
-                        config.set("reward-system.rewards."+staffState.placement.toStringForm()+".exp-levels", expLevels);
+                        String plainMessage = PlainTextComponentSerializer.plainText().serialize(message);
+                        double expLevels = Double.parseDouble(plainMessage);
+                        config.set("reward-system.rewards."+staffState.placement.toConfigFileForm()+".exp-levels", expLevels);
                         plugin.saveConfig();
 
                         player.sendMessage(MiniMessage.miniMessage().deserialize("<green>Saved <b>" + expLevels + "</b> Exp Levels for <b>"+staffState.placement.toString().toLowerCase()+" place</b>!"));
@@ -140,21 +123,61 @@ public class ChoosePlaceGUI implements Listener {
 
                 plugin.getStaffStates().remove(player);
             }
-            else plugin.getAddRewardsGUI().openGUI(player);
+            else{
+                player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
+                plugin.getAddRewardsGUI().openGUI(player);
+            }
 
         else{
             if(staffState.rewardType == RewardType.EXP){
                 FileConfiguration config = plugin.getConfig();
 
-                config.set("reward-system.rewards."+staffState.placement.toStringForm()+".exp-levels", 0);
+                config.set("reward-system.rewards."+staffState.placement.toConfigFileForm()+".exp-levels", 0);
                 plugin.saveConfig();
 
-                player.sendMessage(MiniMessage.miniMessage().deserialize("<green>Removed <b>All Exp Levels</b> for <b>"+staffState.placement.toString().toLowerCase()+" place</b>!"));
+                player.sendMessage(MiniMessage.miniMessage().deserialize("<green>Removed <b>All Exp Levels</b> for "+staffState.placement.toColoredStringForm()+"!"));
                 player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1, 1.4f);
 
                 plugin.getStaffStates().remove(player);
+                player.closeInventory();
             }
-            else plugin.getRemoveRewardsGUI().openFirstGUI(player);
+            else{
+                player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
+                plugin.getRemoveRewardsGUIs().openFirstGUI(player);
+            }
+        }
+    }
+
+    @EventHandler
+    public void onGuiClick(InventoryClickEvent event){
+        if(!event.getView().title().equals(Component.text("Choose The Placement"))) return;
+        event.setCancelled(true);
+
+        ItemStack clickedItem = event.getCurrentItem();
+        if(clickedItem == null || clickedItem.getType().equals(Material.BLACK_STAINED_GLASS_PANE)) return;
+
+        Player player = (Player) event.getWhoClicked();
+        StaffState staffState = plugin.getStaffStates().get(player);
+
+        Material clickedMat = clickedItem.getType();
+        switch(clickedMat){
+            case IRON_INGOT -> {
+                staffState.placement = PlacementChoice.SECOND;
+                continuing(player);
+            }
+            case GOLD_INGOT -> {
+                staffState.placement = PlacementChoice.FIRST;
+                continuing(player);
+            }
+            case COAL -> {
+                staffState.placement = PlacementChoice.THIRD;
+                continuing(player);
+            }
+            case ARROW -> {
+                player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
+                plugin.getItemsOrExpGUI().openGUI(player);
+            }
+            default -> event.setCancelled(true);
         }
     }
 }

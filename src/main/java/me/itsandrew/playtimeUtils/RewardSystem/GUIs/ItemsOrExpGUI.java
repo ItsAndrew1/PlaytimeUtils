@@ -85,29 +85,37 @@ public class ItemsOrExpGUI implements Listener {
 
     @EventHandler
     public void OnGuiClick(InventoryClickEvent event){
-        if(!event.getView().title().contains(Component.text("Choose a Type of Reward"))) return;
+        if(!(event.getWhoClicked() instanceof Player player)) return;
+        if(!event.getView().title().equals(Component.text("Choose a Type of Reward"))) return;
         event.setCancelled(true);
 
         ItemStack clickedItem = event.getCurrentItem();
         if(clickedItem == null || clickedItem.getType().equals(Material.BLACK_STAINED_GLASS_PANE)) return;
 
         //Getting the player and it's StaffState
-        Player player = (Player) event.getWhoClicked();
         StaffState playerStaffState = plugin.getStaffStates().get(player);
 
         Material clickedMat = clickedItem.getType();
         switch (clickedMat){
-            case ENDER_CHEST -> playerStaffState.rewardType = RewardType.ITEMS;
-            case EXPERIENCE_BOTTLE -> playerStaffState.rewardType = RewardType.EXP;
+            case ENDER_CHEST -> {
+                playerStaffState.rewardType = RewardType.ITEMS;
+
+                player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
+                plugin.getChoosePlaceGUI().openGUI(player);
+            }
+            case EXPERIENCE_BOTTLE -> {
+                playerStaffState.rewardType = RewardType.EXP;
+
+                player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
+                plugin.getChoosePlaceGUI().openGUI(player);
+            }
             case RED_CONCRETE -> {
                 player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
                 plugin.getStaffStates().remove(player);
                 player.closeInventory();
                 return;
             }
+            default -> event.setCancelled(true);
         }
-
-        player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
-        plugin.getChoosePlaceGUI().openGUI(player);
     }
 }

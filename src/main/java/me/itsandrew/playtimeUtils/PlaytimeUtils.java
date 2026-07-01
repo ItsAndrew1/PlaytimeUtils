@@ -6,7 +6,7 @@ import me.clip.placeholderapi.PlaceholderAPI;
 import me.itsandrew.playtimeUtils.RewardSystem.GUIs.AddRewardsGUI;
 import me.itsandrew.playtimeUtils.RewardSystem.GUIs.ChoosePlaceGUI;
 import me.itsandrew.playtimeUtils.RewardSystem.GUIs.ItemsOrExpGUI;
-import me.itsandrew.playtimeUtils.RewardSystem.GUIs.RemoveRewardsGUI;
+import me.itsandrew.playtimeUtils.RewardSystem.GUIs.RemoveRewardsGUIs;
 import me.itsandrew.playtimeUtils.RewardSystem.States.StaffState;
 import net.kyori.adventure.text.Component;
 import net.luckperms.api.LuckPerms;
@@ -44,7 +44,7 @@ public final class PlaytimeUtils extends JavaPlugin implements Listener {
     private final ItemsOrExpGUI itemsOrExpGUI = new ItemsOrExpGUI(this);
     private final ChoosePlaceGUI choosePlaceGUI = new ChoosePlaceGUI(this);
     private final AddRewardsGUI addRewardsGUI = new AddRewardsGUI(this);
-    private final RemoveRewardsGUI removeRewardsGUI = new RemoveRewardsGUI(this);
+    private final RemoveRewardsGUIs removeRewardsGUIs = new RemoveRewardsGUIs(this);
 
     @Override
     public void onEnable() {
@@ -67,7 +67,7 @@ public final class PlaytimeUtils extends JavaPlugin implements Listener {
         getServer().getPluginManager().registerEvents(itemsOrExpGUI, this);
         getServer().getPluginManager().registerEvents(choosePlaceGUI, this);
         getServer().getPluginManager().registerEvents(addRewardsGUI, this);
-        getServer().getPluginManager().registerEvents(removeRewardsGUI, this);
+        getServer().getPluginManager().registerEvents(removeRewardsGUIs, this);
 
         //Connecting the database
         try{
@@ -255,7 +255,7 @@ public final class PlaytimeUtils extends JavaPlugin implements Listener {
     public AddRewardsGUI getAddRewardsGUI() {
         return addRewardsGUI;
     }
-    public RemoveRewardsGUI getRemoveRewardsGUI() {
-        return removeRewardsGUI;
+    public RemoveRewardsGUIs getRemoveRewardsGUIs() {
+        return removeRewardsGUIs;
     }
 }

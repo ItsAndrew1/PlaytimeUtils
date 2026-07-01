@@ -22,10 +22,11 @@ import java.util.List;
 
 public class AddRewardsGUI implements Listener {
     private final PlaytimeUtils plugin;
-    private NamespacedKey container;
+    private final NamespacedKey container;
 
     public AddRewardsGUI(PlaytimeUtils plugin) {
         this.plugin = plugin;
+        this.container = new NamespacedKey(plugin, "container");
     }
 
     public void openGUI(Player player){
@@ -46,7 +47,7 @@ public class AddRewardsGUI implements Listener {
         ItemStack saveButton = new ItemStack(Material.GREEN_CONCRETE);
         ItemMeta saveButtonMeta = saveButton.getItemMeta();
         if(saveButtonMeta != null){
-            saveButtonMeta.displayName(MiniMessage.miniMessage().deserialize("<green><b>Save Rewards for "+state.placement.toDeserializedComponent()));
+            saveButtonMeta.displayName(MiniMessage.miniMessage().deserialize("<green><b>Save Rewards for "+state.placement.toColoredStringForm()+"<green><b>!"));
             saveButtonMeta.getPersistentDataContainer().set(container, PersistentDataType.STRING, "save");
         }
         saveButton.setItemMeta(saveButtonMeta);
@@ -57,7 +58,7 @@ public class AddRewardsGUI implements Listener {
 
     @EventHandler
     public void onGuiClick(InventoryClickEvent event){
-        if(!event.getView().title().contains(Component.text("Add Items"))) return;
+        if(!event.getView().title().equals(Component.text("Add Items"))) return;
 
         ItemStack clickedItem = event.getCurrentItem();
         if(clickedItem == null || clickedItem.getType().equals(Material.BLACK_STAINED_GLASS_PANE)) return;
@@ -101,7 +102,7 @@ public class AddRewardsGUI implements Listener {
                     }
 
                     //Saving the items in the config.yml
-                    List<?> rawList = mainConfig.getList("reward-system.rewards."+state.placement.toStringForm()+".items");
+                    List<?> rawList = mainConfig.getList("reward-system.rewards."+state.placement.toConfigFileForm()+".items");
                     List<ItemStack> currentItems = new ArrayList<>();
                     if(rawList != null){
                         for(Object item : rawList){
@@ -109,16 +110,16 @@ public class AddRewardsGUI implements Listener {
                             else plugin.getLogger().warning("[PlaytimeUtils] Found invalid item in the "+state.placement.toString()+" place reward list.");
                         }
                     }
-                    else {
-                        currentItems.addAll(items);
-                        mainConfig.set("reward-system.rewards."+state.placement.toStringForm()+".items", currentItems);
-                        plugin.saveConfig();
-                    }
 
-                    player.sendMessage(MiniMessage.miniMessage().deserialize("<green>Saved <b>"+items.size()+" items</b> for "+state.placement.toDeserializedComponent()+"!"));
+                    currentItems.addAll(items);
+                    mainConfig.set("reward-system.rewards."+state.placement.toConfigFileForm()+".items", currentItems);
+                    plugin.saveConfig();
+
+                    player.sendMessage(MiniMessage.miniMessage().deserialize("<green>Saved <b>"+items.size()+" item(s)</b> for "+state.placement.toColoredStringForm()+"<green>!"));
                     player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1, 1.4f);
                     player.closeInventory();
                 }
+                default -> event.setCancelled(true);
             }
         }
     }

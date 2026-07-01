@@ -81,7 +81,7 @@ public class CommandManager implements CommandExecutor {
 
             case "ptutils" -> {
                 if(args.length < 1){
-                    player.sendMessage(MiniMessage.miniMessage().deserialize("<red>Usage: <b>/ptutils <reload |  </b>"));
+                    player.sendMessage(MiniMessage.miniMessage().deserialize("<red>Usage: <b>/ptutils <reload | rewards></b>"));
                     player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
                     return true;
                 }
@@ -109,7 +109,9 @@ public class CommandManager implements CommandExecutor {
                         if(!player.hasPermission("playtimeutils.ptutils.rewards")) noPermission(player);
 
                         if(args.length < 2){
-
+                            player.sendMessage(MiniMessage.miniMessage().deserialize("<red>Usage: <b>/ptutils rewards <tournament | add | remove></b>"));
+                            player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
+                            return true;
                         }
 
                         switch(args[1]){
@@ -223,7 +225,7 @@ public class CommandManager implements CommandExecutor {
                             }
 
                             default -> {
-                                player.sendMessage(MiniMessage.miniMessage().deserialize("Unknown command."));
+                                player.sendMessage(MiniMessage.miniMessage().deserialize("<red>Unknown command."));
                                 player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
                                 return true;
                             }
@@ -233,7 +235,7 @@ public class CommandManager implements CommandExecutor {
             }
 
             default -> {
-                player.sendMessage(MiniMessage.miniMessage().deserialize("Unknown command."));
+                player.sendMessage(MiniMessage.miniMessage().deserialize("<red>Unknown command."));
                 player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
                 return true;
             }
