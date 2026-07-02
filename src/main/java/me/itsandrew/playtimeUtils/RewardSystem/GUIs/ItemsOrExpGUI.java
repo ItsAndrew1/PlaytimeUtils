@@ -7,13 +7,16 @@ import me.itsandrew.playtimeUtils.RewardSystem.States.RewardType;
 import me.itsandrew.playtimeUtils.RewardSystem.States.StaffState;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.InventoryView;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
@@ -84,6 +87,19 @@ public class ItemsOrExpGUI implements Listener {
     }
 
     @EventHandler
+    public void onGuiClose(InventoryCloseEvent event){
+        if(!event.getView().title().equals(Component.text("Choose a Type of Reward"))) return;
+
+        Bukkit.getScheduler().runTaskLater(plugin, () -> {
+            Player player = (Player) event.getPlayer();
+            InventoryView currentView = player.getOpenInventory();
+            Component title = currentView.title();
+
+            if(!title.equals(Component.text("Choose The Placement"))) plugin.getStaffStates().remove(player);
+        }, 1);
+    }
+
+    @EventHandler
     public void OnGuiClick(InventoryClickEvent event){
         if(!(event.getWhoClicked() instanceof Player player)) return;
         if(!event.getView().title().equals(Component.text("Choose a Type of Reward"))) return;
@@ -111,9 +127,7 @@ public class ItemsOrExpGUI implements Listener {
             }
             case RED_CONCRETE -> {
                 player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
-                plugin.getStaffStates().remove(player);
                 player.closeInventory();
-                return;
             }
             default -> event.setCancelled(true);
         }

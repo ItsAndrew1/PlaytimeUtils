@@ -99,7 +99,7 @@ public class DbManager {
             ps.setString(1, playerUUID.toString());
             try(ResultSet rs = ps.executeQuery()){
                 if(rs.next()){
-                    return rs.getInt("playtime");
+                    return rs.getInt("mainPlaytime");
                 }
             }
         } catch (Exception e){

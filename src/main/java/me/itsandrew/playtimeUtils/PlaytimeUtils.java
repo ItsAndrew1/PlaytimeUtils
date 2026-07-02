@@ -212,6 +212,9 @@ public final class PlaytimeUtils extends JavaPlugin implements Listener {
         afkMap.remove(player.getUniqueId());
         lastActivity.remove(player.getUniqueId());
 
+        //Removing the player from StaffState Map if he has an ongoing staff state
+        staffStates.remove(player);
+
         //Removing the AFK group from the player (if he is afk)
         removeAfkPrefixNodeFromPlayer(player);
     }

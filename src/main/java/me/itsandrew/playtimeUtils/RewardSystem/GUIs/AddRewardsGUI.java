@@ -4,6 +4,7 @@ import me.itsandrew.playtimeUtils.PlaytimeUtils;
 import me.itsandrew.playtimeUtils.RewardSystem.States.StaffState;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Sound;
@@ -12,7 +13,9 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.InventoryView;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
@@ -57,6 +60,19 @@ public class AddRewardsGUI implements Listener {
     }
 
     @EventHandler
+    public void onGuiClose(InventoryCloseEvent event){
+        if(!event.getView().title().equals(Component.text("Add Items"))) return;
+
+        Bukkit.getScheduler().runTaskLater(plugin, () -> {
+            Player player = (Player) event.getPlayer();
+            InventoryView currentView = player.getOpenInventory();
+            Component title = currentView.title();
+
+            if(!title.equals(Component.text("Choose The Placement"))) plugin.getStaffStates().remove(player);
+        }, 1);
+    }
+
+    @EventHandler
     public void onGuiClick(InventoryClickEvent event){
         if(!event.getView().title().equals(Component.text("Add Items"))) return;
 
@@ -96,8 +112,6 @@ public class AddRewardsGUI implements Listener {
                         player.closeInventory();
                         player.sendMessage(MiniMessage.miniMessage().deserialize("<red>You must put at least <b>1 item</b> in the GUI!"));
                         player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
-
-                        plugin.getStaffStates().remove(player);
                         return;
                     }
 
@@ -119,7 +133,7 @@ public class AddRewardsGUI implements Listener {
                     player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1, 1.4f);
                     player.closeInventory();
                 }
-                default -> event.setCancelled(true);
+                case null, default -> event.setCancelled(true);
             }
         }
     }

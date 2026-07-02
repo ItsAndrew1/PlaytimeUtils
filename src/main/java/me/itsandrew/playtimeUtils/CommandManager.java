@@ -29,8 +29,6 @@ public class CommandManager implements CommandExecutor {
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String @NotNull [] args) {
         Player player = (Player) sender;
-        String noPermissionMessage = ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("messages.no-permission", "&cYou don't have permission to do that!"));
-        noPermissionMessage = PlaceholderAPI.setPlaceholders(player, noPermissionMessage);
 
         switch(command.getName()){
             case "myplaytime" -> {

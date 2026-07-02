@@ -9,6 +9,7 @@ import me.itsandrew.playtimeUtils.RewardSystem.States.StaffState;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -16,7 +17,9 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.InventoryView;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
@@ -146,6 +149,23 @@ public class ChoosePlaceGUI implements Listener {
                 plugin.getRemoveRewardsGUIs().openFirstGUI(player);
             }
         }
+    }
+
+    @EventHandler
+    public void onGuiQuit(InventoryCloseEvent event){
+        if(!event.getView().title().equals(Component.text("Choose The Placement"))) return;
+        if(plugin.getStaffStates().get((Player) event.getPlayer()).rewardType.equals(RewardType.EXP)) return;
+
+        Bukkit.getScheduler().runTaskLater(plugin, () -> {
+            Player player = (Player) event.getPlayer();
+
+            InventoryView currentView = player.getOpenInventory();
+            Component title = currentView.title();
+
+            if(!title.equals(Component.text("Choose a Type of Reward")) && !title.equals(Component.text("Add Items")) && !title.equals(Component.text("Remove An Item"))){
+                plugin.getStaffStates().remove(player);
+            }
+        }, 1);
     }
 
     @EventHandler

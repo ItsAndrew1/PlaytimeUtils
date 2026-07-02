@@ -5,7 +5,7 @@ import me.itsandrew.playtimeUtils.PlaytimeUtils;
 import me.itsandrew.playtimeUtils.RewardSystem.States.StaffState;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
-import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Sound;
@@ -13,7 +13,9 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.InventoryView;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
@@ -141,6 +143,32 @@ public class RemoveRewardsGUIs implements Listener {
     }
 
     @EventHandler
+    public void onFirstGuiClose(InventoryCloseEvent event){
+        if(!event.getView().title().equals(Component.text("Remove An Item"))) return;
+
+        Bukkit.getScheduler().runTaskLater(plugin, () -> {
+            Player player = (Player) event.getPlayer();
+            InventoryView currentView = player.getOpenInventory();
+            Component title = currentView.title();
+
+            if(!title.equals(Component.text("Choose The Placement")) && !title.equals(Component.text("Remove Item?"))) plugin.getStaffStates().remove(player);
+        }, 10);
+    }
+
+    @EventHandler
+    public void onSecondGuiClose(InventoryCloseEvent event){
+        if(!event.getView().title().equals(Component.text("Remove Item?"))) return;
+
+        Bukkit.getScheduler().runTaskLater(plugin, () -> {
+            Player player = (Player) event.getPlayer();
+            InventoryView currentView = player.getOpenInventory();
+            Component title = currentView.title();
+
+            if(!title.equals(Component.text("Remove An Item"))) plugin.getStaffStates().remove(player);
+        }, 1);
+    }
+
+    @EventHandler
     public void onFirstGuiClick(InventoryClickEvent event){
         if(!event.getView().title().equals(Component.text("Remove An Item"))) return;
         event.setCancelled(true);
@@ -205,8 +233,6 @@ public class RemoveRewardsGUIs implements Listener {
             player.closeInventory();
             player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1, 1.4f);
             player.sendMessage(MiniMessage.miniMessage().deserialize("<green>Removed <b>item</b> from "+state.placement.toColoredStringForm()+"<green>!"));
-
-            plugin.getStaffStates().remove(player);
         }
     }
 }
