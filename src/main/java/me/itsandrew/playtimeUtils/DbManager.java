@@ -92,7 +92,6 @@ public class DbManager {
 
         return time.toString();
     }
-
     public int getMainPlaytime(UUID playerUUID){
         String statement = "SELECT mainPlaytime FROM playersPlaytime WHERE uuid = ?";
         try(PreparedStatement ps = dbConnection.prepareStatement(statement)){
@@ -109,10 +108,34 @@ public class DbManager {
         return 0;
     }
 
-    public List<Map.Entry<UUID, Integer>> getTop3Players(){
+    public List<Map.Entry<UUID, Integer>> getMainTop3Players(){
         Map<UUID, Integer> top3PlayersSeconds = new HashMap<>();
 
         //Getting the map in seconds
+        String statement = "SELECT mainPlaytime, uuid FROM playersPlaytime ORDER BY mainPlaytime DESC LIMIT 3";
+        try(PreparedStatement ps = dbConnection.prepareStatement(statement)){
+            try(ResultSet rs = ps.executeQuery()){
+                while(rs.next()){
+                    UUID playerUUID = UUID.fromString(rs.getString("uuid"));
+                    int playtime = rs.getInt("mainPlaytime") + plugin.getPlaytimeMap().getOrDefault(playerUUID, 0);
+                    top3PlayersSeconds.put(playerUUID, playtime);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        //Sorting the map by seconds
+        List<Map.Entry<UUID, Integer>> sortedList = new ArrayList<>(top3PlayersSeconds.entrySet());
+        sortedList.sort((a, b) -> b.getValue().compareTo(a.getValue()));
+        if(sortedList.size() > 3) sortedList.subList(0, 3);
+
+        return sortedList;
+    }
+
+    public List<Map.Entry<UUID, Integer>> getTournamentTop3Players(){
+        Map<UUID, Integer> top3PlayersSeconds = new HashMap<>();
+
         String statement = "SELECT rewardPlaytime, uuid FROM playersPlaytime ORDER BY rewardPlaytime DESC LIMIT 3";
         try(PreparedStatement ps = dbConnection.prepareStatement(statement)){
             try(ResultSet rs = ps.executeQuery()){
@@ -126,7 +149,6 @@ public class DbManager {
             e.printStackTrace();
         }
 
-        //Sorting the map by seconds
         List<Map.Entry<UUID, Integer>> sortedList = new ArrayList<>(top3PlayersSeconds.entrySet());
         sortedList.sort((a, b) -> b.getValue().compareTo(a.getValue()));
         if(sortedList.size() > 3) sortedList.subList(0, 3);
@@ -173,6 +195,29 @@ public class DbManager {
             e.printStackTrace();
         }
         return 0;
+    }
+    public String getRewardPlaytimeString(UUID playerUUID){
+        //Getting the playtime of the player from the db
+        long seconds = getRewardPlaytime(playerUUID);
+
+        //Also adding the seconds from the playtime map
+        seconds += plugin.getPlaytimeMap().getOrDefault(playerUUID, 0);
+
+        //Building the string
+        StringBuilder time = new StringBuilder();
+        long days = TimeUnit.SECONDS.toDays(seconds);
+        long hours = TimeUnit.SECONDS.toHours(seconds);
+        long minutes = TimeUnit.SECONDS.toMinutes(seconds);
+
+        if (days > 0) time.append(days).append("d ");
+        if (hours > 0) time.append(hours).append("h ");
+
+        if(minutes > 0 && seconds > 60) time.append(minutes).append("m");
+        else if (minutes > 0) time.append(minutes).append("m ");
+
+        if(seconds < 60) time.append(seconds).append("s");
+
+        return time.toString();
     }
 
     public void wipeRewardPlaytime(){

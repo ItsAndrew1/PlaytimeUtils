@@ -95,7 +95,7 @@ public final class PlaytimeUtils extends JavaPlugin implements Listener {
         if(provider != null && getServer().getPluginManager().isPluginEnabled("LuckPerms")) luckpermsAPI = provider.getProvider();
 
         //Enabling the PlaytimeUtils Placeholders Extension
-        if(Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null) new PlaytimePlaceholder(this).register();
+        if(Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null) new PluginPapiPlaceholders(this).register();
         else getLogger().warning("[PlaytimeUtils] PlaceholderAPI is not installed. Placeholders won't work.");
 
         getLogger().info("[PlaytimeUtils] Plugin enabled successfully.");

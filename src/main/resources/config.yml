@@ -19,8 +19,8 @@ database:
 #Configure general messages. Use '&' for colors/styles. You can also use PAPI placeholders!
 messages:
   no-permission: "&cYou don't have permission to do that!"
-  my-playtime: "&aYour playtime is &e&l%playtime_value%&a!" #Use %playtime% to display the playtime
-  player-playtime: "&a%player%'s playtime is &e&l%playtime_value%&a!" #Use %player% to display the player's name and %playtime% to display their playtime'
+  my-playtime: "&aYour playtime is &e&l%playtime_mainValue%&a!" #Use %playtime_mainValue% to display the main playtime
+  player-playtime: "&a%player%'s playtime is &e&l%playtime_mainValue%&a!" #Use %player% to display the player's name and %playtime_mainValue% to display their main playtime'
   player-afk: "&7You are now AFK!"
   player-no-more-afk: "&7You are not AFK anymore."
 
@@ -65,10 +65,15 @@ reward-system:
 
   #Configure the tournament chat message at these timestamps. You may use PAPI placeholders and '&' for colors!
   tournament-messages:
+    #You may even use the word 'discord' in any of the messages below, then put your discord server link here to have a clickable word which
+    #will redirect to your Discord Server.
+    discord-link:
+    discord-hover-text: "Click here to join our Discord Server!"
+
     #Placeholders: '%tournament_enddate%' -> The date (e.g.: 24 Mar 2026) when the tournament ends.
     #              '%tournament_duration%' -> The duration of the tournament (e.g.: 5d 12h 30m 45s)
     start:
-      - "&c&l======[&f&lPLAYTIME TOURNAMENT STARTS NOW&c&l]======"
+      - "&c&l======[&f&lPLAYTIME TOURNAMENT STARTS &e&lNOW&c&l]======"
       - " "
       - "&7Until &e%tournament_enddate%&7, you have the chance to win &e&limpressive rewards&7!"
       - "&7Play as much as you can, &eclimb the leaderboard&7 and &eget the best rewards&7."
@@ -78,22 +83,64 @@ reward-system:
       - "&7You may also use &e/topplaytime&7 to see the top 3 players!"
       - " "
       - "        &7We wish you all &6&lGood Luck &7and &e&lHappy Playing&7!"
+      - "         &7&oFor more information, join our &9Discord Server&7!"
+      - " "
       - "&c&l======[&f&lPLAYTIME TOURNAMENT ENDS IN &4&l%tournament_duration%&c&l]======"
 
 
     disabled:
-
+      - "&c&l===============[&f&lPLAYTIME TOURNAMENT DISABLED&c&l]==============="
+      - " "
+      - "   &7The tournament &ehas been disabled &7by the server owner!"
+      - "&7If you would like to know more, see more information on &9our Discord Server."
+      - "&c&l===================================================================="
 
     end:
 
-
+    #Placeholders: '%tournament_enddate%' -> The date (e.g.: 24 Mar 2026) when the tournament ends.
+    #              '%tournament_duration%' -> The duration of the tournament (e.g.: 5d 12h 30m 45s)
     1/3-of-duration:
+      - "&c&l======[&f&lPLAYTIME TOURNAMENT ANNOUNCEMENT&c&l]======"
+      - " "
+      - "&7Want to win &eexpensive items &7easily? Then this event is for you!"
+      - "&7Play as much as you can, &eclimb the leaderboard&7 and &eget the best rewards&7!"
+      - " "
+      - "&b&lHow Can I See My Playtime?"
+      - "    &7To see your playtime, use the &e/myplaytime&7 command!"
+      - "&7You may also use &e/topplaytime&7 to see the top 3 players!"
+      - " "
+      - "       &7Have a question? Join our &9Discord Server&7!"
+      - "&c&l======[&f&lPLAYTIME TOURNAMENT ENDS IN &4&l%tournament_duration%&c&l]======"
 
-
+    #Placeholders: '%tournament_enddate%' -> The date (e.g.: 24 Mar 2026) when the tournament ends.
+    #              '%tournament_duration%' -> The duration of the tournament (e.g.: 5d 12h 30m 45s)
     half-of-duration:
+      - "&c&l======[&f&lPLAYTIME TOURNAMENT ANNOUNCEMENT&c&l]======"
+      - " "
+      - "&7Want to win &eexpensive items &7easily? Then this event is for you!"
+      - "&7Play as much as you can, &eclimb the leaderboard&7 and &eget the best rewards&7!"
+      - " "
+      - "&b&lHow Can I See My Playtime?"
+      - "    &7To see your playtime, use the &e/myplaytime&7 command!"
+      - "&7You may also use &e/topplaytime&7 to see the top 3 players!"
+      - " "
+      - "       &7Have a question? Join our &9Discord Server&7!"
+      - "&c&l======[&f&lPLAYTIME TOURNAMENT ENDS IN &4&l%tournament_duration%&c&l]======"
 
-
+    #Placeholders: '%tournament_enddate%' -> The date (e.g.: 24 Mar 2026) when the tournament ends.
+    #              '%tournament_duration%' -> The duration of the tournament (e.g.: 5d 12h 30m 45s)
     5/6-of-duration:
+      - "&c&l======[&f&lPLAYTIME TOURNAMENT ANNOUNCEMENT&c&l]======"
+      - " "
+      - "&7Want to win &eexpensive items &7easily? Then this event is for you!"
+      - "&7Play as much as you can, &eclimb the leaderboard&7 and &eget the best rewards&7!"
+      - " "
+      - "&b&lHow Can I See My Playtime?"
+      - "    &7To see your playtime, use the &e/myplaytime&7 command!"
+      - "&7You may also use &e/topplaytime&7 to see the top 3 players!"
+      - " "
+      - "       &7Have a question? Join our &9Discord Server&7!"
+      - "&c&l======[&f&lPLAYTIME TOURNAMENT ENDS IN &4&l%tournament_duration%&c&l]======"
 
 
   #Configure the items/exp levels that will be given to players who win the tournament.

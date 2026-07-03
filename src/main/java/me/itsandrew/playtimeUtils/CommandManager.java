@@ -6,6 +6,9 @@ import me.itsandrew.playtimeUtils.RewardSystem.States.AddRemoveChoice;
 import me.itsandrew.playtimeUtils.RewardSystem.States.StaffState;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
+import net.kyori.adventure.text.TextReplacementConfig;
+import net.kyori.adventure.text.event.ClickEvent;
+import net.kyori.adventure.text.event.HoverEvent;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.Bukkit;
@@ -18,12 +21,10 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 public class CommandManager implements CommandExecutor {
     private final PlaytimeUtils plugin;
@@ -40,7 +41,7 @@ public class CommandManager implements CommandExecutor {
             case "myplaytime" -> {
                 if(!player.hasPermission("playtimeutils.myplaytime")) noPermission(player);
 
-                String playtimeMessage = ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("messages.my-playtime", "&aYour playtime is &e&l%playtime_value%&a!"));
+                String playtimeMessage = ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("messages.my-playtime", "&aYour playtime is &e&l%playtime_mainValue%&a!"));
                 playtimeMessage = PlaceholderAPI.setPlaceholders(player, playtimeMessage);
                 player.sendMessage(playtimeMessage);
                 player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
@@ -64,7 +65,7 @@ public class CommandManager implements CommandExecutor {
                     return true;
                 }
 
-                String playtimeMessage = ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("messages.player-playtime", "&e%player%'s playtime is &e&l%playtime_value% &a!"));
+                String playtimeMessage = ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("messages.player-playtime", "&e%player%'s playtime is &e&l%playtime_mainValue% &a!"));
                 playtimeMessage = PlaceholderAPI.setPlaceholders(targetPlayer, playtimeMessage);
                 player.sendMessage(playtimeMessage.replace("%player%", targetPlayer.getName()));
                 player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
@@ -184,9 +185,13 @@ public class CommandManager implements CommandExecutor {
                                             List<String> messageLines = plugin.getConfig().getStringList("reward-system.tournament-messages.tournament-start");
                                             for(String line : messageLines){
                                                 line = PlaceholderAPI.setPlaceholders(onlinePlayer, line);
-                                                line.replace("%tournament_enddate%", plugin.formatDate(System.currentTimeMillis() + millis))
+                                                line = line.replace("%tournament_enddate%", plugin.formatDate(System.currentTimeMillis() + millis))
                                                         .replace("%tournament_duration%", plugin.formatTime(millis));
-                                                TextComponent coloredLine = LegacyComponentSerializer.legacyAmpersand().deserialize(line);
+                                                Component coloredLine = LegacyComponentSerializer.legacyAmpersand().deserialize(line);
+
+                                                //Adding a component designed to have a hover and click event (to open the discord link)
+                                                coloredLine = replaceDiscordComponent(coloredLine);
+
                                                 onlinePlayer.sendMessage(coloredLine);
                                             }
                                         }
@@ -215,6 +220,22 @@ public class CommandManager implements CommandExecutor {
                                         });
                                         plugin.getLogger().warning("[PlaytimeUtils] Reward System disabled. Reward playtime has been wiped.");
 
+                                        //Broadcasting the Tournament Disabled Message
+                                        for(Player onlinePlayer : Bukkit.getOnlinePlayers()){
+                                            onlinePlayer.playSound(onlinePlayer.getLocation(), Sound.BLOCK_NOTE_BLOCK_PLING, 1, 1);
+
+                                            List<String> messageLines = plugin.getConfig().getStringList("reward-system.tournament-messages.disabled");
+                                            for(String line : messageLines){
+                                                line = PlaceholderAPI.setPlaceholders(onlinePlayer, line);
+                                                Component coloredLine = LegacyComponentSerializer.legacyAmpersand().deserialize(line);
+
+                                                //Adding a component designed to have a hover and click event (to open the discord link)
+                                                coloredLine = replaceDiscordComponent(coloredLine);
+
+                                                onlinePlayer.sendMessage(coloredLine);
+                                            }
+                                        }
+
                                         //Toggling and removing the necessary tournament info
                                         plugin.getConfig().set("reward-system.toggle", false);
                                         plugin.getConfig().set("reward-system.tournament-duration", null);
@@ -223,7 +244,7 @@ public class CommandManager implements CommandExecutor {
 
                                         player.sendMessage(MiniMessage.miniMessage().deserialize("<green>The tournament has been disabled!"));
                                         player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
-                                        plugin.getLogger().info("[PlaytimeUtils] The tournament has been disabled!");
+                                        plugin.getLogger().info("The tournament has been disabled!");
                                     }
                                 }
                             }
@@ -272,6 +293,28 @@ public class CommandManager implements CommandExecutor {
         }
 
         return false;
+    }
+
+    private boolean isUrlValid(String url){
+        try {
+            URI uri = new URI(url);
+            URL realUrl = uri.toURL();
+            return uri.getScheme() != null;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    private Component replaceDiscordComponent(Component component){
+        String discordLink = plugin.getConfig().getString("reward-system.tournament-messages.discord-link");
+        String hoverText = plugin.getConfig().getString("reward-system.tournament-messages.discord-hover-text", "Click here to join our Discord Server");
+        if(discordLink != null && isUrlValid(discordLink)){
+            Component discordWord = Component.text("Discord")
+                    .hoverEvent(HoverEvent.showText(Component.text(hoverText)))
+                    .clickEvent(ClickEvent.openUrl(discordLink));
+            component = component.replaceText(TextReplacementConfig.builder().match("discord").replacement(discordWord).build());
+        }
+        return component;
     }
 
     private void noPermission(Player player){;
