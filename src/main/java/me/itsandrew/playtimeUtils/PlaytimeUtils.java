@@ -7,6 +7,7 @@ import me.itsandrew.playtimeUtils.RewardSystem.GUIs.AddRewardsGUI;
 import me.itsandrew.playtimeUtils.RewardSystem.GUIs.ChoosePlaceGUI;
 import me.itsandrew.playtimeUtils.RewardSystem.GUIs.ItemsOrExpGUI;
 import me.itsandrew.playtimeUtils.RewardSystem.GUIs.RemoveRewardsGUIs;
+import me.itsandrew.playtimeUtils.RewardSystem.GivingRewards;
 import me.itsandrew.playtimeUtils.RewardSystem.States.StaffState;
 import net.kyori.adventure.text.Component;
 import net.luckperms.api.LuckPerms;
@@ -25,9 +26,14 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 //Main plugin class.
@@ -45,6 +51,7 @@ public final class PlaytimeUtils extends JavaPlugin implements Listener {
     private final ChoosePlaceGUI choosePlaceGUI = new ChoosePlaceGUI(this);
     private final AddRewardsGUI addRewardsGUI = new AddRewardsGUI(this);
     private final RemoveRewardsGUIs removeRewardsGUIs = new RemoveRewardsGUIs(this);
+    private final GivingRewards givingRewardsSystem = new GivingRewards(this);
 
     @Override
     public void onEnable() {
@@ -236,6 +243,36 @@ public final class PlaytimeUtils extends JavaPlugin implements Listener {
         }
     }
 
+    //Helper functions for formatting the dates/times
+    public String formatDate(long millis){
+        Instant instant = Instant.ofEpochMilli(millis);
+        LocalDateTime time = LocalDateTime.ofInstant(instant, ZoneId.systemDefault());
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd MMM yyyy");
+        return time.format(formatter);
+    }
+    public String formatTime(long millis){
+        long days =  TimeUnit.MILLISECONDS.toDays(millis);
+        millis -= TimeUnit.DAYS.toMillis(days);
+
+        long hours =  TimeUnit.MILLISECONDS.toHours(millis);
+        millis -=  TimeUnit.HOURS.toMillis(hours);
+
+        long minutes =  TimeUnit.MILLISECONDS.toMinutes(millis);
+        millis -= TimeUnit.MINUTES.toMillis(minutes);
+
+        long seconds =  TimeUnit.MILLISECONDS.toSeconds(millis);
+
+        StringBuilder sb = new StringBuilder();
+        if(minutes > 0) seconds = 0;
+
+        if(days > 0) sb.append(days).append("d ");
+        if(hours > 0) sb.append(hours).append("h ");
+        if(minutes > 0) sb.append(minutes).append("m ");
+        if(seconds > 0 || sb.isEmpty()) sb.append(seconds).append("s");
+
+        return sb.toString().trim();
+    }
+
     //Getters
     public DbManager getDatabaseManager() {
         return databaseManager;
@@ -260,5 +297,8 @@ public final class PlaytimeUtils extends JavaPlugin implements Listener {
     }
     public RemoveRewardsGUIs getRemoveRewardsGUIs() {
         return removeRewardsGUIs;
+    }
+    public GivingRewards getGivingRewardsSystem() {
+        return givingRewardsSystem;
     }
 }

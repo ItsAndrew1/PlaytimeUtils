@@ -5,6 +5,7 @@ import me.clip.placeholderapi.PlaceholderAPI;
 import me.itsandrew.playtimeUtils.RewardSystem.States.AddRemoveChoice;
 import me.itsandrew.playtimeUtils.RewardSystem.States.StaffState;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.Bukkit;
@@ -17,7 +18,12 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 public class CommandManager implements CommandExecutor {
     private final PlaytimeUtils plugin;
@@ -162,8 +168,30 @@ public class CommandManager implements CommandExecutor {
                                             return true;
                                         }
 
+                                        //Saving the value when the tournament will end in the config
+                                        int numberOfDays = plugin.getConfig().getInt("reward-system.tournament-timer", 7);
+                                        long millis = numberOfDays * 60 * 1000L;
+                                        plugin.getConfig().set("reward-system.tournament-duration", millis);
+                                        plugin.getConfig().set("reward-system.tournament-start", System.currentTimeMillis());
+
                                         plugin.getConfig().set("reward-system.toggle", true);
                                         plugin.saveConfig();
+
+                                        //Broadcasting the tournament start message to everyone
+                                        for(Player onlinePlayer : Bukkit.getOnlinePlayers()){
+                                            onlinePlayer.playSound(onlinePlayer.getLocation(), Sound.BLOCK_NOTE_BLOCK_PLING, 1, 1);
+
+                                            List<String> messageLines = plugin.getConfig().getStringList("reward-system.tournament-messages.tournament-start");
+                                            for(String line : messageLines){
+                                                line = PlaceholderAPI.setPlaceholders(onlinePlayer, line);
+                                                line.replace("%tournament_enddate%", plugin.formatDate(System.currentTimeMillis() + millis))
+                                                        .replace("%tournament_duration%", plugin.formatTime(millis));
+                                                TextComponent coloredLine = LegacyComponentSerializer.legacyAmpersand().deserialize(line);
+                                                onlinePlayer.sendMessage(coloredLine);
+                                            }
+                                        }
+
+                                        plugin.getGivingRewardsSystem().startTasks();
                                         player.sendMessage(MiniMessage.miniMessage().deserialize("<green>The tournament has been enabled!"));
                                         player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
                                         plugin.getLogger().info("[PlaytimeUtils] The tournament has been enabled!");
@@ -187,8 +215,12 @@ public class CommandManager implements CommandExecutor {
                                         });
                                         plugin.getLogger().warning("[PlaytimeUtils] Reward System disabled. Reward playtime has been wiped.");
 
+                                        //Toggling and removing the necessary tournament info
                                         plugin.getConfig().set("reward-system.toggle", false);
+                                        plugin.getConfig().set("reward-system.tournament-duration", null);
+                                        plugin.getConfig().set("reward-system.tournament-start", null);
                                         plugin.saveConfig();
+
                                         player.sendMessage(MiniMessage.miniMessage().deserialize("<green>The tournament has been disabled!"));
                                         player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
                                         plugin.getLogger().info("[PlaytimeUtils] The tournament has been disabled!");
