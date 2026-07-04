@@ -11,10 +11,7 @@ import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.event.HoverEvent;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.OfflinePlayer;
-import org.bukkit.Sound;
+import org.bukkit.*;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -180,7 +177,11 @@ public class CommandManager implements CommandExecutor {
 
                                         //Broadcasting the tournament start message to everyone
                                         for(Player onlinePlayer : Bukkit.getOnlinePlayers()){
-                                            onlinePlayer.playSound(onlinePlayer.getLocation(), Sound.BLOCK_NOTE_BLOCK_PLING, 1, 1);
+                                            String startSoundName = plugin.getConfig().getString("reward-system.tournament-sounds.start.name", "BLOCK_NOTE_BLOCK_PLING");
+                                            float startSoundVolume = plugin.getConfig().getInt("reward-system.tournament-sounds.start.volume", 1);
+                                            float startSoundPitch = plugin.getConfig().getInt("reward-system.tournament-sounds.start.pitch", 1);
+                                            Sound startSound = Registry.SOUNDS.get(NamespacedKey.minecraft(startSoundName.toUpperCase()));
+                                            onlinePlayer.playSound(onlinePlayer.getLocation(), startSound, startSoundVolume, startSoundPitch);
 
                                             List<String> messageLines = plugin.getConfig().getStringList("reward-system.tournament-messages.tournament-start");
                                             for(String line : messageLines){

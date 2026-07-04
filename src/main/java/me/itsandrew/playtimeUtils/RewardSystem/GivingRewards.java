@@ -8,9 +8,7 @@ import net.kyori.adventure.text.TextReplacementConfig;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.event.HoverEvent;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
-import org.bukkit.Bukkit;
-import org.bukkit.OfflinePlayer;
-import org.bukkit.Sound;
+import org.bukkit.*;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitTask;
@@ -18,6 +16,8 @@ import org.bukkit.scheduler.BukkitTask;
 import java.net.URI;
 import java.net.URL;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class GivingRewards {
@@ -49,6 +49,17 @@ public class GivingRewards {
             if(System.currentTimeMillis() >= tournamentStart + tournamentDuration && !tournamentEnded.get()){
                 tournamentEnded.set(true);
 
+                //Sending the broadcast message
+                String soundName = mainConfig.getString("reward-system.tournament-sounds.end.name", "ENTITY_PLAYER_LEVELUP");
+                float soundVolume = mainConfig.getInt("reward-system.tournament-sounds.end.volume", 1);
+                float soundPitch = mainConfig.getInt("reward-system.tournament-sounds.end.pitch", 1);
+                Sound sound = Registry.SOUNDS.get(NamespacedKey.minecraft(soundName.toUpperCase()));
+                for(Player onlinePlayer : Bukkit.getOnlinePlayers()){
+                    onlinePlayer.playSound(onlinePlayer.getLocation(), sound, soundVolume, soundPitch);
+
+
+                }
+
 
             }
         }, 0, 20);
@@ -58,8 +69,12 @@ public class GivingRewards {
             if(System.currentTimeMillis() >= tournamentStart + tournamentDuration / 3 && !oneThirdMessage.get()){
                 oneThirdMessage.set(true);
 
+                String soundName = mainConfig.getString("reward-system.tournament-sounds.1/3-of-duration.name", "BLOCK_NOTE_BLOCK_PLING");
+                float soundVolume = mainConfig.getInt("reward-system.tournament-sounds.1/3-of-duration.volume", 1);
+                float soundPitch = mainConfig.getInt("reward-system.tournament-sounds.1/3-of-duration.pitch", 1);
+                Sound sound = Registry.SOUNDS.get(NamespacedKey.minecraft(soundName.toUpperCase()));
                 for(Player onlinePlayer : Bukkit.getOnlinePlayers()){
-                    onlinePlayer.playSound(onlinePlayer.getLocation(), Sound.BLOCK_NOTE_BLOCK_PLING, 1, 1);
+                    onlinePlayer.playSound(onlinePlayer.getLocation(), sound, soundVolume, soundPitch);
 
                     List<String> messageLines = plugin.getConfig().getStringList("reward-system.tournament-messages.1/3-of-duration");
                     for(String line : messageLines){
@@ -76,8 +91,12 @@ public class GivingRewards {
             if(System.currentTimeMillis() >= tournamentStart + tournamentDuration / 2 && !halfMessage.get()){
                 halfMessage.set(true);
 
+                String soundName = mainConfig.getString("reward-system.tournament-sounds.half-of-duration.name", "BLOCK_NOTE_BLOCK_PLING");
+                float soundVolume = mainConfig.getInt("reward-system.tournament-sounds.half-of-duration.volume", 1);
+                float soundPitch = mainConfig.getInt("reward-system.tournament-sounds.half-of-duration.pitch", 1);
+                Sound sound = Registry.SOUNDS.get(NamespacedKey.minecraft(soundName.toUpperCase()));
                 for(Player onlinePlayer : Bukkit.getOnlinePlayers()){
-                    onlinePlayer.playSound(onlinePlayer.getLocation(), Sound.BLOCK_NOTE_BLOCK_PLING, 1, 1);
+                    onlinePlayer.playSound(onlinePlayer.getLocation(), sound, soundVolume, soundPitch);
 
                     List<String> messageLines = plugin.getConfig().getStringList("reward-system.tournament-messages.half-of-duration");
                     for(String line : messageLines){
@@ -94,8 +113,12 @@ public class GivingRewards {
             if(System.currentTimeMillis() >= tournamentStart + 5 * tournamentDuration / 6 && !fiveSixthMessage.get()){
                 fiveSixthMessage.set(true);
 
+                String soundName = mainConfig.getString("reward-system.tournament-sounds.5/6-of-duration.name", "BLOCK_NOTE_BLOCK_PLING");
+                float soundVolume = mainConfig.getInt("reward-system.tournament-sounds.5/6-of-duration.volume", 1);
+                float soundPitch = mainConfig.getInt("reward-system.tournament-sounds.5/6-of-duration.pitch", 1);
+                Sound sound = Registry.SOUNDS.get(NamespacedKey.minecraft(soundName.toUpperCase()));
                 for(Player onlinePlayer : Bukkit.getOnlinePlayers()){
-                    onlinePlayer.playSound(onlinePlayer.getLocation(), Sound.BLOCK_NOTE_BLOCK_PLING, 1, 1);
+                    onlinePlayer.playSound(onlinePlayer.getLocation(), sound, soundVolume, soundPitch);
 
                     List<String> messageLines = plugin.getConfig().getStringList("reward-system.tournament-messages.5/6-of-duration");
                     for(String line : messageLines){
@@ -110,7 +133,7 @@ public class GivingRewards {
         }, 0, 20);
     }
 
-    private void rewardPlayer(OfflinePlayer player){
+    private void rewardWinners(){
 
     }
 

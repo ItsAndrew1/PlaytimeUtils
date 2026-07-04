@@ -15,6 +15,7 @@ import net.luckperms.api.node.types.PrefixNode;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -25,12 +26,14 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitTask;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -52,6 +55,8 @@ public final class PlaytimeUtils extends JavaPlugin implements Listener {
     private final AddRewardsGUI addRewardsGUI = new AddRewardsGUI(this);
     private final RemoveRewardsGUIs removeRewardsGUIs = new RemoveRewardsGUIs(this);
     private final GivingRewards givingRewardsSystem = new GivingRewards(this);
+
+    private final PlaceholdersManager placeholdersManager = new PlaceholdersManager();
 
     @Override
     public void onEnable() {
@@ -135,6 +140,88 @@ public final class PlaytimeUtils extends JavaPlugin implements Listener {
                 playtimeMap.compute(player.getUniqueId(), (k, playtime) -> playtime + 1);
             }
         }, 0, 20);
+
+        // Task for updating the placeholders. Runs every 15 seconds Async.
+        BukkitTask placeholdersTask = Bukkit.getScheduler().runTaskTimerAsynchronously(this, () -> {
+            List<Map.Entry<UUID, Integer>> top3Players = getDatabaseManager().getTournamentTop3Players();
+            List<Map.Entry<UUID, Integer>> mainTop3Players = getDatabaseManager().getMainTop3Players();
+
+            //Resetting defaults to prevent old data sticking around if list changes.
+            getPlaceholdersManager().setCachedTop1TournamentPlaytime("0m");
+            getPlaceholdersManager().setCachedTop2TournamentPlaytime("0m");
+            getPlaceholdersManager().setCachedTop3TournamentPlaytime("0m");
+            getPlaceholdersManager().setCachedTop1TournamentIGN("None");
+            getPlaceholdersManager().setCachedTop2TournamentIGN("None");
+            getPlaceholdersManager().setCachedTop3TournamentIGN("None");
+
+            //Saving the Tournament placeholders
+            boolean toggleRewardSystem = getConfig().getBoolean("reward-system.toggle", false);
+            if (toggleRewardSystem && top3Players != null && !top3Players.isEmpty()) {
+                UUID uuid1 = top3Players.getFirst().getKey();
+                OfflinePlayer top1 = Bukkit.getOfflinePlayer(uuid1);
+                String name1 = top1.getName() != null ? top1.getName() : "Unknown";
+                getPlaceholdersManager().setCachedTop1TournamentPlaytime(getDatabaseManager().getRewardPlaytimeString(uuid1));
+                getPlaceholdersManager().setCachedTop1TournamentIGN(name1);
+
+                if (top3Players.size() > 1) {
+                    UUID uuid2 = top3Players.get(1).getKey();
+                    OfflinePlayer top2 = Bukkit.getOfflinePlayer(uuid2);
+                    String name2 = top2.getName() != null ? top2.getName() : "Unknown";
+                    getPlaceholdersManager().setCachedTop2TournamentPlaytime(getDatabaseManager().getRewardPlaytimeString(uuid2));
+                    getPlaceholdersManager().setCachedTop2TournamentIGN(name2);
+                }
+
+                if (top3Players.size() > 2) {
+                    UUID uuid3 = top3Players.get(2).getKey();
+                    OfflinePlayer top3 = Bukkit.getOfflinePlayer(uuid3);
+                    String name3 = top3.getName() != null ? top3.getName() : "Unknown";
+                    getPlaceholdersManager().setCachedTop3TournamentPlaytime(getDatabaseManager().getRewardPlaytimeString(uuid3));
+                    getPlaceholdersManager().setCachedTop3TournamentIGN(name3);
+                }
+            }
+
+            //Resetting Main Playtime defaults
+            getPlaceholdersManager().setCachedTop1IGN("None");
+            getPlaceholdersManager().setCachedTop2IGN("None");
+            getPlaceholdersManager().setCachedTop3IGN("None");
+            getPlaceholdersManager().setCachedTop1Playtime("0m");
+            getPlaceholdersManager().setCachedTop2Playtime("0m");
+            getPlaceholdersManager().setCachedTop3Playtime("0m");
+
+            //Saving the Main Playtime Placeholders
+            if (mainTop3Players != null && !mainTop3Players.isEmpty()) {
+                UUID uuid1 = mainTop3Players.getFirst().getKey();
+                OfflinePlayer top1 = Bukkit.getOfflinePlayer(uuid1);
+                String name1 = top1.getName() != null ? top1.getName() : "Unknown";
+                getPlaceholdersManager().setCachedTop1Playtime(getDatabaseManager().getMainPlaytimeString(uuid1));
+                getPlaceholdersManager().setCachedTop1IGN(name1);
+
+                if (mainTop3Players.size() > 1) {
+                    UUID uuid2 = mainTop3Players.get(1).getKey();
+                    OfflinePlayer top2 = Bukkit.getOfflinePlayer(uuid2);
+                    String name2 = top2.getName() != null ? top2.getName() : "Unknown";
+                    getPlaceholdersManager().setCachedTop2Playtime(getDatabaseManager().getMainPlaytimeString(uuid2));
+                    getPlaceholdersManager().setCachedTop2IGN(name2);
+                }
+
+                if (mainTop3Players.size() > 2) {
+                    UUID uuid3 = mainTop3Players.get(2).getKey();
+                    OfflinePlayer top3 = Bukkit.getOfflinePlayer(uuid3);
+                    String name3 = top3.getName() != null ? top3.getName() : "Unknown";
+                    getPlaceholdersManager().setCachedTop3Playtime(getDatabaseManager().getMainPlaytimeString(uuid3));
+                    getPlaceholdersManager().setCachedTop3IGN(name3);
+                }
+            }
+
+            //Saving the main Playtime
+            List<UUID> onlinePlayerUUIDs = Bukkit.getOnlinePlayers().stream().map(Player::getUniqueId).toList();
+            for(UUID uuid : onlinePlayerUUIDs) getPlaceholdersManager().addToMainPlaytimeCache(uuid, getDatabaseManager().getMainPlaytimeString(uuid));
+
+            //Saving the Tournament Playtime
+            if(toggleRewardSystem){
+                for(UUID uuid : onlinePlayerUUIDs) getPlaceholdersManager().addTournamentPlaytimeCache(uuid, getDatabaseManager().getRewardPlaytimeString(uuid));
+            }
+        }, 0, 300);
     }
 
     private void removeAfkPrefixNodeFromPlayer(Player player){
@@ -222,6 +309,10 @@ public final class PlaytimeUtils extends JavaPlugin implements Listener {
         //Removing the player from StaffState Map if he has an ongoing staff state
         staffStates.remove(player);
 
+        //Removing the player from the PlaceholdersManager maps
+        getPlaceholdersManager().removeFromMainPlaytimeCache(playerUUID);
+        getPlaceholdersManager().removeFromTournamentPlaytimeCache(playerUUID);
+
         //Removing the AFK group from the player (if he is afk)
         removeAfkPrefixNodeFromPlayer(player);
     }
@@ -258,17 +349,13 @@ public final class PlaytimeUtils extends JavaPlugin implements Listener {
         millis -=  TimeUnit.HOURS.toMillis(hours);
 
         long minutes =  TimeUnit.MILLISECONDS.toMinutes(millis);
-        millis -= TimeUnit.MINUTES.toMillis(minutes);
-
-        long seconds =  TimeUnit.MILLISECONDS.toSeconds(millis);
 
         StringBuilder sb = new StringBuilder();
-        if(minutes > 0) seconds = 0;
 
         if(days > 0) sb.append(days).append("d ");
         if(hours > 0) sb.append(hours).append("h ");
         if(minutes > 0) sb.append(minutes).append("m ");
-        if(seconds > 0 || sb.isEmpty()) sb.append(seconds).append("s");
+        if(sb.isEmpty()) sb.append(0).append("m ");
 
         return sb.toString().trim();
     }
@@ -300,5 +387,8 @@ public final class PlaytimeUtils extends JavaPlugin implements Listener {
     }
     public GivingRewards getGivingRewardsSystem() {
         return givingRewardsSystem;
+    }
+    public PlaceholdersManager getPlaceholdersManager() {
+        return placeholdersManager;
     }
 }
