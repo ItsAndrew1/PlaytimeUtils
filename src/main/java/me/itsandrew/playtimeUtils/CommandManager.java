@@ -5,7 +5,6 @@ import me.clip.placeholderapi.PlaceholderAPI;
 import me.itsandrew.playtimeUtils.RewardSystem.States.AddRemoveChoice;
 import me.itsandrew.playtimeUtils.RewardSystem.States.StaffState;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.TextReplacementConfig;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.event.HoverEvent;
@@ -19,7 +18,6 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.List;
 
@@ -38,10 +36,42 @@ public class CommandManager implements CommandExecutor {
             case "myplaytime" -> {
                 if(!player.hasPermission("playtimeutils.myplaytime")) noPermission(player);
 
-                String playtimeMessage = ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("messages.my-playtime", "&aYour playtime is &e&l%playtime_mainValue%&a!"));
-                playtimeMessage = PlaceholderAPI.setPlaceholders(player, playtimeMessage);
-                player.sendMessage(playtimeMessage);
-                player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
+                if(args.length < 1){
+                    player.sendMessage(MiniMessage.miniMessage().deserialize("<red>Usage: /myplaytime <tournament | main>"));
+                    player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
+                    return true;
+                }
+
+                switch(args[0]){
+                    case "main" -> {
+                        String message = plugin.getConfig().getString("messages.my-playtime.main", "&aYour playtime is &e&l%playtime_mainValue%&a!");
+                        message = PlaceholderAPI.setPlaceholders(player, message);
+                        Component playtimeMessage = LegacyComponentSerializer.legacyAmpersand().deserialize(message);
+                        player.sendMessage(playtimeMessage);
+                        player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
+                    }
+
+                    case "tournament" -> {
+                        //Checking if the tournament is enabled
+                        long tournamentDuration = plugin.getConfig().getLong("reward-system.tournament-duration", 0);
+                        if(tournamentDuration == 0){
+                            player.sendMessage(MiniMessage.miniMessage().deserialize("<red>The Playtime Tournament is not active yet! Be on the lookout for <yellow>the next one <red>!"));
+                            player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
+                            return true;
+                        }
+
+                        String message = plugin.getConfig().getString("messages.my-playtime.tournament", "&aYour tournament playtime is &e&l%playtime_tournamentValue%&a!");
+                        message = PlaceholderAPI.setPlaceholders(player, message);
+                        Component playtimeMessage = LegacyComponentSerializer.legacyAmpersand().deserialize(message);
+                        player.sendMessage(playtimeMessage);
+                        player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
+                    }
+
+                    default -> {
+                        player.sendMessage(MiniMessage.miniMessage().deserialize("<red>Unknown command."));
+                        player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
+                    }
+                }
                 return true;
             }
 
@@ -49,23 +79,42 @@ public class CommandManager implements CommandExecutor {
                 //Checking if the sender has permission
                 if(!player.hasPermission("playtimeutils.playtime")) noPermission(player);
 
-                if(args.length < 1){
-                    player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&cUsage: &l/playtime <player>"));
+                if(args.length < 2){
+                    player.sendMessage(MiniMessage.miniMessage().deserialize("<red>Usage: /playtime <main | tournament> <player>"));
                     player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
                     return true;
                 }
 
-                OfflinePlayer targetPlayer = Bukkit.getOfflinePlayer(args[0]);
+                OfflinePlayer targetPlayer = Bukkit.getOfflinePlayer(args[1]);
                 if(!targetPlayer.hasPlayedBefore()){
-                    player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&aPlayer &e"+targetPlayer.getName()+" &ahas never played before!"));
+                    player.sendMessage(MiniMessage.miniMessage().deserialize("<red>Player <yellow><b>"+targetPlayer.getName()+"<red> has never played before!"));
                     player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
                     return true;
                 }
 
-                String playtimeMessage = ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("messages.player-playtime", "&e%player%'s playtime is &e&l%playtime_mainValue% &a!"));
-                playtimeMessage = PlaceholderAPI.setPlaceholders(targetPlayer, playtimeMessage);
-                player.sendMessage(playtimeMessage.replace("%player%", targetPlayer.getName()));
-                player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
+                switch(args[0]){
+                    case "main" -> {
+                        String message = plugin.getConfig().getString("messages.player-playtime.main", "&e%player%'s playtime is &e&l%playtime_mainValue%&a!");
+                        message = PlaceholderAPI.setPlaceholders(targetPlayer, message);
+                        message = message.replace("%player%", targetPlayer.getName());
+                        Component playtimeMessage = LegacyComponentSerializer.legacyAmpersand().deserialize(message);
+                        player.sendMessage(playtimeMessage);
+                        player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
+                    }
+
+                    case "tournament" -> {
+                        String message = plugin.getConfig().getString("messages.player-playtime.tournament", "&e%player%'s tournament playtime is &e&l%playtime_tournamentValue%&a!");
+                        message = PlaceholderAPI.setPlaceholders(targetPlayer, message);
+                        message = message.replace("%player%", targetPlayer.getName());
+                        Component playtimeMessage = LegacyComponentSerializer.legacyAmpersand().deserialize(message);
+                        player.sendMessage(playtimeMessage);
+                    }
+
+                    default -> {
+                        player.sendMessage(MiniMessage.miniMessage().deserialize("<red>Unknown command."));
+                        player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
+                    }
+                }
                 return true;
             }
 
@@ -75,9 +124,9 @@ public class CommandManager implements CommandExecutor {
 
                 List<String> rawMessage = plugin.getConfig().getStringList("messages.top-3-players");
                 for(String line : rawMessage){
-                    line = ChatColor.translateAlternateColorCodes('&', line);
                     line = PlaceholderAPI.setPlaceholders(player, line);
-                    player.sendMessage(line);
+                    Component coloredLine = LegacyComponentSerializer.legacyAmpersand().deserialize(line);
+                    player.sendMessage(coloredLine);
                 }
             }
 
@@ -95,13 +144,7 @@ public class CommandManager implements CommandExecutor {
 
                         plugin.reloadConfig();
 
-                        //Checking if the reward system toggle is false;
-                        boolean toggleRewardSystem = plugin.getConfig().getBoolean("reward-system.toggle", true);
-                        if(!toggleRewardSystem){
-                        }
-
-                        String chatPrefix = ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("chat-prefix", "&f&l[&e&lPUtils&f&l]"));
-                        player.sendMessage(ChatColor.translateAlternateColorCodes('&', chatPrefix + " &aPlaytimeUtils has been reloaded!"));
+                        player.sendMessage(MiniMessage.miniMessage().deserialize("<green>The configuration has been reloaded!"));
                         player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1, 1.4f);
                         return true;
                     }
@@ -158,9 +201,17 @@ public class CommandManager implements CommandExecutor {
                                         //Checking if the player has permission.
                                         if(!player.hasPermission("playtimeutils.ptutils.rewards.tournament.enable")) noPermission(player);
 
-                                        //Checking if the tournament isn't already enabled.
-                                        boolean toggleRewardSystem = plugin.getConfig().getBoolean("reward-system.toggle", true);
-                                        if(toggleRewardSystem){
+                                        //Checking if the Reward System is enabled
+                                        boolean toggleRewardSystem = plugin.getConfig().getBoolean("reward-system.toggle", false);
+                                        if(!toggleRewardSystem){
+                                            player.sendMessage(MiniMessage.miniMessage().deserialize("<red>The reward system is not enabled! Enable it to start the tournament."));
+                                            player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
+                                            return true;
+                                        }
+
+                                        //Checking if the tournament is already enabled.
+                                        long eventDuration = plugin.getConfig().getLong("reward-system.tournament-duration", 0);
+                                        if(eventDuration != 0){
                                             player.sendMessage(MiniMessage.miniMessage().deserialize("<red>The tournament is already enabled!"));
                                             player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
                                             return true;
@@ -171,8 +222,7 @@ public class CommandManager implements CommandExecutor {
                                         long millis = numberOfDays * 60 * 1000L;
                                         plugin.getConfig().set("reward-system.tournament-duration", millis);
                                         plugin.getConfig().set("reward-system.tournament-start", System.currentTimeMillis());
-
-                                        plugin.getConfig().set("reward-system.toggle", true);
+                                        plugin.getConfig().set("reward-system.tournament-end", System.currentTimeMillis() + millis);
                                         plugin.saveConfig();
 
                                         //Broadcasting the tournament start message to everyone
@@ -207,18 +257,24 @@ public class CommandManager implements CommandExecutor {
                                         //Checking if the player has permission.
                                         if(!player.hasPermission("playtimeutils.ptutils.rewards.tournament.disable")) noPermission(player);
 
-                                        //Checking if the tournament isn't already disabled.
-                                        boolean toggleRewardSystem = plugin.getConfig().getBoolean("reward-system.toggle", true);
+                                        //Checking reward system is enabled
+                                        boolean toggleRewardSystem = plugin.getConfig().getBoolean("reward-system.toggle", false);
                                         if(!toggleRewardSystem){
+                                            player.sendMessage(MiniMessage.miniMessage().deserialize("<red>The <b>Reward System</b> is disabled! Enable it in <yellow><b>config.yml <red>to use this command."));
+                                            player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
+                                            return true;
+                                        }
+
+                                        //Checking if the tournament is already disabled
+                                        long eventDuration = plugin.getConfig().getLong("reward-system.tournament-duration", 0);
+                                        if(eventDuration == 0){
                                             player.sendMessage(MiniMessage.miniMessage().deserialize("<red>The tournament is already disabled!"));
                                             player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
                                             return true;
                                         }
 
                                         //Wiping the 'Reward Playtime' column in the db.
-                                        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
-                                            plugin.getDatabaseManager().wipeRewardPlaytime();
-                                        });
+                                        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> plugin.getDatabaseManager().wipeRewardPlaytime());
                                         plugin.getLogger().warning("[PlaytimeUtils] Reward System disabled. Reward playtime has been wiped.");
 
                                         //Broadcasting the Tournament Disabled Message
@@ -238,10 +294,14 @@ public class CommandManager implements CommandExecutor {
                                         }
 
                                         //Toggling and removing the necessary tournament info
-                                        plugin.getConfig().set("reward-system.toggle", false);
                                         plugin.getConfig().set("reward-system.tournament-duration", null);
                                         plugin.getConfig().set("reward-system.tournament-start", null);
+                                        plugin.getConfig().set("reward-system.tournament-end", null);
                                         plugin.saveConfig();
+
+                                        //Stopping the 2 tasks
+                                        plugin.getGivingRewardsSystem().getRewardingTask().cancel();
+                                        plugin.getGivingRewardsSystem().getBroadcastTask().cancel();
 
                                         player.sendMessage(MiniMessage.miniMessage().deserialize("<green>The tournament has been disabled!"));
                                         player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
@@ -299,7 +359,6 @@ public class CommandManager implements CommandExecutor {
     private boolean isUrlValid(String url){
         try {
             URI uri = new URI(url);
-            URL realUrl = uri.toURL();
             return uri.getScheme() != null;
         } catch (Exception e) {
             return false;
@@ -318,7 +377,7 @@ public class CommandManager implements CommandExecutor {
         return component;
     }
 
-    private void noPermission(Player player){;
+    private void noPermission(Player player){
         String noPermissionMessage = LegacyComponentSerializer.legacyAmpersand().serialize(Component.text(plugin.getConfig().getString("messages.no-permission", "&cYou don't have permission to do that!")));
         noPermissionMessage = PlaceholderAPI.setPlaceholders(player, noPermissionMessage);
 

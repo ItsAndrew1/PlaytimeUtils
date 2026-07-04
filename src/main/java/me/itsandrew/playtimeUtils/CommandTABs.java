@@ -13,6 +13,7 @@ public class CommandTABs implements TabCompleter {
 
     @Override
     public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String @NotNull [] args) {
+        if(command.getName().equalsIgnoreCase("myplaytime") || command.getName().equalsIgnoreCase("playtime")) return List.of("main", "tournament");
         if(command.getName().equalsIgnoreCase("ptutils")){
             if(args.length == 1) return List.of("reload", "rewards");
             if(args.length == 2 && args[0].equals("rewards")) return List.of("tournament", "add", "remove");

@@ -1,9 +1,6 @@
 #Developed by _ItsAndrew_
 #Main configuration file for PlaytimeUtils.
 
-#The prefix for plugin chat messages. Leave blank for no prefix
-chat-prefix: "&f&l[&e&lPUtils&f&l]"
-
 #Configure the database manager
 database:
   type: sqlite  #This is the type of the database. If you run a network with multiple servers, use 'mysql'! If you run only 1 server, use 'sqlite'!
@@ -19,8 +16,12 @@ database:
 #Configure general messages. Use '&' for colors/styles. You can also use PAPI placeholders!
 messages:
   no-permission: "&cYou don't have permission to do that!"
-  my-playtime: "&aYour playtime is &e&l%playtime_mainValue%&a!" #Use %playtime_mainValue% to display the main playtime
-  player-playtime: "&a%player%'s playtime is &e&l%playtime_mainValue%&a!" #Use %player% to display the player's name and %playtime_mainValue% to display their main playtime'
+  my-playtime:
+    main: "&aYour playtime is &e&l%playtime_mainValue%&a!" #Use %playtime_mainValue% to display the main playtime
+    tournament: "&aYour current playtime in the tournament is &e&l%playtime_tournamentValue%&a!" #Use %playtime_tournamentValue% to display the tournament playtime
+  player-playtime:
+    main: "&a%player%'s playtime is &e&l%playtime_mainValue%&a!" #Use %player% to display the player's name and %playtime_mainValue% to display their main playtime'
+    tournament: "&a%player%'s playtime is &e&l%playtime_tournamentValue%&a!" #Use %player% to display the player's name and %playtime_tournamentValue% to display their tournament playtime'
   player-afk: "&7You are now AFK!"
   player-no-more-afk: "&7You are not AFK anymore."
 
@@ -142,7 +143,7 @@ reward-system:
       - "       &7&l2. &7%playtime_top2tournamentign%   &f%playtime_top2tournament%"
       - "       &6&l3. &6%playtime_top3tournamentign%   &f%playtime_top3tournament%"
       - " "
-      - " &f&oIf you haven't received your reward, join our &9Discord Server &f&o &e&osubmit a ticket&f&o!"
+      - " &f&oIf you haven't received your reward, join our &9Discord Server &f&oand &e&osubmit a ticket&f&o!"
       - " "
       - "&c&l======================================================="
 

@@ -14,9 +14,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitTask;
 
 import java.net.URI;
-import java.net.URL;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -36,6 +34,10 @@ public class GivingRewards {
         boolean toggleRewardSystem = plugin.getConfig().getBoolean("reward-system.toggle", false);
         if(!toggleRewardSystem) return;
 
+        //Checking if the tournament has started
+        long duration = plugin.getConfig().getLong("reward-system.tournament-duration", 0);
+        if(duration == 0) return;
+
         //Booleans for messages/tournament ending
         AtomicBoolean oneThirdMessage = new AtomicBoolean(false);
         AtomicBoolean halfMessage = new AtomicBoolean(false);
@@ -49,7 +51,7 @@ public class GivingRewards {
             if(System.currentTimeMillis() >= tournamentStart + tournamentDuration && !tournamentEnded.get()){
                 tournamentEnded.set(true);
 
-                //Sending the broadcast message
+                //Sending the broadcast message/sound
                 String soundName = mainConfig.getString("reward-system.tournament-sounds.end.name", "ENTITY_PLAYER_LEVELUP");
                 float soundVolume = mainConfig.getInt("reward-system.tournament-sounds.end.volume", 1);
                 float soundPitch = mainConfig.getInt("reward-system.tournament-sounds.end.pitch", 1);
@@ -57,10 +59,28 @@ public class GivingRewards {
                 for(Player onlinePlayer : Bukkit.getOnlinePlayers()){
                     onlinePlayer.playSound(onlinePlayer.getLocation(), sound, soundVolume, soundPitch);
 
-
+                    List<String> messageLines = plugin.getConfig().getStringList("reward-system.tournament-messages.end");
+                    for(String line : messageLines){
+                        line = PlaceholderAPI.setPlaceholders(onlinePlayer, line);
+                        Component coloredLine = LegacyComponentSerializer.legacyAmpersand().deserialize(line);
+                        coloredLine = replaceDiscordComponent(coloredLine);
+                        onlinePlayer.sendMessage(coloredLine);
+                    }
                 }
 
+                //Giving the rewards to the players
+                rewardWinners();
 
+                //Resetting the tournament settings
+                mainConfig.set("reward-system.tournament-duration", null);
+                mainConfig.set("reward-system.tournament-start", null);
+                mainConfig.set("reward-system.tournament-end", null);
+                plugin.saveConfig();
+                plugin.getLogger().info("Tournament has ended successfully!");
+
+                //Stopping the tasks
+                broadcastTask.cancel();
+                rewardingTask.cancel();
             }
         }, 0, 20);
 
@@ -140,7 +160,6 @@ public class GivingRewards {
     private boolean isUrlValid(String url) {
         try {
             URI uri = new URI(url);
-            URL realUrl = uri.toURL();
             return uri.getScheme() != null;
         } catch (Exception e) {
             return false;

@@ -49,6 +49,16 @@ public class PluginPapiPlaceholders extends PlaceholderExpansion {
             return plugin.getPlaceholdersManager().getTournamentPlaytime(player.getUniqueId());
         }
 
+        //Use '%playtime_countdown%' to display the live countdown of the tournament
+        if(params.equalsIgnoreCase("countdown")) {
+            //Checking if the tournament is active
+            long tournamentDuration = plugin.getConfig().getLong("reward-system.tournament-duration", 0);
+            if(tournamentDuration == 0) return "Tournament is not active!";
+
+            long tournamentEnd = plugin.getConfig().getLong("reward-system.tournament-end");
+            return plugin.formatTime(tournamentEnd - System.currentTimeMillis());
+        }
+
         //Use '%playtime_top1ign%' to display the top 1 player IGN
         if(params.equalsIgnoreCase("top1ign")) {
             return plugin.getPlaceholdersManager().getCachedTop1IGN();
