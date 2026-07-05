@@ -215,6 +215,14 @@ reward-system:
       - "&c&l======[&f&lPLAYTIME TOURNAMENT ENDS IN &4&l%tournament_duration%&c&l]======"
 
 
+  #Configure the item which the winners will get to claim their rewards.
+  rewards-item:
+    material: ENDER_CHEST
+    display-name: "%player_tournamentPlace% &a&lReward" #Use %player_tournamentPlace% to display the player's place in the tournament.
+    lore:
+      - " "
+      - "&7Click or Right Click to open your reward!"
+
   #The items/exp levels that will be given to players who win the tournament. Configure this through the in-game command '/ptutils rewards add/remove'.
   rewards:
     first-place:

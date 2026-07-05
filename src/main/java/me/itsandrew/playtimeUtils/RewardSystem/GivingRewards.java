@@ -7,15 +7,17 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextReplacementConfig;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.event.HoverEvent;
+import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.*;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.scheduler.BukkitTask;
 
 import java.net.URI;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class GivingRewards {
@@ -45,116 +47,193 @@ public class GivingRewards {
         AtomicBoolean tournamentEnded = new AtomicBoolean(false);
 
         FileConfiguration mainConfig = plugin.getConfig();
-        long tournamentDuration = mainConfig.getLong("reward-system.tournament-duration");
-        long tournamentStart = mainConfig.getLong("reward-system.tournament-start");
-        rewardingTask = Bukkit.getScheduler().runTaskTimer(plugin, () -> {
-            if(System.currentTimeMillis() >= tournamentStart + tournamentDuration && !tournamentEnded.get()){
-                tournamentEnded.set(true);
 
-                //Sending the broadcast message/sound
-                String soundName = mainConfig.getString("reward-system.tournament-sounds.end.name", "ENTITY_PLAYER_LEVELUP");
-                float soundVolume = mainConfig.getInt("reward-system.tournament-sounds.end.volume", 1);
-                float soundPitch = mainConfig.getInt("reward-system.tournament-sounds.end.pitch", 1);
-                Sound sound = Registry.SOUNDS.get(NamespacedKey.minecraft(soundName.toUpperCase()));
-                for(Player onlinePlayer : Bukkit.getOnlinePlayers()){
-                    onlinePlayer.playSound(onlinePlayer.getLocation(), sound, soundVolume, soundPitch);
+        //Running an Async task to get the tournament timestamps from the database.
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+            long tournamentDuration = plugin.getDatabaseManager().getTournamentTimestamp("duration");
+            long tournamentStart = plugin.getDatabaseManager().getTournamentTimestamp("tournamentStart");
+            long tournamentEnd = plugin.getDatabaseManager().getTournamentTimestamp("tournamentEnd");
 
-                    List<String> messageLines = plugin.getConfig().getStringList("reward-system.tournament-messages.end");
-                    for(String line : messageLines){
-                        line = PlaceholderAPI.setPlaceholders(onlinePlayer, line);
-                        Component coloredLine = LegacyComponentSerializer.legacyAmpersand().deserialize(line);
-                        coloredLine = replaceDiscordComponent(coloredLine);
-                        onlinePlayer.sendMessage(coloredLine);
+            //Jumping back to the main thread to start the tasks
+            Bukkit.getScheduler().runTask(plugin, () -> {
+                rewardingTask = Bukkit.getScheduler().runTaskTimer(plugin, () -> {
+                    if(System.currentTimeMillis() >= tournamentEnd && !tournamentEnded.get()){
+                        tournamentEnded.set(true);
+
+                        //Sending the broadcast message/sound
+                        String soundName = mainConfig.getString("reward-system.tournament-sounds.end.name", "ENTITY_PLAYER_LEVELUP");
+                        double soundVolume = mainConfig.getDouble("reward-system.tournament-sounds.end.volume", 1);
+                        double soundPitch = mainConfig.getDouble("reward-system.tournament-sounds.end.pitch", 1);
+                        Sound sound = Registry.SOUNDS.get(NamespacedKey.minecraft(soundName.toLowerCase()));
+                        for(Player onlinePlayer : Bukkit.getOnlinePlayers()){
+                            onlinePlayer.playSound(onlinePlayer.getLocation(), sound, (float) soundVolume, (float) soundPitch);
+
+                            List<String> messageLines = plugin.getConfig().getStringList("reward-system.tournament-messages.end");
+                            for(String line : messageLines){
+                                line = PlaceholderAPI.setPlaceholders(onlinePlayer, line);
+                                Component coloredLine = LegacyComponentSerializer.legacyAmpersand().deserialize(line);
+                                coloredLine = replaceDiscordComponent(coloredLine);
+                                onlinePlayer.sendMessage(coloredLine);
+                            }
+                        }
+
+                        //Giving the rewards to the players
+                        rewardWinners();
+
+                        //Deleting the tournament timestamps from the database.
+                        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> plugin.getDatabaseManager().deleteTournamentTimestamps());
+                        plugin.getLogger().info("Tournament has ended successfully!");
+
+                        //Stopping the tasks
+                        broadcastTask.cancel();
+                        rewardingTask.cancel();
                     }
-                }
+                }, 0, 20);
 
-                //Giving the rewards to the players
-                rewardWinners();
+                broadcastTask = Bukkit.getScheduler().runTaskTimer(plugin, () -> {
+                    //Sending the broadcast message when the timer gets to a third of the time
+                    if(System.currentTimeMillis() >= tournamentStart + tournamentDuration / 3 && !oneThirdMessage.get()){
+                        oneThirdMessage.set(true);
 
-                //Resetting the tournament settings
-                mainConfig.set("reward-system.tournament-duration", null);
-                mainConfig.set("reward-system.tournament-start", null);
-                mainConfig.set("reward-system.tournament-end", null);
-                plugin.saveConfig();
-                plugin.getLogger().info("Tournament has ended successfully!");
+                        String soundName = mainConfig.getString("reward-system.tournament-sounds.1/3-of-duration.name", "BLOCK_NOTE_BLOCK_PLING");
+                        float soundVolume = mainConfig.getInt("reward-system.tournament-sounds.1/3-of-duration.volume", 1);
+                        float soundPitch = mainConfig.getInt("reward-system.tournament-sounds.1/3-of-duration.pitch", 1);
+                        Sound sound = Registry.SOUNDS.get(NamespacedKey.minecraft(soundName.toLowerCase()));
+                        for(Player onlinePlayer : Bukkit.getOnlinePlayers()){
+                            onlinePlayer.playSound(onlinePlayer.getLocation(), sound, soundVolume, soundPitch);
 
-                //Stopping the tasks
-                broadcastTask.cancel();
-                rewardingTask.cancel();
-            }
-        }, 0, 20);
+                            List<String> messageLines = plugin.getConfig().getStringList("reward-system.tournament-messages.1/3-of-duration");
+                            for(String line : messageLines){
+                                line = PlaceholderAPI.setPlaceholders(onlinePlayer, line);
+                                Component coloredLine = LegacyComponentSerializer.legacyAmpersand().deserialize(line);
+                                coloredLine = replaceDiscordComponent(coloredLine);
 
-        broadcastTask = Bukkit.getScheduler().runTaskTimer(plugin, () -> {
-            //Sending the broadcast message when the timer gets to a third of the time
-            if(System.currentTimeMillis() >= tournamentStart + tournamentDuration / 3 && !oneThirdMessage.get()){
-                oneThirdMessage.set(true);
-
-                String soundName = mainConfig.getString("reward-system.tournament-sounds.1/3-of-duration.name", "BLOCK_NOTE_BLOCK_PLING");
-                float soundVolume = mainConfig.getInt("reward-system.tournament-sounds.1/3-of-duration.volume", 1);
-                float soundPitch = mainConfig.getInt("reward-system.tournament-sounds.1/3-of-duration.pitch", 1);
-                Sound sound = Registry.SOUNDS.get(NamespacedKey.minecraft(soundName.toUpperCase()));
-                for(Player onlinePlayer : Bukkit.getOnlinePlayers()){
-                    onlinePlayer.playSound(onlinePlayer.getLocation(), sound, soundVolume, soundPitch);
-
-                    List<String> messageLines = plugin.getConfig().getStringList("reward-system.tournament-messages.1/3-of-duration");
-                    for(String line : messageLines){
-                        line = PlaceholderAPI.setPlaceholders(onlinePlayer, line);
-                        Component coloredLine = LegacyComponentSerializer.legacyAmpersand().deserialize(line);
-                        coloredLine = replaceDiscordComponent(coloredLine);
-
-                        onlinePlayer.sendMessage(coloredLine);
+                                onlinePlayer.sendMessage(coloredLine);
+                            }
+                        }
                     }
-                }
-            }
 
-            //Sending the broadcast message when the timer gets to half the time
-            if(System.currentTimeMillis() >= tournamentStart + tournamentDuration / 2 && !halfMessage.get()){
-                halfMessage.set(true);
+                    //Sending the broadcast message when the timer gets to half the time
+                    if(System.currentTimeMillis() >= tournamentStart + tournamentDuration / 2 && !halfMessage.get()){
+                        halfMessage.set(true);
 
-                String soundName = mainConfig.getString("reward-system.tournament-sounds.half-of-duration.name", "BLOCK_NOTE_BLOCK_PLING");
-                float soundVolume = mainConfig.getInt("reward-system.tournament-sounds.half-of-duration.volume", 1);
-                float soundPitch = mainConfig.getInt("reward-system.tournament-sounds.half-of-duration.pitch", 1);
-                Sound sound = Registry.SOUNDS.get(NamespacedKey.minecraft(soundName.toUpperCase()));
-                for(Player onlinePlayer : Bukkit.getOnlinePlayers()){
-                    onlinePlayer.playSound(onlinePlayer.getLocation(), sound, soundVolume, soundPitch);
+                        String soundName = mainConfig.getString("reward-system.tournament-sounds.half-of-duration.name", "BLOCK_NOTE_BLOCK_PLING");
+                        float soundVolume = mainConfig.getInt("reward-system.tournament-sounds.half-of-duration.volume", 1);
+                        float soundPitch = mainConfig.getInt("reward-system.tournament-sounds.half-of-duration.pitch", 1);
+                        Sound sound = Registry.SOUNDS.get(NamespacedKey.minecraft(soundName.toLowerCase()));
+                        for(Player onlinePlayer : Bukkit.getOnlinePlayers()){
+                            onlinePlayer.playSound(onlinePlayer.getLocation(), sound, soundVolume, soundPitch);
 
-                    List<String> messageLines = plugin.getConfig().getStringList("reward-system.tournament-messages.half-of-duration");
-                    for(String line : messageLines){
-                        line = PlaceholderAPI.setPlaceholders(onlinePlayer, line);
-                        Component coloredLine = LegacyComponentSerializer.legacyAmpersand().deserialize(line);
-                        coloredLine = replaceDiscordComponent(coloredLine);
+                            List<String> messageLines = plugin.getConfig().getStringList("reward-system.tournament-messages.half-of-duration");
+                            for(String line : messageLines){
+                                line = PlaceholderAPI.setPlaceholders(onlinePlayer, line);
+                                Component coloredLine = LegacyComponentSerializer.legacyAmpersand().deserialize(line);
+                                coloredLine = replaceDiscordComponent(coloredLine);
 
-                        onlinePlayer.sendMessage(coloredLine);
+                                onlinePlayer.sendMessage(coloredLine);
+                            }
+                        }
                     }
-                }
-            }
 
-            //Sending the broadcast message when the timer gets to 5/6 of the time
-            if(System.currentTimeMillis() >= tournamentStart + 5 * tournamentDuration / 6 && !fiveSixthMessage.get()){
-                fiveSixthMessage.set(true);
+                    //Sending the broadcast message when the timer gets to 5/6 of the time
+                    if(System.currentTimeMillis() >= tournamentStart + 5 * tournamentDuration / 6 && !fiveSixthMessage.get()){
+                        fiveSixthMessage.set(true);
 
-                String soundName = mainConfig.getString("reward-system.tournament-sounds.5/6-of-duration.name", "BLOCK_NOTE_BLOCK_PLING");
-                float soundVolume = mainConfig.getInt("reward-system.tournament-sounds.5/6-of-duration.volume", 1);
-                float soundPitch = mainConfig.getInt("reward-system.tournament-sounds.5/6-of-duration.pitch", 1);
-                Sound sound = Registry.SOUNDS.get(NamespacedKey.minecraft(soundName.toUpperCase()));
-                for(Player onlinePlayer : Bukkit.getOnlinePlayers()){
-                    onlinePlayer.playSound(onlinePlayer.getLocation(), sound, soundVolume, soundPitch);
+                        String soundName = mainConfig.getString("reward-system.tournament-sounds.5/6-of-duration.name", "BLOCK_NOTE_BLOCK_PLING");
+                        float soundVolume = mainConfig.getInt("reward-system.tournament-sounds.5/6-of-duration.volume", 1);
+                        float soundPitch = mainConfig.getInt("reward-system.tournament-sounds.5/6-of-duration.pitch", 1);
+                        Sound sound = Registry.SOUNDS.get(NamespacedKey.minecraft(soundName.toLowerCase()));
+                        for(Player onlinePlayer : Bukkit.getOnlinePlayers()){
+                            onlinePlayer.playSound(onlinePlayer.getLocation(), sound, soundVolume, soundPitch);
 
-                    List<String> messageLines = plugin.getConfig().getStringList("reward-system.tournament-messages.5/6-of-duration");
-                    for(String line : messageLines){
-                        line = PlaceholderAPI.setPlaceholders(onlinePlayer, line);
-                        Component coloredLine = LegacyComponentSerializer.legacyAmpersand().deserialize(line);
-                        coloredLine = replaceDiscordComponent(coloredLine);
+                            List<String> messageLines = plugin.getConfig().getStringList("reward-system.tournament-messages.5/6-of-duration");
+                            for(String line : messageLines){
+                                line = PlaceholderAPI.setPlaceholders(onlinePlayer, line);
+                                Component coloredLine = LegacyComponentSerializer.legacyAmpersand().deserialize(line);
+                                coloredLine = replaceDiscordComponent(coloredLine);
 
-                        onlinePlayer.sendMessage(coloredLine);
+                                onlinePlayer.sendMessage(coloredLine);
+                            }
+                        }
                     }
-                }
-            }
-        }, 0, 20);
+                }, 0, 20);
+            });
+        });
     }
 
     private void rewardWinners(){
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+           List<Map.Entry<UUID, Integer>>top3tournament = plugin.getDatabaseManager().getTournamentTop3Players();
 
+           //Running the task to give the rewards on the main thread
+            Bukkit.getScheduler().runTask(plugin, () -> {
+                for(int i = 0; i<top3tournament.size(); i++){
+                    int rank = i + 1;
+                    OfflinePlayer winner = Bukkit.getOfflinePlayer(top3tournament.get(i).getKey());
+
+                    //Checking if the winner is online or not.
+                    if(winner.isOnline()){
+                        //Giving the winner a 'Rewards Item' which he can interact with to get the rewards.
+                        ItemStack rewardsItem = new ItemStack(Material.valueOf(plugin.getConfig().getString("reward-system.rewards-item.material", "DIAMOND_SWORD").toUpperCase()), 1);
+                        ItemMeta riMeta = rewardsItem.getItemMeta();
+
+                        if(riMeta != null){
+                            //Setting the display name
+                            String DisplayName = plugin.getConfig().getString("reward-system.rewards-item.display-name", "%player_tournamentValue% &a&lReward");
+                            DisplayName = PlaceholderAPI.setPlaceholders(winner, DisplayName);
+                            Component realDisplayName = LegacyComponentSerializer.legacyAmpersand().deserialize(DisplayName);
+                            realDisplayName = realDisplayName.replaceText(TextReplacementConfig.builder().match("%player_tournamentValue%").replacement(getFormattedPlacementString(rank)).build());
+                            riMeta.displayName(realDisplayName);
+
+                            //Setting the lore
+                            List<String> rawLore = plugin.getConfig().getStringList("reward-system.rewards-item.lore");
+                            List<Component> lore = new ArrayList<>();
+                            for(String line : rawLore){
+                                line = PlaceholderAPI.setPlaceholders(winner, line);
+                                Component coloredLine = LegacyComponentSerializer.legacyAmpersand().deserialize(line);
+                                lore.add(coloredLine);
+                            }
+                            riMeta.lore(lore);
+                        }
+
+                        rewardsItem.setItemMeta(riMeta);
+
+                        //Checking if the player has inventory space
+                        HashMap<Integer,ItemStack> attemptToAdd = winner.getPlayer().getInventory().addItem(rewardsItem);
+                        if(!attemptToAdd.isEmpty()){
+
+                        }
+
+                        winner.getPlayer().getInventory().addItem(rewardsItem);
+                    }
+                    else{
+
+                    }
+                }
+            });
+        });
+    }
+
+    private String getStringRank(int rank){
+        String rankString = "";
+        switch(rank){
+            case 1 -> rankString = "first-place";
+            case 2 -> rankString = "second-place";
+            case 3 -> rankString = "third-place";
+        }
+
+        return rankString;
+    }
+
+    private Component getFormattedPlacementString(int rank){
+        Component formattedPlacementString = Component.empty();
+        switch(rank){
+            case 1 -> formattedPlacementString = MiniMessage.miniMessage().deserialize("<gradient:#ffee55:#ffaa00><b>1st Place");
+            case 2 -> formattedPlacementString = MiniMessage.miniMessage().deserialize("<gradient:#ffffff:#bbbacc><b>2nd Place");
+            case 3 -> formattedPlacementString = MiniMessage.miniMessage().deserialize("<gradient:#ccc923:#e6765a><b>3rd Place");
+        }
+
+        return formattedPlacementString;
     }
 
     private boolean isUrlValid(String url) {

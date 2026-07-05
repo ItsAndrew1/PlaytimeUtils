@@ -220,17 +220,14 @@ public class CommandManager implements CommandExecutor {
                                         //Saving the value when the tournament will end in the config
                                         int numberOfDays = plugin.getConfig().getInt("reward-system.tournament-timer", 7);
                                         long millis = numberOfDays * 60 * 1000L;
-                                        plugin.getConfig().set("reward-system.tournament-duration", millis);
-                                        plugin.getConfig().set("reward-system.tournament-start", System.currentTimeMillis());
-                                        plugin.getConfig().set("reward-system.tournament-end", System.currentTimeMillis() + millis);
-                                        plugin.saveConfig();
+                                        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> plugin.getDatabaseManager().setTournamentTimestamps(System.currentTimeMillis(), millis, System.currentTimeMillis() + millis));
 
                                         //Broadcasting the tournament start message to everyone
                                         for(Player onlinePlayer : Bukkit.getOnlinePlayers()){
                                             String startSoundName = plugin.getConfig().getString("reward-system.tournament-sounds.start.name", "BLOCK_NOTE_BLOCK_PLING");
                                             float startSoundVolume = plugin.getConfig().getInt("reward-system.tournament-sounds.start.volume", 1);
                                             float startSoundPitch = plugin.getConfig().getInt("reward-system.tournament-sounds.start.pitch", 1);
-                                            Sound startSound = Registry.SOUNDS.get(NamespacedKey.minecraft(startSoundName.toUpperCase()));
+                                            Sound startSound = Registry.SOUNDS.get(NamespacedKey.minecraft(startSoundName.toLowerCase()));
                                             onlinePlayer.playSound(onlinePlayer.getLocation(), startSound, startSoundVolume, startSoundPitch);
 
                                             List<String> messageLines = plugin.getConfig().getStringList("reward-system.tournament-messages.tournament-start");
@@ -293,11 +290,8 @@ public class CommandManager implements CommandExecutor {
                                             }
                                         }
 
-                                        //Toggling and removing the necessary tournament info
-                                        plugin.getConfig().set("reward-system.tournament-duration", null);
-                                        plugin.getConfig().set("reward-system.tournament-start", null);
-                                        plugin.getConfig().set("reward-system.tournament-end", null);
-                                        plugin.saveConfig();
+                                        //Deleting the tournament timestamps from the database.
+                                        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> plugin.getDatabaseManager().deleteTournamentTimestamps());
 
                                         //Stopping the 2 tasks
                                         plugin.getGivingRewardsSystem().getRewardingTask().cancel();

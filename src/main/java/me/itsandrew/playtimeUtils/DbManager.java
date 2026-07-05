@@ -55,7 +55,7 @@ public class DbManager {
             return false;
         }
 
-        //Creating the table
+        //Creating the playtime table
         String playtimeTable = """
                 CREATE TABLE IF NOT EXISTS playersPlaytime (
                     uuid TEXT PRIMARY KEY,
@@ -64,6 +64,18 @@ public class DbManager {
                 )
                 """;
         try(PreparedStatement statement = dbConnection.prepareStatement(playtimeTable)) {
+            statement.executeUpdate();
+        }
+
+        //Creating the tournament timestamps table
+        String tournamentTimestampsTable = """
+                CREATE TABLE IF NOT EXISTS tournamentTimestamps (
+                    tournamentStart BIGINT,
+                    duration BIGINT,
+                    tournamentEnd BIGINT
+                )
+                """;
+        try(PreparedStatement statement = dbConnection.prepareStatement(tournamentTimestampsTable)){
             statement.executeUpdate();
             return true;
         }
@@ -251,5 +263,40 @@ public class DbManager {
         } catch (SQLException e) {
             e.printStackTrace();
         }
+    }
+
+    public void setTournamentTimestamps(long tournamentStart, long duration, long tournamentEnd){
+        String statement = "INSERT INTO tournamentTimestamps (tournamentStart, duration, tournamentEnd) VALUES (?, ?, ?)";
+        try(PreparedStatement ps = dbConnection.prepareStatement(statement)){
+            ps.setLong(1, tournamentStart);
+            ps.setLong(2, duration);
+            ps.setLong(3, tournamentEnd);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void deleteTournamentTimestamps(){
+        String statement = "DELETE FROM tournamentTimestamps";
+        try(PreparedStatement ps = dbConnection.prepareStatement(statement)){
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public long getTournamentTimestamp(String option){
+        String statement = "SELECT " + option + " FROM tournamentTimestamps";
+        try(PreparedStatement ps = dbConnection.prepareStatement(statement)){
+            try(ResultSet rs = ps.executeQuery()){
+                if(rs.next()){
+                    return rs.getLong(option);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0;
     }
 }
