@@ -1,4 +1,4 @@
-package me.itsandrew.playtimeUtils.RewardSystem.GUIs;
+package me.itsandrew.playtimeUtils.RewardSystem.ConfigGUIs;
 
 import me.itsandrew.playtimeUtils.PlaytimeUtils;
 import me.itsandrew.playtimeUtils.RewardSystem.States.StaffState;

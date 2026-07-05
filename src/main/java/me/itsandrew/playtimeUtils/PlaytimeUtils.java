@@ -3,10 +3,10 @@ package me.itsandrew.playtimeUtils;
 
 import io.papermc.paper.event.player.AsyncChatEvent;
 import me.clip.placeholderapi.PlaceholderAPI;
-import me.itsandrew.playtimeUtils.RewardSystem.GUIs.AddRewardsGUI;
-import me.itsandrew.playtimeUtils.RewardSystem.GUIs.ChoosePlaceGUI;
-import me.itsandrew.playtimeUtils.RewardSystem.GUIs.ItemsOrExpGUI;
-import me.itsandrew.playtimeUtils.RewardSystem.GUIs.RemoveRewardsGUIs;
+import me.itsandrew.playtimeUtils.RewardSystem.ConfigGUIs.AddRewardsGUI;
+import me.itsandrew.playtimeUtils.RewardSystem.ConfigGUIs.ChoosePlaceGUI;
+import me.itsandrew.playtimeUtils.RewardSystem.ConfigGUIs.ItemsOrExpGUI;
+import me.itsandrew.playtimeUtils.RewardSystem.ConfigGUIs.RemoveRewardsGUIs;
 import me.itsandrew.playtimeUtils.RewardSystem.GivingRewards;
 import me.itsandrew.playtimeUtils.RewardSystem.States.StaffState;
 import net.kyori.adventure.text.Component;
@@ -160,14 +160,14 @@ public final class PlaytimeUtils extends JavaPlugin implements Listener {
                 UUID uuid1 = top3Players.getFirst().getKey();
                 OfflinePlayer top1 = Bukkit.getOfflinePlayer(uuid1);
                 String name1 = top1.getName() != null ? top1.getName() : "Unknown";
-                getPlaceholdersManager().setCachedTop1TournamentPlaytime(getDatabaseManager().getRewardPlaytimeString(uuid1));
+                getPlaceholdersManager().setCachedTop1TournamentPlaytime(getDatabaseManager().getTournamentPlaytimeString(uuid1));
                 getPlaceholdersManager().setCachedTop1TournamentIGN(name1);
 
                 if (top3Players.size() > 1) {
                     UUID uuid2 = top3Players.get(1).getKey();
                     OfflinePlayer top2 = Bukkit.getOfflinePlayer(uuid2);
                     String name2 = top2.getName() != null ? top2.getName() : "Unknown";
-                    getPlaceholdersManager().setCachedTop2TournamentPlaytime(getDatabaseManager().getRewardPlaytimeString(uuid2));
+                    getPlaceholdersManager().setCachedTop2TournamentPlaytime(getDatabaseManager().getTournamentPlaytimeString(uuid2));
                     getPlaceholdersManager().setCachedTop2TournamentIGN(name2);
                 }
 
@@ -175,7 +175,7 @@ public final class PlaytimeUtils extends JavaPlugin implements Listener {
                     UUID uuid3 = top3Players.get(2).getKey();
                     OfflinePlayer top3 = Bukkit.getOfflinePlayer(uuid3);
                     String name3 = top3.getName() != null ? top3.getName() : "Unknown";
-                    getPlaceholdersManager().setCachedTop3TournamentPlaytime(getDatabaseManager().getRewardPlaytimeString(uuid3));
+                    getPlaceholdersManager().setCachedTop3TournamentPlaytime(getDatabaseManager().getTournamentPlaytimeString(uuid3));
                     getPlaceholdersManager().setCachedTop3TournamentIGN(name3);
                 }
             }
@@ -219,7 +219,7 @@ public final class PlaytimeUtils extends JavaPlugin implements Listener {
 
             //Saving the Tournament Playtime
             if(toggleRewardSystem){
-                for(UUID uuid : onlinePlayerUUIDs) getPlaceholdersManager().addTournamentPlaytimeCache(uuid, getDatabaseManager().getRewardPlaytimeString(uuid));
+                for(UUID uuid : onlinePlayerUUIDs) getPlaceholdersManager().addTournamentPlaytimeCache(uuid, getDatabaseManager().getTournamentPlaytimeString(uuid));
             }
         }, 0, 300);
     }
@@ -243,7 +243,7 @@ public final class PlaytimeUtils extends JavaPlugin implements Listener {
         for(UUID playerUUID : playtimeMap.keySet()){
             databaseManager.updatePlayerMainPlaytime(playerUUID, playtimeMap.get(playerUUID));
             boolean toggleRewardSystem = getConfig().getBoolean("reward-system.toggle", true);
-            if(toggleRewardSystem) databaseManager.updatePlayerRewardPlaytime(playerUUID, playtimeMap.get(playerUUID));
+            if(toggleRewardSystem) databaseManager.updatePlayerTournamentPlaytime(playerUUID, playtimeMap.get(playerUUID));
         }
 
         getLogger().info("[PlaytimeUtils] Plugin disabled successfully.");
@@ -298,7 +298,7 @@ public final class PlaytimeUtils extends JavaPlugin implements Listener {
         int currentPlaytime = playtimeMap.get(playerUUID);
         Bukkit.getScheduler().runTaskAsynchronously(this, () -> {
             databaseManager.updatePlayerMainPlaytime(playerUUID, currentPlaytime);
-            if(toggleRewardSystem) databaseManager.updatePlayerRewardPlaytime(playerUUID, currentPlaytime);
+            if(toggleRewardSystem) databaseManager.updatePlayerTournamentPlaytime(playerUUID, currentPlaytime);
         });
 
         //Removing the player from the Maps

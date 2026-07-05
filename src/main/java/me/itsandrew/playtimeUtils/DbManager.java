@@ -60,7 +60,7 @@ public class DbManager {
                 CREATE TABLE IF NOT EXISTS playersPlaytime (
                     uuid TEXT PRIMARY KEY,
                     mainPlaytime INTEGER,
-                    rewardPlaytime INTEGER
+                    tournamentPlaytime INTEGER
                 )
                 """;
         try(PreparedStatement statement = dbConnection.prepareStatement(playtimeTable)) {
@@ -76,6 +76,18 @@ public class DbManager {
                 )
                 """;
         try(PreparedStatement statement = dbConnection.prepareStatement(tournamentTimestampsTable)){
+            statement.executeUpdate();
+        }
+
+        //Creating the reward pending table (in case a tournament winner is not online when giving out the rewards)
+        String pendingRewardsTable = """
+                CREATE TABLE IF NOT EXISTS pendingRewards (
+                    uuid TEXT PRIMARY KEY,
+                    placement INTEGER PRIMARY KEY,
+                    amount INTEGER
+                )
+                """;
+        try(PreparedStatement statement = dbConnection.prepareStatement(pendingRewardsTable)){
             statement.executeUpdate();
             return true;
         }
@@ -114,7 +126,7 @@ public class DbManager {
                 }
             }
         } catch (Exception e){
-            e.printStackTrace();
+            plugin.getLogger().severe("[PlaytimeUtils] Failed to get player main playtime: " + e.getMessage());
         }
 
         return 0;
@@ -134,7 +146,8 @@ public class DbManager {
                 }
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            plugin.getLogger().severe("[PlaytimeUtils] Failed to get Main top 3 players: " + e.getMessage());
+            return null;
         }
 
         //Sorting the map by seconds
@@ -148,17 +161,18 @@ public class DbManager {
     public List<Map.Entry<UUID, Integer>> getTournamentTop3Players(){
         Map<UUID, Integer> top3PlayersSeconds = new HashMap<>();
 
-        String statement = "SELECT rewardPlaytime, uuid FROM playersPlaytime ORDER BY rewardPlaytime DESC LIMIT 3";
+        String statement = "SELECT tournamentPlaytime, uuid FROM playersPlaytime ORDER BY tournamentPlaytime DESC LIMIT 3";
         try(PreparedStatement ps = dbConnection.prepareStatement(statement)){
             try(ResultSet rs = ps.executeQuery()){
                 while(rs.next()){
                     UUID playerUUID = UUID.fromString(rs.getString("uuid"));
-                    int playtime = rs.getInt("rewardPlaytime") + plugin.getPlaytimeMap().getOrDefault(playerUUID, 0);
+                    int playtime = rs.getInt("tournamentPlaytime") + plugin.getPlaytimeMap().getOrDefault(playerUUID, 0);
                     top3PlayersSeconds.put(playerUUID, playtime);
                 }
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            plugin.getLogger().severe("[PlaytimeUtils] Failed to get Tournament top 3 players: " + e.getMessage());
+            return null;
         }
 
         List<Map.Entry<UUID, Integer>> sortedList = new ArrayList<>(top3PlayersSeconds.entrySet());
@@ -176,41 +190,41 @@ public class DbManager {
                 return rs.next();
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            plugin.getLogger().severe("[PlaytimeUtils] Failed to check if player is registered: " + e.getMessage());
         }
 
         return false;
     }
 
     public void createPlayerRow(UUID playerUUID){
-        String statement = "INSERT INTO playersPlaytime (uuid, mainPlaytime, rewardPlaytime) VALUES (?, ?, ?)";
+        String statement = "INSERT INTO playersPlaytime (uuid, mainPlaytime, tournamentPlaytime) VALUES (?, ?, ?)";
         try(PreparedStatement ps = dbConnection.prepareStatement(statement)){
             ps.setString(1, playerUUID.toString());
             ps.setInt(2, 0);
             ps.setInt(3, 0);
             ps.executeUpdate();
         } catch (SQLException e) {
-            e.printStackTrace();
+            plugin.getLogger().severe("[PlaytimeUtils] Failed to create player row in Playtime Table: " + e.getMessage());
         }
     }
 
-    public int getRewardPlaytime(UUID playerUUID){
-        String SQL = "SELECT rewardPlaytime FROM playersPlaytime WHERE uuid = ?";
+    public int getTournamentPlaytime(UUID playerUUID){
+        String SQL = "SELECT tournamentPlaytime FROM playersPlaytime WHERE uuid = ?";
         try(PreparedStatement ps = dbConnection.prepareStatement(SQL)){
             ps.setString(1, playerUUID.toString());
             try(ResultSet rs = ps.executeQuery()){
                 if(rs.next()){
-                    return rs.getInt("rewardPlaytime");
+                    return rs.getInt("tournamentPlaytime");
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            plugin.getLogger().severe("[PlaytimeUtils] Failed to get player tournament playtime: " + e.getMessage());
         }
         return 0;
     }
-    public String getRewardPlaytimeString(UUID playerUUID){
+    public String getTournamentPlaytimeString(UUID playerUUID){
         //Getting the playtime of the player from the db
-        long seconds = getRewardPlaytime(playerUUID);
+        long seconds = getTournamentPlaytime(playerUUID);
 
         //Also adding the seconds from the playtime map
         seconds += plugin.getPlaytimeMap().getOrDefault(playerUUID, 0);
@@ -232,12 +246,12 @@ public class DbManager {
         return time.toString();
     }
 
-    public void wipeRewardPlaytime(){
-        String SQL = "UPDATE playersPlaytime SET rewardPlaytime = 0";
+    public void wipeTournamentPlaytime(){
+        String SQL = "UPDATE playersPlaytime SET tournamentPlaytime = 0";
         try(PreparedStatement ps = dbConnection.prepareStatement(SQL)){
             ps.executeUpdate();
         } catch (SQLException e) {
-            e.printStackTrace();
+            plugin.getLogger().severe("[PlaytimeUtils] Failed to wipe tournament playtime: " + e.getMessage());
         }
     }
 
@@ -249,19 +263,19 @@ public class DbManager {
 
             ps.executeUpdate();
         } catch (SQLException e) {
-            e.printStackTrace();
+            plugin.getLogger().severe("[PlaytimeUtils] Failed to update player main playtime: " + e.getMessage());
         }
     }
 
-    public void updatePlayerRewardPlaytime(UUID playerUUID, int seconds){
-        String statement = "UPDATE playersPlaytime SET rewardPlaytime = ? WHERE uuid = ?";
+    public void updatePlayerTournamentPlaytime(UUID playerUUID, int seconds){
+        String statement = "UPDATE playersPlaytime SET tournamentPlaytime = ? WHERE uuid = ?";
         try(PreparedStatement ps = dbConnection.prepareStatement(statement)){
-            ps.setInt(1, seconds + getRewardPlaytime(playerUUID));
+            ps.setInt(1, seconds + getTournamentPlaytime(playerUUID));
             ps.setString(2, playerUUID.toString());
 
             ps.executeUpdate();
         } catch (SQLException e) {
-            e.printStackTrace();
+            plugin.getLogger().severe("[PlaytimeUtils] Failed to update player tournament playtime: " + e.getMessage());
         }
     }
 
@@ -273,19 +287,17 @@ public class DbManager {
             ps.setLong(3, tournamentEnd);
             ps.executeUpdate();
         } catch (SQLException e) {
-            e.printStackTrace();
+            plugin.getLogger().severe("[PlaytimeUtils] Failed to set tournament timestamps: " + e.getMessage());
         }
     }
-
     public void deleteTournamentTimestamps(){
         String statement = "DELETE FROM tournamentTimestamps";
         try(PreparedStatement ps = dbConnection.prepareStatement(statement)){
             ps.executeUpdate();
         } catch (SQLException e) {
-            e.printStackTrace();
+            plugin.getLogger().severe("[PlaytimeUtils] Failed to delete tournament timestamps: " + e.getMessage());
         }
     }
-
     public long getTournamentTimestamp(String option){
         String statement = "SELECT " + option + " FROM tournamentTimestamps";
         try(PreparedStatement ps = dbConnection.prepareStatement(statement)){
@@ -295,8 +307,74 @@ public class DbManager {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            plugin.getLogger().severe("[PlaytimeUtils] Failed to get tournament timestamp: " + e.getMessage());
         }
         return 0;
+    }
+
+    public int getPendingRewardAmount(UUID playerUUID, int placement){
+        String statement = "SELECT amount FROM pendingRewards WHERE uuid = ? AND placement = ?";
+        try(PreparedStatement ps = dbConnection.prepareStatement(statement)){
+            ps.setString(1, playerUUID.toString());
+            ps.setInt(2, placement);
+            try(ResultSet rs = ps.executeQuery()){
+                if(rs.next()){
+                    return rs.getInt("amount");
+                }
+            }
+        } catch (SQLException e) {
+            plugin.getLogger().severe("[PlaytimeUtils] Failed to get pending reward amount: " + e.getMessage());
+        }
+        return 0;
+    }
+    public void insertPendingReward(UUID playerUUID, int placement){
+        int pendingAmount = getPendingRewardAmount(playerUUID, placement);
+
+        if(pendingAmount == 0){
+            String statement = "INSERT INTO pendingRewards (uuid, placement, amount) VALUES (?, ?, ?)";
+            try(PreparedStatement ps = dbConnection.prepareStatement(statement)){
+                ps.setString(1, playerUUID.toString());
+                ps.setInt(2, placement);
+                ps.setInt(3, 1);
+                ps.executeUpdate();
+            } catch (SQLException e) {
+                plugin.getLogger().severe("[PlaytimeUtils] Failed to insert pending reward: " + e.getMessage());
+            }
+        }
+        else{
+            String statement = "UPDATE pendingRewards SET amount = ? WHERE uuid = ? AND placement = ?";
+            try(PreparedStatement ps = dbConnection.prepareStatement(statement)){
+                ps.setInt(1, pendingAmount + 1);
+                ps.setString(2, playerUUID.toString());
+                ps.setInt(3, placement);
+                ps.executeUpdate();
+            } catch (SQLException e) {
+                plugin.getLogger().severe("[PlaytimeUtils] Failed to update pending reward amount: " + e.getMessage());
+            }
+        }
+    }
+    public void removePendingReward(UUID playerUUID, int placement){
+        int pendingAmount = getPendingRewardAmount(playerUUID, placement);
+
+        if(pendingAmount == 1){
+            String statement = "DELETE FROM pendingRewards WHERE uuid = ?";
+            try(PreparedStatement ps = dbConnection.prepareStatement(statement)){
+                ps.setString(1, playerUUID.toString());
+                ps.executeUpdate();
+            }catch (Exception e){
+                plugin.getLogger().severe("[PlaytimeUtils] Failed to remove player from pending rewards list: " + e.getMessage());
+            }
+        }
+        else{
+            String statement = "UPDATE pendingRewards SET amount = ? WHERE uuid = ? AND placement = ?";
+            try(PreparedStatement ps = dbConnection.prepareStatement(statement)){
+                ps.setInt(1, pendingAmount - 1);
+                ps.setString(2, playerUUID.toString());
+                ps.setInt(3, placement);
+                ps.executeUpdate();
+            } catch (SQLException e) {
+                plugin.getLogger().severe("[PlaytimeUtils] Failed to update pending reward amount: " + e.getMessage());
+            }
+        }
     }
 }

@@ -14,16 +14,19 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.scheduler.BukkitTask;
 
 import java.net.URI;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class GivingRewards {
     private final PlaytimeUtils plugin;
     private BukkitTask rewardingTask;
     private BukkitTask broadcastTask;
+    private BukkitTask inventorySpaceWarningTask;
 
     public GivingRewards(PlaytimeUtils plugin) {
         this.plugin = plugin;
@@ -170,6 +173,7 @@ public class GivingRewards {
                 for(int i = 0; i<top3tournament.size(); i++){
                     int rank = i + 1;
                     OfflinePlayer winner = Bukkit.getOfflinePlayer(top3tournament.get(i).getKey());
+                    UUID winnerUUID = winner.getUniqueId();
 
                     //Checking if the winner is online or not.
                     if(winner.isOnline()){
@@ -178,6 +182,8 @@ public class GivingRewards {
                         ItemMeta riMeta = rewardsItem.getItemMeta();
 
                         if(riMeta != null){
+                            NamespacedKey rewardItemKey = NamespacedKey.minecraft("reward_item");
+
                             //Setting the display name
                             String DisplayName = plugin.getConfig().getString("reward-system.rewards-item.display-name", "%player_tournamentValue% &a&lReward");
                             DisplayName = PlaceholderAPI.setPlaceholders(winner, DisplayName);
@@ -194,6 +200,9 @@ public class GivingRewards {
                                 lore.add(coloredLine);
                             }
                             riMeta.lore(lore);
+
+                            //Adding persistent data to the item.
+                            riMeta.getPersistentDataContainer().set(rewardItemKey, PersistentDataType.INTEGER, rank);
                         }
 
                         rewardsItem.setItemMeta(riMeta);
@@ -201,14 +210,21 @@ public class GivingRewards {
                         //Checking if the player has inventory space
                         HashMap<Integer,ItemStack> attemptToAdd = winner.getPlayer().getInventory().addItem(rewardsItem);
                         if(!attemptToAdd.isEmpty()){
+                            //Starting a task in order to tell the winner to open the rewards menu to collect the reward
+                            inventorySpaceWarningTask = Bukkit.getScheduler().runTaskTimer(plugin, () -> {
+                                AtomicLong pendingRewardAmount = new AtomicLong();
+                                Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> pendingRewardAmount.set(plugin.getDatabaseManager().getPendingRewardAmount(winnerUUID, rank)));
 
+                                if(pendingRewardAmount.get() != 0){
+
+                                }
+                                else inventorySpaceWarningTask.cancel();
+                            }, 0, 1200);
                         }
-
-                        winner.getPlayer().getInventory().addItem(rewardsItem);
+                        else winner.getPlayer().getInventory().addItem(rewardsItem);
                     }
-                    else{
-
-                    }
+                    //If the winner is offline, adding his UUID to the Pending Rewards Table in the DB.
+                    else Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> plugin.getDatabaseManager().insertPendingReward(winnerUUID, rank));
                 }
             });
         });
