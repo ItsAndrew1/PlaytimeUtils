@@ -25,11 +25,11 @@ messages:
   player-afk: "&7You are now AFK!"
   player-no-more-afk: "&7You are not AFK anymore."
 
-  #Configure the top 3 message that can be sent when a player runs /topplaytime
+  #Configure the top 3 MAIN PLAYTIME Message that can be sent when a player runs /topplaytime main
   #Available Placeholders: '%playtime_top1ign%'/'%playtime_top1%' -> Top 1 player's IGN/Playtime
   #                        '%playtime_top2ign%'/'%playtime_top2%' -> Top 2 player's IGN/Playtime
   #                        '%playtime_top3ign%'/'%playtime_top3%' -> Top 3 player's IGN/Playtime
-  top-3-players:
+  top-3-main-players:
     - "&c&l---------------------------------"
     - " "
     - "                  &d&lTOP MAIN PLAYTIME"
@@ -37,6 +37,21 @@ messages:
     - "           &e&l1. &e%playtime_top1ign%   &f%playtime_top1%"
     - "           &7&l2. &7%playtime_top2ign%   &f%playtime_top2%"
     - "           &6&l3. &6%playtime_top3ign%   &f%playtime_top3%"
+    - " "
+    - "&c&l---------------------------------"
+
+  #Configure the Top 3 TOURNAMENT PLAYTIME Message that will be sent when a player runs /topplaytime tournament
+  #Placeholders: '%playtime_top1tournamentign%'/'%playtime_top1tournament%' -> Top 1 player IGN/Playtime
+  #              '%playtime_top2tournamentign%'/'%playtime_top2tournament%' -> Top 2 player IGN/Playtime
+  #              '%playtime_top3tournamentign%'/'%playtime_top3tournament%' -> Top 3 player IGN/Playtime
+  top-3-tournament-players:
+    - "&c&l---------------------------------"
+    - " "
+    - "                  &d&lTOP MAIN PLAYTIME"
+    - " "
+    - "           &e&l1. &e%playtime_top1tournamentign%   &f%playtime_top1tournament%"
+    - "           &7&l2. &7%playtime_top2tournamentign%   &f%playtime_top2tournament%"
+    - "           &6&l3. &6%playtime_top3tournamentign%   &f%playtime_top3tournament%"
     - " "
     - "&c&l---------------------------------"
 
@@ -222,6 +237,21 @@ reward-system:
     lore:
       - " "
       - "&7Click or Right Click to open your reward!"
+
+  #Configure the notification a winner will get if they don't have enough inventory space to claim their reward.
+  pending-reward-notification:
+    sound:
+      name: BLOCK_NOTE_BLOCK_PLING
+      volume: 1.0
+      pitch: 1.0
+
+    #You may use the word 'here' in the message to redirect the winner to the Playtime Rewards.
+    chat-message:
+      - "&cYou have a &lpending reward&c! Click &e&lhere &cor run &l/myplaytime rewards &cto claim it!"
+
+    #Set the hover text when the winner hovers over the 'here' word.
+    hover-text: "Click to open the Rewards Menu."
+
 
   #The items/exp levels that will be given to players who win the tournament. Configure this through the in-game command '/ptutils rewards add/remove'.
   rewards:

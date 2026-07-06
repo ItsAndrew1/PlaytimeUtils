@@ -124,12 +124,32 @@ public class CommandManager implements CommandExecutor {
                 //Checking if the player has permission
                 if(!player.hasPermission("playtimeutils.topplaytime")) noPermission(player);
 
-                List<String> rawMessage = plugin.getConfig().getStringList("messages.top-3-players");
-                for(String line : rawMessage){
-                    line = PlaceholderAPI.setPlaceholders(player, line);
-                    Component coloredLine = LegacyComponentSerializer.legacyAmpersand().deserialize(line);
-                    player.sendMessage(coloredLine);
+                if(args.length < 1){
+                    player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
+                    player.sendMessage(MiniMessage.miniMessage().deserialize("<red>Usage: /topplaytime <main | tournament>"));
+                    return true;
                 }
+
+                switch(args[0]){
+                    case "main" -> {
+                        List<String> rawMessage = plugin.getConfig().getStringList("messages.top-3-main-players");
+                        for(String line : rawMessage){
+                            line = PlaceholderAPI.setPlaceholders(player, line);
+                            Component coloredLine = LegacyComponentSerializer.legacyAmpersand().deserialize(line);
+                            player.sendMessage(coloredLine);
+                        }
+                    }
+
+                    case "tournament" -> {
+                        List<String> rawMessage = plugin.getConfig().getStringList("messages.top-3-tournament-players");
+                        for(String line : rawMessage){
+                            line = PlaceholderAPI.setPlaceholders(player, line);
+                            Component coloredLine = LegacyComponentSerializer.legacyAmpersand().deserialize(line);
+                            player.sendMessage(coloredLine);
+                        }
+                    }
+                }
+                return true;
             }
 
             case "ptutils" -> {

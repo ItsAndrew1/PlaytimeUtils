@@ -141,8 +141,8 @@ public final class PlaytimeUtils extends JavaPlugin implements Listener {
             }
         }, 0, 20);
 
-        // Task for updating the placeholders. Runs every 15 seconds Async.
-        BukkitTask placeholdersTask = Bukkit.getScheduler().runTaskTimerAsynchronously(this, () -> {
+        // Task for updating the placeholders. Runs every 10 seconds Async.
+        Bukkit.getScheduler().runTaskTimerAsynchronously(this, () -> {
             List<Map.Entry<UUID, Integer>> top3Players = getDatabaseManager().getTournamentTop3Players();
             List<Map.Entry<UUID, Integer>> mainTop3Players = getDatabaseManager().getMainTop3Players();
 
@@ -156,7 +156,8 @@ public final class PlaytimeUtils extends JavaPlugin implements Listener {
 
             //Saving the Tournament placeholders
             boolean toggleRewardSystem = getConfig().getBoolean("reward-system.toggle", false);
-            if (toggleRewardSystem && top3Players != null && !top3Players.isEmpty()) {
+            long tournamentDuration = getDatabaseManager().getTournamentTimestamp("duration");
+            if (toggleRewardSystem && top3Players != null && !top3Players.isEmpty() && tournamentDuration != 0) {
                 UUID uuid1 = top3Players.getFirst().getKey();
                 OfflinePlayer top1 = Bukkit.getOfflinePlayer(uuid1);
                 String name1 = top1.getName() != null ? top1.getName() : "Unknown";
@@ -218,10 +219,10 @@ public final class PlaytimeUtils extends JavaPlugin implements Listener {
             for(UUID uuid : onlinePlayerUUIDs) getPlaceholdersManager().addToMainPlaytimeCache(uuid, getDatabaseManager().getMainPlaytimeString(uuid));
 
             //Saving the Tournament Playtime
-            if(toggleRewardSystem){
+            if(toggleRewardSystem && tournamentDuration != 0){
                 for(UUID uuid : onlinePlayerUUIDs) getPlaceholdersManager().addTournamentPlaytimeCache(uuid, getDatabaseManager().getTournamentPlaytimeString(uuid));
             }
-        }, 0, 300);
+        }, 0, 200);
     }
 
     private void removeAfkPrefixNodeFromPlayer(Player player){

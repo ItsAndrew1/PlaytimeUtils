@@ -39,10 +39,6 @@ public class GivingRewards {
         boolean toggleRewardSystem = plugin.getConfig().getBoolean("reward-system.toggle", false);
         if(!toggleRewardSystem) return;
 
-        //Checking if the tournament has started
-        long duration = plugin.getConfig().getLong("reward-system.tournament-duration", 0);
-        if(duration == 0) return;
-
         //Booleans for messages/tournament ending
         AtomicBoolean oneThirdMessage = new AtomicBoolean(false);
         AtomicBoolean halfMessage = new AtomicBoolean(false);
@@ -53,7 +49,10 @@ public class GivingRewards {
 
         //Running an Async task to get the tournament timestamps from the database.
         Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+            //Checking if the tournament is enabled
             long tournamentDuration = plugin.getDatabaseManager().getTournamentTimestamp("duration");
+            if(tournamentDuration == 0) return;
+
             long tournamentStart = plugin.getDatabaseManager().getTournamentTimestamp("tournamentStart");
             long tournamentEnd = plugin.getDatabaseManager().getTournamentTimestamp("tournamentEnd");
 
@@ -210,13 +209,35 @@ public class GivingRewards {
                         //Checking if the player has inventory space
                         HashMap<Integer,ItemStack> attemptToAdd = winner.getPlayer().getInventory().addItem(rewardsItem);
                         if(!attemptToAdd.isEmpty()){
-                            //Starting a task in order to tell the winner to open the rewards menu to collect the reward
+                            //Building the sound
+                            String soundName = plugin.getConfig().getString("reward-system.pending-reward-notification.sound.name", "BLOCK_NOTE_BLOCK_PLING").toLowerCase();
+                            double soundVolume = plugin.getConfig().getDouble("reward-system.pending-reward-notification.sound.volume", 1.0);
+                            double soundPitch = plugin.getConfig().getDouble("reward-system.pending-reward-notification.sound.pitch", 1.0);
+                            Sound sound = Registry.SOUNDS.get(NamespacedKey.minecraft(soundName));
+
+                            //Building the message
+                            List<String> messageLines = plugin.getConfig().getStringList("reward-system.pending-reward-notification.chat-message");
+                            List<Component> finalMessage = new ArrayList<>();
+                            for(String line : messageLines){
+                                line = PlaceholderAPI.setPlaceholders(winner, line);
+                                Component coloredLine = LegacyComponentSerializer.legacyAmpersand().deserialize(line);
+
+                                Component hereWord = Component.text("here")
+                                        .clickEvent(ClickEvent.runCommand("/myplaytime rewards"))
+                                        .hoverEvent(HoverEvent.showText(Component.text(plugin.getConfig().getString("reward-system.pending-reward-notification.hover-text", "Click here to open the Rewards Menu."))));
+
+                                coloredLine = coloredLine.replaceText(TextReplacementConfig.builder().match("here").replacement(hereWord).build());
+                                finalMessage.add(coloredLine);
+                            }
+
+                            //Starting a task to tell the winner to open the rewards menu to collect the reward
                             inventorySpaceWarningTask = Bukkit.getScheduler().runTaskTimer(plugin, () -> {
                                 AtomicLong pendingRewardAmount = new AtomicLong();
                                 Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> pendingRewardAmount.set(plugin.getDatabaseManager().getPendingRewardAmount(winnerUUID, rank)));
 
                                 if(pendingRewardAmount.get() != 0){
-
+                                    winner.getPlayer().playSound(winner.getPlayer().getLocation(), sound, (float) soundVolume, (float) soundPitch);
+                                    for(Component line : finalMessage) winner.getPlayer().sendMessage(line);
                                 }
                                 else inventorySpaceWarningTask.cancel();
                             }, 0, 1200);
