@@ -245,6 +245,7 @@ reward-system:
 
   no-inventory-space-message: "&cYou don't have enough inventory space to claim your reward!"
   reward-item-received-message: "&aYou have received your reward! &lClick &aor &lRight Click &ait to open."
+  reward-claimed-message: ""
 
   #Configure the notification a winner will get if they don't have enough inventory space to claim their reward.
   pending-reward-notification:

@@ -16,6 +16,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryView;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -309,8 +310,52 @@ public class GivingRewards implements Listener {
 
     @EventHandler
     public void onInventoryClick(InventoryClickEvent event){
-        InventoryView currentView = event.getView();
-        if(!currentView.equals(event.getWhoClicked().getOpenInventory().getBottomInventory())) return;
+        //Checking if the click happened in the player's bottom inventory.
+        Inventory clickedInv = event.getClickedInventory();
+        if(clickedInv == null) return;
+        if(clickedInv.equals(event.getView().getBottomInventory())) return;
+
+        ItemStack clickedItem = event.getCurrentItem();
+        if(clickedItem == null) return;
+
+        ItemMeta clickedMeta = clickedItem.getItemMeta();
+        if(clickedMeta == null) return;
+
+        Player player = (Player) event.getWhoClicked();
+
+        //Getting the String Data attached to the Reward Item.
+        String clickedData = clickedMeta.getPersistentDataContainer().get(dataContainer, PersistentDataType.STRING);
+        if(clickedData == null) return;
+
+        //Removing the reward item from the inventory
+        clickedInv.removeItem(clickedItem);
+
+        //Giving the items/exp
+        int expLevels = plugin.getConfig().getInt("reward-system.rewards."+clickedData+".exp-levels", 0);
+        if(expLevels > 0) player.giveExp(expLevels);
+
+        List<?> rawRewards = plugin.getConfig().getList("reward-system.rewards."+clickedData+".items");
+        List<ItemStack> items = new ArrayList<>();
+        for(Object reward : rawRewards){
+            if(reward instanceof ItemStack) items.add((ItemStack) reward);
+        }
+
+        int contentSize = player.getInventory().getContents().length;
+        if(player.getInventory().getSize() - contentSize > items.size()){
+            for(ItemStack item : items) player.getInventory().addItem(item);
+
+            player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1, 1.4f);
+            player.sendMessage();
+        }
+        else{
+            String noInventorySpaceMessage = plugin.getConfig().getString("reward-system.no-inventory-space-message", "&cYou don't have enough inventory space to claim your reward!");
+            noInventorySpaceMessage = PlaceholderAPI.setPlaceholders(player, noInventorySpaceMessage);
+            Component message = LegacyComponentSerializer.legacyAmpersand().deserialize(noInventorySpaceMessage);
+            player.sendMessage(message);
+            player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
+
+            player.closeInventory();
+        }
     }
 
     @EventHandler
