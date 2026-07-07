@@ -12,6 +12,11 @@ import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.*;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.inventory.InventoryView;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
@@ -22,16 +27,19 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
-public class GivingRewards {
+public class GivingRewards implements Listener {
     private final PlaytimeUtils plugin;
     private BukkitTask rewardingTask;
     private BukkitTask broadcastTask;
     private BukkitTask inventorySpaceWarningTask;
 
+    private final NamespacedKey dataContainer;
+
     public GivingRewards(PlaytimeUtils plugin) {
         this.plugin = plugin;
 
         startTasks();
+        this.dataContainer = new NamespacedKey(plugin, "pending-rewards-info");
     }
 
     public void startTasks(){
@@ -181,8 +189,6 @@ public class GivingRewards {
                         ItemMeta riMeta = rewardsItem.getItemMeta();
 
                         if(riMeta != null){
-                            NamespacedKey rewardItemKey = NamespacedKey.minecraft("reward_item");
-
                             //Setting the display name
                             String DisplayName = plugin.getConfig().getString("reward-system.rewards-item.display-name", "%player_tournamentValue% &a&lReward");
                             DisplayName = PlaceholderAPI.setPlaceholders(winner, DisplayName);
@@ -201,7 +207,7 @@ public class GivingRewards {
                             riMeta.lore(lore);
 
                             //Adding persistent data to the item.
-                            riMeta.getPersistentDataContainer().set(rewardItemKey, PersistentDataType.INTEGER, rank);
+                            riMeta.getPersistentDataContainer().set(dataContainer, PersistentDataType.STRING, getStringRank(rank));
                         }
 
                         rewardsItem.setItemMeta(riMeta);
@@ -230,6 +236,12 @@ public class GivingRewards {
                                 finalMessage.add(coloredLine);
                             }
 
+                            //Sending the winner a message about not having enough inv space
+                            String noSpaceMessage = plugin.getConfig().getString("reward-system.no-inventory-space-message", "&cYou don't have enough inventory space to receive your reward!");
+                            noSpaceMessage = PlaceholderAPI.setPlaceholders(winner, noSpaceMessage);
+                            Component noSpaceComponent = LegacyComponentSerializer.legacyAmpersand().deserialize(noSpaceMessage);
+                            winner.getPlayer().sendMessage(noSpaceComponent);
+
                             //Starting a task to tell the winner to open the rewards menu to collect the reward
                             inventorySpaceWarningTask = Bukkit.getScheduler().runTaskTimer(plugin, () -> {
                                 AtomicLong pendingRewardAmount = new AtomicLong();
@@ -240,9 +252,8 @@ public class GivingRewards {
                                     for(Component line : finalMessage) winner.getPlayer().sendMessage(line);
                                 }
                                 else inventorySpaceWarningTask.cancel();
-                            }, 0, 1200);
+                            }, 100, 1200);
                         }
-                        else winner.getPlayer().getInventory().addItem(rewardsItem);
                     }
                     //If the winner is offline, adding his UUID to the Pending Rewards Table in the DB.
                     else Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> plugin.getDatabaseManager().insertPendingReward(winnerUUID, rank));
@@ -262,7 +273,7 @@ public class GivingRewards {
         return rankString;
     }
 
-    private Component getFormattedPlacementString(int rank){
+    public Component getFormattedPlacementString(int rank){
         Component formattedPlacementString = Component.empty();
         switch(rank){
             case 1 -> formattedPlacementString = MiniMessage.miniMessage().deserialize("<gradient:#ffee55:#ffaa00><b>1st Place");
@@ -296,11 +307,25 @@ public class GivingRewards {
         return component;
     }
 
+    @EventHandler
+    public void onInventoryClick(InventoryClickEvent event){
+        InventoryView currentView = event.getView();
+        if(!currentView.equals(event.getWhoClicked().getOpenInventory().getBottomInventory())) return;
+    }
+
+    @EventHandler
+    public void onPlayerInteract(PlayerInteractEvent event){
+
+    }
+
     //Getter for the Task
     public BukkitTask getRewardingTask() {
         return rewardingTask;
     }
     public BukkitTask getBroadcastTask() {
         return broadcastTask;
+    }
+    public NamespacedKey getDataContainer() {
+        return dataContainer;
     }
 }

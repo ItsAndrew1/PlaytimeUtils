@@ -8,6 +8,7 @@ import me.itsandrew.playtimeUtils.RewardSystem.ConfigGUIs.ChoosePlaceGUI;
 import me.itsandrew.playtimeUtils.RewardSystem.ConfigGUIs.ItemsOrExpGUI;
 import me.itsandrew.playtimeUtils.RewardSystem.ConfigGUIs.RemoveRewardsGUIs;
 import me.itsandrew.playtimeUtils.RewardSystem.GivingRewards;
+import me.itsandrew.playtimeUtils.RewardSystem.PlaytimeRewardsGUI;
 import me.itsandrew.playtimeUtils.RewardSystem.States.StaffState;
 import net.kyori.adventure.text.Component;
 import net.luckperms.api.LuckPerms;
@@ -57,6 +58,7 @@ public final class PlaytimeUtils extends JavaPlugin implements Listener {
     private final GivingRewards givingRewardsSystem = new GivingRewards(this);
 
     private final PlaceholdersManager placeholdersManager = new PlaceholdersManager();
+    private final PlaytimeRewardsGUI playtimeRewardsGUI = new PlaytimeRewardsGUI(this);
 
     @Override
     public void onEnable() {
@@ -80,6 +82,8 @@ public final class PlaytimeUtils extends JavaPlugin implements Listener {
         getServer().getPluginManager().registerEvents(choosePlaceGUI, this);
         getServer().getPluginManager().registerEvents(addRewardsGUI, this);
         getServer().getPluginManager().registerEvents(removeRewardsGUIs, this);
+        getServer().getPluginManager().registerEvents(playtimeRewardsGUI, this);
+        getServer().getPluginManager().registerEvents(givingRewardsSystem, this);
 
         //Connecting the database
         try{
@@ -391,5 +395,8 @@ public final class PlaytimeUtils extends JavaPlugin implements Listener {
     }
     public PlaceholdersManager getPlaceholdersManager() {
         return placeholdersManager;
+    }
+    public PlaytimeRewardsGUI getPlaytimeRewardsGUI() {
+        return playtimeRewardsGUI;
     }
 }

@@ -238,6 +238,14 @@ reward-system:
       - " "
       - "&7Click or Right Click to open your reward!"
 
+    #Set the lore of the item in the Playtime Rewards Menu.
+    playtime-rewards-menu-lore:
+      - " "
+      - "&7Click to get this reward."
+
+  no-inventory-space-message: "&cYou don't have enough inventory space to claim your reward!"
+  reward-item-received-message: "&aYou have received your reward! &lClick &aor &lRight Click &ait to open."
+
   #Configure the notification a winner will get if they don't have enough inventory space to claim their reward.
   pending-reward-notification:
     sound:
@@ -252,6 +260,34 @@ reward-system:
     #Set the hover text when the winner hovers over the 'here' word.
     hover-text: "Click to open the Rewards Menu."
 
+  #Configure the Playtime Rewards GUI. It is the menu which appears when the player runs '/myplaytime rewards'.
+  playtime-rewards-menu:
+    title: "Your Playtime Rewards"
+    size: 54 #The size MUST BE a MULTIPLE OF 9!
+
+    #Configure the decoration of the menu. Basically items on the first and last row of the inventory.
+    decoration:
+      toggle: true
+      material: BLACK_STAINED_GLASS_PANE
+      display-name: " "
+      lore:
+        - ""
+
+    #Configure the 'Return' Button.
+    return-button:
+      slot: 40
+      material: ARROW
+      display-name: "&e&lRETURN"
+      lore:
+        - ""
+
+    #Configure the 'No Pending Rewards' Item.
+    no-pending-rewards-item:
+      slot: 22
+      material: BARRIER
+      display-name: "&cYou don't have any pending rewards!"
+      lore:
+        - ""
 
   #The items/exp levels that will be given to players who win the tournament. Configure this through the in-game command '/ptutils rewards add/remove'.
   rewards:

@@ -357,9 +357,10 @@ public class DbManager {
         int pendingAmount = getPendingRewardAmount(playerUUID, placement);
 
         if(pendingAmount == 1){
-            String statement = "DELETE FROM pendingRewards WHERE uuid = ?";
+            String statement = "DELETE FROM pendingRewards WHERE uuid = ? AND placement = ?";
             try(PreparedStatement ps = dbConnection.prepareStatement(statement)){
                 ps.setString(1, playerUUID.toString());
+                ps.setInt(2, placement);
                 ps.executeUpdate();
             }catch (Exception e){
                 plugin.getLogger().severe("[PlaytimeUtils] Failed to remove player from pending rewards list: " + e.getMessage());
