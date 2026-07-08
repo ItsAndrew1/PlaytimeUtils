@@ -18,7 +18,7 @@ public class CommandTABs implements TabCompleter {
         if(command.getName().equalsIgnoreCase("ptutils")){
             if(args.length == 1) return List.of("reload", "rewards");
             if(args.length == 2 && args[0].equals("rewards")) return List.of("tournament", "add", "remove");
-            if(args.length == 3 && args[1].equals("tournament")) return List.of("settimer", "enable", "disable");
+            if(args.length == 3 && args[1].equals("tournament")) return List.of("settimer", "setbook", "enable", "disable");
         }
 
         return List.of();

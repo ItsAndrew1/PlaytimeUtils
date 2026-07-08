@@ -14,6 +14,7 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.Action;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.Inventory;
@@ -274,6 +275,16 @@ public class GivingRewards implements Listener {
         return rankString;
     }
 
+    private int getIntRank(String rank){
+        int rankInt = 0;
+        switch(rank){
+            case "first-place" -> rankInt = 1;
+            case "second-place" -> rankInt = 2;
+            case "third-place" -> rankInt = 3;
+        }
+        return rankInt;
+    }
+
     public Component getFormattedPlacementString(int rank){
         Component formattedPlacementString = Component.empty();
         switch(rank){
@@ -331,6 +342,34 @@ public class GivingRewards implements Listener {
         clickedInv.removeItem(clickedItem);
 
         //Giving the items/exp
+        giveOutRewards(player, clickedData);
+    }
+
+    @EventHandler
+    public void onPlayerInteract(PlayerInteractEvent event){
+        ItemStack interactItem = event.getItem();
+        if(interactItem == null) return;
+
+        ItemMeta interactMeta = interactItem.getItemMeta();
+        if(interactMeta == null) return;
+
+        //Getting the persistent data attached to the item.
+        String interactData = interactMeta.getPersistentDataContainer().get(dataContainer, PersistentDataType.STRING);
+        if(interactData == null) return;
+
+        Action interactAction = event.getAction();
+        if(interactAction == Action.LEFT_CLICK_AIR || interactAction == Action.LEFT_CLICK_BLOCK) return;
+        if(interactAction == Action.RIGHT_CLICK_BLOCK) event.setCancelled(true);
+
+        Player player = event.getPlayer();
+        //Removing the item from the player's inventory
+        player.getInventory().removeItem(interactItem);
+
+        //Giving out the rewards/exp levels
+        giveOutRewards(player, interactData);
+    }
+
+    private void giveOutRewards(Player player, String clickedData){
         int expLevels = plugin.getConfig().getInt("reward-system.rewards."+clickedData+".exp-levels", 0);
         if(expLevels > 0) player.giveExp(expLevels);
 
@@ -345,7 +384,13 @@ public class GivingRewards implements Listener {
             for(ItemStack item : items) player.getInventory().addItem(item);
 
             player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1, 1.4f);
-            player.sendMessage();
+
+            String rewardMessage = plugin.getConfig().getString("reward-system.reward-claimed-message", "&aYou have successfully claimed your reward!");
+            player.sendMessage(LegacyComponentSerializer.legacyAmpersand().deserialize(rewardMessage));
+
+            //Removing the pending reward from the database
+            UUID playerUUID = player.getUniqueId();
+            Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> plugin.getDatabaseManager().removePendingReward(playerUUID, getIntRank(clickedData)));
         }
         else{
             String noInventorySpaceMessage = plugin.getConfig().getString("reward-system.no-inventory-space-message", "&cYou don't have enough inventory space to claim your reward!");
@@ -356,11 +401,6 @@ public class GivingRewards implements Listener {
 
             player.closeInventory();
         }
-    }
-
-    @EventHandler
-    public void onPlayerInteract(PlayerInteractEvent event){
-
     }
 
     //Getter for the Task

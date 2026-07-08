@@ -10,14 +10,18 @@ import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.event.HoverEvent;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.*;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.BookMeta;
 import org.jetbrains.annotations.NotNull;
 
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.List;
 
 public class CommandManager implements CommandExecutor {
@@ -217,6 +221,45 @@ public class CommandManager implements CommandExecutor {
                                         plugin.saveConfig();
                                         player.sendMessage(MiniMessage.miniMessage().deserialize("<green>The tournament timer has been set to <b>" + input + "</b> days!"));
                                         player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
+                                    }
+
+                                    case "setbook" -> {
+                                        if(!player.hasPermission("playtimeutils.ptutils.rewards.tournament.setbook")) noPermission(player);
+
+                                        //Getting the player's item in hand
+                                        ItemStack itemInHand = player.getInventory().getItemInMainHand();
+                                        if(itemInHand.getType() != Material.WRITTEN_BOOK){
+                                            player.sendMessage(MiniMessage.miniMessage().deserialize("<red>You must hold a <b>written book</b> in order to set the tournament book!"));
+                                            player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
+                                            return true;
+                                        }
+
+                                        BookMeta bookMeta = (BookMeta) itemInHand.getItemMeta();
+                                        String author = bookMeta.getAuthor();
+                                        String title = bookMeta.getTitle();
+                                        List<Component> rawPages = bookMeta.pages();
+                                        List<Component> pages = new ArrayList<>();
+                                        for(Component page : rawPages){
+                                            String rawPage = PlainTextComponentSerializer.plainText().serialize(page);
+                                            rawPage = PlaceholderAPI.setPlaceholders(player, rawPage);
+                                            Component pageComp = LegacyComponentSerializer.legacyAmpersand().deserialize(rawPage);
+
+                                            Component hereWord = Component.text("here")
+                                                    .clickEvent(ClickEvent.runCommand("/myplaytime rewards"))
+                                                    .hoverEvent(HoverEvent.showText(Component.text("Click to open the Playtime Rewards Menu")))
+                                                    ;
+
+                                            pageComp = pageComp.replaceText(TextReplacementConfig.builder().match("here").replacement(hereWord).build());
+                                            pages.add(pageComp);
+                                        }
+
+                                        plugin.getConfig().set("reward-system.pending-reward-book.author", author);
+                                        plugin.getConfig().set("reward-system.pending-reward-book.title", title);
+                                        plugin.getConfig().set("reward-system.pending-reward-book.pages", pages);
+                                        plugin.saveConfig();
+
+                                        player.sendMessage(MiniMessage.miniMessage().deserialize("<green>The tournament book has been set!"));
+                                        player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1, 1.4f);
                                     }
 
                                     case "enable" -> {

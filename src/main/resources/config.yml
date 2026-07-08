@@ -243,9 +243,17 @@ reward-system:
       - " "
       - "&7Click to get this reward."
 
+  #Configure some message. You may use PAPI Placeholders.
   no-inventory-space-message: "&cYou don't have enough inventory space to claim your reward!"
   reward-item-received-message: "&aYou have received your reward! &lClick &aor &lRight Click &ait to open."
-  reward-claimed-message: ""
+  reward-claimed-message: "&aYou have successfully claimed your reward!"
+
+  #The book for the winner who joins the server and has a pending reward. Like a notification. You may use PAPI Placeholders.
+  #Configure this book using the in-game command '/ptutils rewards tournament setbook'.
+  pending-reward-book:
+    title: ""
+    author: ""
+    pages: ""
 
   #Configure the notification a winner will get if they don't have enough inventory space to claim their reward.
   pending-reward-notification:
