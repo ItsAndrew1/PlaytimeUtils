@@ -23,6 +23,7 @@ import org.jetbrains.annotations.NotNull;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class CommandManager implements CommandExecutor {
     private final PlaytimeUtils plugin;
@@ -275,9 +276,30 @@ public class CommandManager implements CommandExecutor {
                                         }
 
                                         //Checking if the tournament is already enabled.
-                                        long eventDuration = plugin.getDatabaseManager().getTournamentTimestamp("duration");
-                                        if(eventDuration != 0){
+                                        AtomicLong duration = new AtomicLong();
+                                        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> duration.set(plugin.getDatabaseManager().getTournamentTimestamp("duration")));
+                                        if(duration.get() != 0){
                                             player.sendMessage(MiniMessage.miniMessage().deserialize("<red>The tournament is already enabled!"));
+                                            player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
+                                            return true;
+                                        }
+
+                                        //Checking if the rewards are set up
+                                        List<?> firstPlaceRewards = plugin.getConfig().getList("reward-system.rewards.first-place.items");
+                                        List<?> secondPlaceRewards = plugin.getConfig().getList("reward-system.rewards.second-place.items");
+                                        List<?> thirdPlaceRewards = plugin.getConfig().getList("reward-system.rewards.third-place.items");
+                                        if(firstPlaceRewards == null || secondPlaceRewards == null || thirdPlaceRewards == null){
+                                            player.sendMessage(MiniMessage.miniMessage().deserialize("<red>The rewards (items) are not set up properly! Set them up using <yellow>/ptutils rewards add<red>!"));
+                                            player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
+                                            return true;
+                                        }
+
+                                        //Checking if the Pending Reward Book is set up properly
+                                        String title = plugin.getConfig().getString("reward-system.pending-reward-book.title");
+                                        String author = plugin.getConfig().getString("reward-system.pending-reward-book.author");
+                                        List<?> pages = plugin.getConfig().getList("reward-system.pending-reward-book.pages");
+                                        if(title == null || author == null || pages == null){
+                                            player.sendMessage(MiniMessage.miniMessage().deserialize("<red>The pending reward book is not set up properly! Set it up using <yellow>/ptutils rewards tournament setbook<red>!"));
                                             player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
                                             return true;
                                         }
@@ -312,7 +334,7 @@ public class CommandManager implements CommandExecutor {
                                         plugin.getGivingRewardsSystem().startTasks();
                                         player.sendMessage(MiniMessage.miniMessage().deserialize("<green>The tournament has been enabled!"));
                                         player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
-                                        plugin.getLogger().info("[PlaytimeUtils] The tournament has been enabled!");
+                                        plugin.getLogger().info("[PlaytimeUtils] The playtime tournament has been enabled!");
                                     }
 
                                     case "disable" -> {
