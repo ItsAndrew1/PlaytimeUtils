@@ -21,6 +21,9 @@ public class PlaceholdersManager {
     private String cachedTop2IGN = "Loading...";
     private String cachedTop3IGN = "Loading...";
 
+    private String cachedTournamentDuration = "Loading...";
+    private String cachedTournamentEndDate = "Loading...";
+
     private final ConcurrentHashMap<UUID, String> mainPlaytimeCache = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<UUID, String> tournamentPlaytimeCache = new ConcurrentHashMap<>();
 
@@ -85,6 +88,12 @@ public class PlaceholdersManager {
     public String getCachedTop3IGN() {
         return cachedTop3IGN;
     }
+    public String getCachedTournamentDuration() {
+        return cachedTournamentDuration;
+    }
+    public String getCachedTournamentEndDate() {
+        return cachedTournamentEndDate;
+    }
 
     //Setters for the cached placeholders
     public void setCachedTop1TournamentPlaytime(String cachedTop1TournamentPlaytime) {
@@ -122,5 +131,11 @@ public class PlaceholdersManager {
     }
     public void setCachedTop3IGN(String cachedTop3IGN) {
         this.cachedTop3IGN = cachedTop3IGN;
+    }
+    public void setCachedTournamentDuration(String cachedTournamentDuration) {
+        this.cachedTournamentDuration = cachedTournamentDuration;
+    }
+    public void setCachedTournamentEndDate(String cachedTournamentEndDate) {
+        this.cachedTournamentEndDate = cachedTournamentEndDate;
     }
 }

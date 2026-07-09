@@ -4,7 +4,6 @@ package me.itsandrew.playtimeUtils.RewardSystem;
 import me.clip.placeholderapi.PlaceholderAPI;
 import me.itsandrew.playtimeUtils.PlaytimeUtils;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.TextReplacementConfig;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -108,11 +107,9 @@ public class PlaytimeRewardsGUI implements Listener {
             for(int i = 0; i < firstPlacePendingRewards.get(); i++){
                 savingSlot = i + 9;
 
-                String rewardDisplayName = config.getString("reward-system.rewards-item.display-name", "%player_tournamentPlace% &a&lReward");
+                String rewardDisplayName = config.getString("reward-system.rewards-item.display-name", "&e&lPlaytime Tournament Reward");
                 rewardDisplayName = PlaceholderAPI.setPlaceholders(player, rewardDisplayName);
-                Component rewardDisplayNameComponent = LegacyComponentSerializer.legacyAmpersand().deserialize(rewardDisplayName)
-                        .replaceText(TextReplacementConfig.builder().match("%player_tournamentPlace%").replacement(plugin.getGivingRewardsSystem().getFormattedPlacementString(1)).build())
-                        ;
+                Component rewardDisplayNameComponent = LegacyComponentSerializer.legacyAmpersand().deserialize(rewardDisplayName);
                 rewardItemMeta.displayName(rewardDisplayNameComponent);
                 rewardItemMeta.lore(lore);
 
@@ -126,11 +123,9 @@ public class PlaytimeRewardsGUI implements Listener {
             for(int i = 0; i < secondPlacePendingRewards.get(); i++){
                 savingSlot = firstPlacePendingRewards.get() + i + 9;
 
-                String rewardDisplayName = config.getString("reward-system.rewards-item.display-name", "%player_tournamentPlace% &a&lReward");
+                String rewardDisplayName = config.getString("reward-system.rewards-item.display-name", "Playtime Tournament Reward");
                 rewardDisplayName = PlaceholderAPI.setPlaceholders(player, rewardDisplayName);
-                Component rewardDisplayNameComponent = LegacyComponentSerializer.legacyAmpersand().deserialize(rewardDisplayName)
-                        .replaceText(TextReplacementConfig.builder().match("%player_tournamentPlace%").replacement(plugin.getGivingRewardsSystem().getFormattedPlacementString(2)).build())
-                        ;
+                Component rewardDisplayNameComponent = LegacyComponentSerializer.legacyAmpersand().deserialize(rewardDisplayName);
                 rewardItemMeta.displayName(rewardDisplayNameComponent);
                 rewardItemMeta.lore(lore);
 
@@ -144,11 +139,9 @@ public class PlaytimeRewardsGUI implements Listener {
             for(int i = 0; i < thirdPlacePendingRewards.get(); i++){
                 savingSlot = firstPlacePendingRewards.get() + secondPlacePendingRewards.get() + i + 9;
 
-                String rewardDisplayName = config.getString("reward-system.rewards-item.display-name", "%player_tournamentPlace% &a&lReward");
+                String rewardDisplayName = config.getString("reward-system.rewards-item.display-name", "&e&lPlaytime Tournament Reward");
                 rewardDisplayName = PlaceholderAPI.setPlaceholders(player, rewardDisplayName);
-                Component rewardDisplayNameComponent = LegacyComponentSerializer.legacyAmpersand().deserialize(rewardDisplayName)
-                        .replaceText(TextReplacementConfig.builder().match("%player_tournamentPlace%").replacement(plugin.getGivingRewardsSystem().getFormattedPlacementString(3)).build())
-                        ;
+                Component rewardDisplayNameComponent = LegacyComponentSerializer.legacyAmpersand().deserialize(rewardDisplayName);
                 rewardItemMeta.displayName(rewardDisplayNameComponent);
                 rewardItemMeta.lore(lore);
 
@@ -217,11 +210,9 @@ public class PlaytimeRewardsGUI implements Listener {
                 ItemStack rewardItem = new ItemStack(rewardItemMat);
                 ItemMeta rewardItemMeta = rewardItem.getItemMeta();
 
-                String displayName = config.getString("reward-system.rewards-item.display-name", "%player_tournamentPlace% &a&lReward");
+                String displayName = config.getString("reward-system.rewards-item.display-name", "&e&lPlaytime Tournament Reward");
                 displayName = PlaceholderAPI.setPlaceholders(player, displayName);
-                Component rewardDisplayNameComponent = LegacyComponentSerializer.legacyAmpersand().deserialize(displayName)
-                        .replaceText(TextReplacementConfig.builder().match("%player_tournamentPlace%").replacement(plugin.getGivingRewardsSystem().getFormattedPlacementString(Integer.parseInt(clickedData.replace("first-place", "1")))).build())
-                        ;
+                Component rewardDisplayNameComponent = LegacyComponentSerializer.legacyAmpersand().deserialize(displayName);
                 rewardItemMeta.displayName(rewardDisplayNameComponent);
 
                 List<String> rawLore = config.getStringList("reward-system.rewards-item.lore");

@@ -1,19 +1,13 @@
 package me.itsandrew.playtimeUtils;
 
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
-import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-import java.util.concurrent.atomic.AtomicReference;
-
-public class PluginPapiPlaceholders extends PlaceholderExpansion {
+public class PlaytimePlaceholders extends PlaceholderExpansion {
     private final PlaytimeUtils plugin;
 
-    public PluginPapiPlaceholders(PlaytimeUtils plugin) {
+    public PlaytimePlaceholders(PlaytimeUtils plugin) {
         this.plugin = plugin;
     }
 
@@ -47,16 +41,6 @@ public class PluginPapiPlaceholders extends PlaceholderExpansion {
         //Use '%playtime_tournamentValue%' to display the tournament playtime of a player
         if(params.equalsIgnoreCase("tournamentValue")) {
             return plugin.getPlaceholdersManager().getTournamentPlaytime(player.getUniqueId());
-        }
-
-        //Use '%playtime_countdown%' to display the live countdown of the tournament
-        if(params.equalsIgnoreCase("countdown")) {
-            //Checking if the tournament is active
-            long tournamentDuration = plugin.getConfig().getLong("reward-system.tournament-duration", 0);
-            if(tournamentDuration == 0) return "Tournament is not active!";
-
-            long tournamentEnd = plugin.getConfig().getLong("reward-system.tournament-end");
-            return plugin.formatTime(tournamentEnd - System.currentTimeMillis());
         }
 
         //Use '%playtime_top1ign%' to display the top 1 player IGN

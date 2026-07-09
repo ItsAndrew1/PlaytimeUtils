@@ -27,7 +27,6 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.scheduler.BukkitTask;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -37,14 +36,17 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
 
 //Main plugin class.
 public final class PlaytimeUtils extends JavaPlugin implements Listener {
     private DbManager databaseManager;
 
-    private final Map<UUID, Integer> playtimeMap = new HashMap<>();
+    private final Map<UUID, Integer> mainPlaytimeMap = new HashMap<>();
+    private final ConcurrentHashMap<UUID, Integer> tournamentPlaytimeMap = new ConcurrentHashMap<>();
     private final Map<UUID, Long> lastActivity = new HashMap<>();
     private final Map<UUID, Boolean> afkMap = new HashMap<>();
     private LuckPerms luckpermsAPI;
@@ -55,10 +57,10 @@ public final class PlaytimeUtils extends JavaPlugin implements Listener {
     private final ChoosePlaceGUI choosePlaceGUI = new ChoosePlaceGUI(this);
     private final AddRewardsGUI addRewardsGUI = new AddRewardsGUI(this);
     private final RemoveRewardsGUIs removeRewardsGUIs = new RemoveRewardsGUIs(this);
-    private final GivingRewards givingRewardsSystem = new GivingRewards(this);
+    private GivingRewards givingRewardsSystem;
 
     private final PlaceholdersManager placeholdersManager = new PlaceholdersManager();
-    private final PlaytimeRewardsGUI playtimeRewardsGUI = new PlaytimeRewardsGUI(this);
+    private PlaytimeRewardsGUI playtimeRewardsGUI;
 
     @Override
     public void onEnable() {
@@ -67,6 +69,8 @@ public final class PlaytimeUtils extends JavaPlugin implements Listener {
 
         //Creating the necessary objects.
         databaseManager = new DbManager(this);
+        givingRewardsSystem = new GivingRewards(this);
+        playtimeRewardsGUI = new PlaytimeRewardsGUI(this);
 
         //Registering commands and the TABs.
         getCommand("myplaytime").setExecutor(new CommandManager(this));
@@ -108,7 +112,10 @@ public final class PlaytimeUtils extends JavaPlugin implements Listener {
         if(provider != null && getServer().getPluginManager().isPluginEnabled("LuckPerms")) luckpermsAPI = provider.getProvider();
 
         //Enabling the PlaytimeUtils Placeholders Extension
-        if(Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null) new PluginPapiPlaceholders(this).register();
+        if(Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null) {
+            new PlaytimePlaceholders(this).register();
+            new TournamentPlaceholders(this).register();
+        }
         else getLogger().warning("[PlaytimeUtils] PlaceholderAPI is not installed. Placeholders won't work.");
 
         getLogger().info("[PlaytimeUtils] Plugin enabled successfully.");
@@ -145,7 +152,13 @@ public final class PlaytimeUtils extends JavaPlugin implements Listener {
                     continue;
                 }
 
-                playtimeMap.compute(player.getUniqueId(), (k, playtime) -> playtime + 1);
+                mainPlaytimeMap.compute(player.getUniqueId(), (k, playtime) -> playtime + 1);
+
+                //Computing the tournament playtime, if the tournament is enabled
+                Bukkit.getScheduler().runTaskAsynchronously(this, () -> {
+                    AtomicLong tournamentDuration = new AtomicLong(getDatabaseManager().getTournamentTimestamp("duration"));
+                    if(tournamentDuration.get() != 0) tournamentPlaytimeMap.compute(player.getUniqueId(), (k, playtime) -> playtime + 1);
+                });
             }
         }, 0, 20);
 
@@ -249,10 +262,11 @@ public final class PlaytimeUtils extends JavaPlugin implements Listener {
         saveConfig();
 
         //Saving the playtime of all players to the database
-        for(UUID playerUUID : playtimeMap.keySet()){
-            databaseManager.updatePlayerMainPlaytime(playerUUID, playtimeMap.get(playerUUID));
-            boolean toggleRewardSystem = getConfig().getBoolean("reward-system.toggle", true);
-            if(toggleRewardSystem) databaseManager.updatePlayerTournamentPlaytime(playerUUID, playtimeMap.get(playerUUID));
+        for(UUID playerUUID : mainPlaytimeMap.keySet()){
+            databaseManager.updatePlayerMainPlaytime(playerUUID, mainPlaytimeMap.get(playerUUID));
+
+            AtomicLong tournamentDuration = new AtomicLong(getDatabaseManager().getTournamentTimestamp("duration"));
+            if(tournamentDuration.get() != 0) databaseManager.updatePlayerTournamentPlaytime(playerUUID, tournamentPlaytimeMap.get(playerUUID));
         }
 
         getLogger().info("[PlaytimeUtils] Plugin disabled successfully.");
@@ -303,19 +317,19 @@ public final class PlaytimeUtils extends JavaPlugin implements Listener {
 
         //Saving the playtime in the database
         UUID playerUUID = player.getUniqueId();
-        boolean toggleRewardSystem = getConfig().getBoolean("reward-system.toggle", true);
-        int currentPlaytime = playtimeMap.get(playerUUID);
+        int currentPlaytime = mainPlaytimeMap.get(playerUUID);
         Bukkit.getScheduler().runTaskAsynchronously(this, () -> {
             databaseManager.updatePlayerMainPlaytime(playerUUID, currentPlaytime);
-            if(toggleRewardSystem) databaseManager.updatePlayerTournamentPlaytime(playerUUID, currentPlaytime);
+
+            AtomicLong tournamentDuration = new AtomicLong(getDatabaseManager().getTournamentTimestamp("duration"));
+            if(tournamentDuration.get() != 0) databaseManager.updatePlayerTournamentPlaytime(playerUUID, currentPlaytime);
         });
 
         //Removing the player from the Maps
-        playtimeMap.remove(player.getUniqueId());
+        mainPlaytimeMap.remove(player.getUniqueId());
+        tournamentPlaytimeMap.remove(playerUUID);
         afkMap.remove(player.getUniqueId());
         lastActivity.remove(player.getUniqueId());
-
-        //Removing the player from StaffState Map if he has an ongoing staff state
         staffStates.remove(player);
 
         //Removing the player from the PlaceholdersManager maps
@@ -373,8 +387,11 @@ public final class PlaytimeUtils extends JavaPlugin implements Listener {
     public DbManager getDatabaseManager() {
         return databaseManager;
     }
-    public Map<UUID, Integer> getPlaytimeMap() {
-        return playtimeMap;
+    public Map<UUID, Integer> getMainPlaytimeMap() {
+        return mainPlaytimeMap;
+    }
+    public Map<UUID, Integer> getTournamentPlaytimeMap(){
+        return tournamentPlaytimeMap;
     }
     public Map<UUID, Long> getLastActivity() {
         return lastActivity;

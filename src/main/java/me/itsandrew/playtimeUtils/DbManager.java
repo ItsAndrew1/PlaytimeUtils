@@ -98,7 +98,7 @@ public class DbManager {
         long seconds = getMainPlaytime(playerUUID);
 
         //Also adding the seconds from the playtime map
-        seconds += plugin.getPlaytimeMap().getOrDefault(playerUUID, 0);
+        seconds += plugin.getMainPlaytimeMap().getOrDefault(playerUUID, 0);
 
         //Building the string
         StringBuilder time = new StringBuilder();
@@ -141,7 +141,7 @@ public class DbManager {
             try(ResultSet rs = ps.executeQuery()){
                 while(rs.next()){
                     UUID playerUUID = UUID.fromString(rs.getString("uuid"));
-                    int playtime = rs.getInt("mainPlaytime") + plugin.getPlaytimeMap().getOrDefault(playerUUID, 0);
+                    int playtime = rs.getInt("mainPlaytime") + plugin.getMainPlaytimeMap().getOrDefault(playerUUID, 0);
                     top3PlayersSeconds.put(playerUUID, playtime);
                 }
             }
@@ -166,7 +166,7 @@ public class DbManager {
             try(ResultSet rs = ps.executeQuery()){
                 while(rs.next()){
                     UUID playerUUID = UUID.fromString(rs.getString("uuid"));
-                    int playtime = rs.getInt("tournamentPlaytime") + plugin.getPlaytimeMap().getOrDefault(playerUUID, 0);
+                    int playtime = rs.getInt("tournamentPlaytime") + plugin.getMainPlaytimeMap().getOrDefault(playerUUID, 0);
                     top3PlayersSeconds.put(playerUUID, playtime);
                 }
             }
@@ -226,8 +226,8 @@ public class DbManager {
         //Getting the playtime of the player from the db
         long seconds = getTournamentPlaytime(playerUUID);
 
-        //Also adding the seconds from the playtime map
-        seconds += plugin.getPlaytimeMap().getOrDefault(playerUUID, 0);
+        //Also adding the seconds from the tournament playtime map
+        seconds += plugin.getTournamentPlaytimeMap().getOrDefault(playerUUID, 0);
 
         //Building the string
         StringBuilder time = new StringBuilder();
@@ -286,6 +286,8 @@ public class DbManager {
             ps.setLong(2, duration);
             ps.setLong(3, tournamentEnd);
             ps.executeUpdate();
+
+            plugin.getLogger().info("[PlaytimeUtils] Tournament timestamps set.");
         } catch (SQLException e) {
             plugin.getLogger().severe("[PlaytimeUtils] Failed to set tournament timestamps: " + e.getMessage());
         }

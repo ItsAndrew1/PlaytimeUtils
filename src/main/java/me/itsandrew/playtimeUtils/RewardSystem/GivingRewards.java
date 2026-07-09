@@ -18,7 +18,6 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.Inventory;
-import org.bukkit.inventory.InventoryView;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
@@ -55,21 +54,27 @@ public class GivingRewards implements Listener {
         AtomicBoolean fiveSixthMessage = new AtomicBoolean(false);
         AtomicBoolean tournamentEnded = new AtomicBoolean(false);
 
+        //Longs for the tournament timestamps
+        AtomicLong tournamentStart = new AtomicLong();
+        AtomicLong tournamentEnd = new AtomicLong();
+        AtomicLong tournamentDuration = new AtomicLong();
+
         FileConfiguration mainConfig = plugin.getConfig();
 
         //Running an Async task to get the tournament timestamps from the database.
         Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
             //Checking if the tournament is enabled
-            long tournamentDuration = plugin.getDatabaseManager().getTournamentTimestamp("duration");
-            if(tournamentDuration == 0) return;
-
-            long tournamentStart = plugin.getDatabaseManager().getTournamentTimestamp("tournamentStart");
-            long tournamentEnd = plugin.getDatabaseManager().getTournamentTimestamp("tournamentEnd");
+            tournamentDuration.set(plugin.getDatabaseManager().getTournamentTimestamp("duration"));
+            tournamentStart.set(plugin.getDatabaseManager().getTournamentTimestamp("tournamentStart"));
+            tournamentEnd.set(plugin.getDatabaseManager().getTournamentTimestamp("tournamentEnd"));
 
             //Jumping back to the main thread to start the tasks
             Bukkit.getScheduler().runTask(plugin, () -> {
+                if(tournamentStart.get() == 0 || tournamentEnd.get() == 0 || tournamentDuration.get() == 0) return;
+
+
                 rewardingTask = Bukkit.getScheduler().runTaskTimer(plugin, () -> {
-                    if(System.currentTimeMillis() >= tournamentEnd && !tournamentEnded.get()){
+                    if(System.currentTimeMillis() >= tournamentEnd.get() && !tournamentEnded.get()){
                         tournamentEnded.set(true);
 
                         //Sending the broadcast message/sound
@@ -104,7 +109,7 @@ public class GivingRewards implements Listener {
 
                 broadcastTask = Bukkit.getScheduler().runTaskTimer(plugin, () -> {
                     //Sending the broadcast message when the timer gets to a third of the time
-                    if(System.currentTimeMillis() >= tournamentStart + tournamentDuration / 3 && !oneThirdMessage.get()){
+                    if(System.currentTimeMillis() >= tournamentStart.get() + tournamentDuration.get() / 3 && !oneThirdMessage.get()){
                         oneThirdMessage.set(true);
 
                         String soundName = mainConfig.getString("reward-system.tournament-sounds.1/3-of-duration.name", "BLOCK_NOTE_BLOCK_PLING");
@@ -126,7 +131,7 @@ public class GivingRewards implements Listener {
                     }
 
                     //Sending the broadcast message when the timer gets to half the time
-                    if(System.currentTimeMillis() >= tournamentStart + tournamentDuration / 2 && !halfMessage.get()){
+                    if(System.currentTimeMillis() >= tournamentStart.get() + tournamentDuration.get() / 2 && !halfMessage.get()){
                         halfMessage.set(true);
 
                         String soundName = mainConfig.getString("reward-system.tournament-sounds.half-of-duration.name", "BLOCK_NOTE_BLOCK_PLING");
@@ -148,7 +153,7 @@ public class GivingRewards implements Listener {
                     }
 
                     //Sending the broadcast message when the timer gets to 5/6 of the time
-                    if(System.currentTimeMillis() >= tournamentStart + 5 * tournamentDuration / 6 && !fiveSixthMessage.get()){
+                    if(System.currentTimeMillis() >= tournamentStart.get() + 5 * tournamentDuration.get() / 6 && !fiveSixthMessage.get()){
                         fiveSixthMessage.set(true);
 
                         String soundName = mainConfig.getString("reward-system.tournament-sounds.5/6-of-duration.name", "BLOCK_NOTE_BLOCK_PLING");
@@ -192,10 +197,9 @@ public class GivingRewards implements Listener {
 
                         if(riMeta != null){
                             //Setting the display name
-                            String DisplayName = plugin.getConfig().getString("reward-system.rewards-item.display-name", "%player_tournamentValue% &a&lReward");
+                            String DisplayName = plugin.getConfig().getString("reward-system.rewards-item.display-name", "&e&lPlaytime Tournament Reward");
                             DisplayName = PlaceholderAPI.setPlaceholders(winner, DisplayName);
                             Component realDisplayName = LegacyComponentSerializer.legacyAmpersand().deserialize(DisplayName);
-                            realDisplayName = realDisplayName.replaceText(TextReplacementConfig.builder().match("%player_tournamentValue%").replacement(getFormattedPlacementString(rank)).build());
                             riMeta.displayName(realDisplayName);
 
                             //Setting the lore
@@ -285,17 +289,6 @@ public class GivingRewards implements Listener {
         return rankInt;
     }
 
-    public Component getFormattedPlacementString(int rank){
-        Component formattedPlacementString = Component.empty();
-        switch(rank){
-            case 1 -> formattedPlacementString = MiniMessage.miniMessage().deserialize("<gradient:#ffee55:#ffaa00><b>1st Place");
-            case 2 -> formattedPlacementString = MiniMessage.miniMessage().deserialize("<gradient:#ffffff:#bbbacc><b>2nd Place");
-            case 3 -> formattedPlacementString = MiniMessage.miniMessage().deserialize("<gradient:#ccc923:#e6765a><b>3rd Place");
-        }
-
-        return formattedPlacementString;
-    }
-
     private boolean isUrlValid(String url) {
         try {
             URI uri = new URI(url);
@@ -338,11 +331,8 @@ public class GivingRewards implements Listener {
         String clickedData = clickedMeta.getPersistentDataContainer().get(dataContainer, PersistentDataType.STRING);
         if(clickedData == null) return;
 
-        //Removing the reward item from the inventory
-        clickedInv.removeItem(clickedItem);
-
         //Giving the items/exp
-        giveOutRewards(player, clickedData);
+        if(giveOutRewards(player, clickedData)) player.getInventory().removeItem(clickedItem);
     }
 
     @EventHandler
@@ -362,19 +352,17 @@ public class GivingRewards implements Listener {
         if(interactAction == Action.RIGHT_CLICK_BLOCK) event.setCancelled(true);
 
         Player player = event.getPlayer();
-        //Removing the item from the player's inventory
-        player.getInventory().removeItem(interactItem);
 
         //Giving out the rewards/exp levels
-        giveOutRewards(player, interactData);
+        if(giveOutRewards(player, interactData)) player.getInventory().removeItem(interactItem);
     }
 
-    private void giveOutRewards(Player player, String clickedData){
+    private boolean giveOutRewards(Player player, String clickedData){
         int expLevels = plugin.getConfig().getInt("reward-system.rewards."+clickedData+".exp-levels", 0);
         if(expLevels > 0) player.giveExp(expLevels);
 
         List<?> rawRewards = plugin.getConfig().getList("reward-system.rewards."+clickedData+".items");
-        if(rawRewards == null) return;
+        if(rawRewards == null) return false;
 
         List<ItemStack> items = new ArrayList<>();
         for(Object reward : rawRewards){
@@ -382,7 +370,7 @@ public class GivingRewards implements Listener {
         }
 
         int contentSize = player.getInventory().getContents().length;
-        if(player.getInventory().getSize() - contentSize > items.size()){
+        if(player.getInventory().getSize() - contentSize < items.size()){
             for(ItemStack item : items) player.getInventory().addItem(item);
 
             player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1, 1.4f);
@@ -393,6 +381,8 @@ public class GivingRewards implements Listener {
             //Removing the pending reward from the database
             UUID playerUUID = player.getUniqueId();
             Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> plugin.getDatabaseManager().removePendingReward(playerUUID, getIntRank(clickedData)));
+
+            return true;
         }
         else{
             String noInventorySpaceMessage = plugin.getConfig().getString("reward-system.no-inventory-space-message", "&cYou don't have enough inventory space to claim your reward!");
@@ -403,6 +393,8 @@ public class GivingRewards implements Listener {
 
             player.closeInventory();
         }
+
+        return false;
     }
 
     //Getter for the Task
