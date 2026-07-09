@@ -83,7 +83,7 @@ public class DbManager {
         String pendingRewardsTable = """
                 CREATE TABLE IF NOT EXISTS pendingRewards (
                     uuid TEXT PRIMARY KEY,
-                    placement INTEGER PRIMARY KEY,
+                    placement INTEGER,
                     amount INTEGER
                 )
                 """;

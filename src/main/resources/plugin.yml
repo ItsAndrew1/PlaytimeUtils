@@ -12,25 +12,84 @@ softdepend: [PlaceholderAPI, LuckPerms]
 
 permissions:
   playtimeutils.myplaytime:
-    description: Allows the player to see their own playtime.
+    description: Allows the player to use the /myplaytime command.
+    default: true
+
+  playtimeutils.myplaytime.main:
+    description: Allows the player to see their own main playtime.
+    default: true
+
+  playtimeutils.myplaytime.tournament:
+    description: Allows the player to see their own tournament playtime.
+    default: true
+
+  playtimeutils.myplaytime.rewards:
+    description: Allows the player to access the Playtime Rewards menu.
     default: true
 
   playtimeutils.playtime:
-    description: Allows the player to see someone else's playtime.
+    description: Allows the player to use the /playtime command
+    default: op
+
+  playtimeutils.playtime.main:
+    description: Allows the player to see someone else's main playtime.
+    default: op
+
+  playtimeutils.playtime.tournament:
+    description: Allows the player to see someone else's tournament playtime.
     default: op
 
   playtimeutils.topplaytime:
-    description: Allows the player to view the top 3 playtime leaderboard
+    description: Allows the player to use the /topplaytime command.
+    default: true
+
+  playtimeutils.topplaytime.main:
+    description: Allows the player to see the top 3 main playtime leaderboard.
+    default: true
+
+  playtimeutils.topplaytime.tournament:
+    description: Allows the player to see the top 3 tournament playtime leaderboard.
     default: true
 
   playtimeutils.ptutils:
-    description: Allows the player to use the managing command.
+    description: Allows the player to use the /ptutils command.
     default: op
 
   playtimeutils.ptutils.reload:
     description: Allows the player to reload the plugin's configuration.
     default: op
 
+  playtimeutils.ptutils.rewards:
+    description: Allows the player to manage the Reward System.
+    default: op
+
+  playtimeutils.ptutils.rewards.tournament:
+    description: Allows the player to manage the Tournament Settings.
+    default: op
+
+  playtimeutils.ptutils.rewards.tournament.settime:
+    description: Allows the player to set the Tournament Timer.
+    default: op
+
+  playtimeutils.ptutils.rewards.tournament.setbook:
+    description: Allows the player to set the Tournament Pending Rewards Book.
+    default: op
+
+  playtimeutils.ptutils.rewards.tournament.enable:
+    description: Allows the player to enable the Tournament.
+    default: op
+
+  playtimeutils.ptutils.rewards.tournament.disable:
+    description: Allows the player to disable the Tournament.
+    default: op
+
+  playtimeutils.ptutils.rewards.add:
+    description: Allows the player to add rewards to the Reward System.
+    default: op
+
+  playtimeutils.ptutils.rewards.remove:
+    description: Allows the player to remove rewards from the Reward System.
+    default: op
 
 commands:
   ptutils:

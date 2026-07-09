@@ -324,7 +324,7 @@ public class GivingRewards implements Listener {
         //Checking if the click happened in the player's bottom inventory.
         Inventory clickedInv = event.getClickedInventory();
         if(clickedInv == null) return;
-        if(clickedInv.equals(event.getView().getBottomInventory())) return;
+        if(!clickedInv.equals(event.getView().getBottomInventory())) return;
 
         ItemStack clickedItem = event.getCurrentItem();
         if(clickedItem == null) return;
@@ -374,6 +374,8 @@ public class GivingRewards implements Listener {
         if(expLevels > 0) player.giveExp(expLevels);
 
         List<?> rawRewards = plugin.getConfig().getList("reward-system.rewards."+clickedData+".items");
+        if(rawRewards == null) return;
+
         List<ItemStack> items = new ArrayList<>();
         for(Object reward : rawRewards){
             if(reward instanceof ItemStack) items.add((ItemStack) reward);

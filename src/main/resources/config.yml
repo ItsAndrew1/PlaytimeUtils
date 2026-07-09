@@ -47,7 +47,7 @@ messages:
   top-3-tournament-players:
     - "&c&l---------------------------------"
     - " "
-    - "                  &d&lTOP MAIN PLAYTIME"
+    - "                  &d&lTOP TOURNAMENT PLAYTIME"
     - " "
     - "           &e&l1. &e%playtime_top1tournamentign%   &f%playtime_top1tournament%"
     - "           &7&l2. &7%playtime_top2tournamentign%   &f%playtime_top2tournament%"

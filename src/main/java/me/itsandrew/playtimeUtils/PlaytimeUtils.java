@@ -73,7 +73,11 @@ public final class PlaytimeUtils extends JavaPlugin implements Listener {
         getCommand("playtime").setExecutor(new CommandManager(this));
         getCommand("topplaytime").setExecutor(new CommandManager(this));
         getCommand("ptutils").setExecutor(new CommandManager(this));
+
+        getCommand("myplaytime").setTabCompleter(new CommandTABs());
         getCommand("ptutils").setTabCompleter(new CommandTABs());
+        getCommand("topplaytime").setTabCompleter(new CommandTABs());
+        getCommand("playtime").setTabCompleter(new CommandTABs());
 
         //Registering events.
         getServer().getPluginManager().registerEvents(new PlayerJoin(this), this);
@@ -145,7 +149,7 @@ public final class PlaytimeUtils extends JavaPlugin implements Listener {
             }
         }, 0, 20);
 
-        // Task for updating the placeholders. Runs every 10 seconds Async.
+        //Task for updating the placeholders. Runs every 10 seconds Async.
         Bukkit.getScheduler().runTaskTimerAsynchronously(this, () -> {
             List<Map.Entry<UUID, Integer>> top3Players = getDatabaseManager().getTournamentTop3Players();
             List<Map.Entry<UUID, Integer>> mainTop3Players = getDatabaseManager().getMainTop3Players();

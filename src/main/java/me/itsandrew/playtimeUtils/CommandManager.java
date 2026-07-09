@@ -48,6 +48,9 @@ public class CommandManager implements CommandExecutor {
 
                 switch(args[0]){
                     case "main" -> {
+                        //Checking if the player has permission to use the command
+                        if(!player.hasPermission("playtimeutils.myplaytime.main")) noPermission(player);
+
                         String message = plugin.getConfig().getString("messages.my-playtime.main", "&aYour playtime is &e&l%playtime_mainValue%&a!");
                         message = PlaceholderAPI.setPlaceholders(player, message);
                         Component playtimeMessage = LegacyComponentSerializer.legacyAmpersand().deserialize(message);
@@ -55,24 +58,35 @@ public class CommandManager implements CommandExecutor {
                         player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
                     }
 
-                    case "tournament" ->
-                            //Checking if the tournament is enabled
-                            Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
-                                long tournamentDuration = plugin.getDatabaseManager().getTournamentTimestamp("duration");
-                                Bukkit.getScheduler().runTask(plugin, () -> {
-                                    if(tournamentDuration == 0){
-                                        player.sendMessage(MiniMessage.miniMessage().deserialize("<red>The Playtime Tournament is not active yet! Be on the lookout for <yellow>the next one <red>!"));
-                                        player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
-                                    }
-                                    else{
-                                        String message = plugin.getConfig().getString("messages.my-playtime.tournament", "&aYour tournament playtime is &e&l%playtime_tournamentValue%&a!");
-                                        message = PlaceholderAPI.setPlaceholders(player, message);
-                                        Component playtimeMessage = LegacyComponentSerializer.legacyAmpersand().deserialize(message);
-                                        player.sendMessage(playtimeMessage);
-                                        player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
-                                    }
-                                });
+                    case "tournament" -> {
+                        //Checking if the player has permission to use the command
+                        if (!player.hasPermission("playtimeutils.myplaytime.tournament")) noPermission(player);
+
+                        //Checking if the tournament is enabled
+                        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+                            long tournamentDuration = plugin.getDatabaseManager().getTournamentTimestamp("duration");
+                            Bukkit.getScheduler().runTask(plugin, () -> {
+                                if (tournamentDuration == 0) {
+                                    player.sendMessage(MiniMessage.miniMessage().deserialize("<red>The Playtime Tournament is not active yet! Be on the lookout for <yellow>the next one<red>!"));
+                                    player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
+                                } else {
+                                    String message = plugin.getConfig().getString("messages.my-playtime.tournament", "&aYour tournament playtime is &e&l%playtime_tournamentValue%&a!");
+                                    message = PlaceholderAPI.setPlaceholders(player, message);
+                                    Component playtimeMessage = LegacyComponentSerializer.legacyAmpersand().deserialize(message);
+                                    player.sendMessage(playtimeMessage);
+                                    player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
+                                }
                             });
+                        });
+                    }
+
+                    case "rewards" -> {
+                        //Checking if the player has permission
+                        if(!player.hasPermission("playtimeutils.myplaytime.rewards")) noPermission(player);
+
+                        plugin.getPlaytimeRewardsGUI().openGUI(player);
+                        player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
+                    }
 
                     default -> {
                         player.sendMessage(MiniMessage.miniMessage().deserialize("<red>Unknown command."));
@@ -101,6 +115,9 @@ public class CommandManager implements CommandExecutor {
 
                 switch(args[0]){
                     case "main" -> {
+                        //Checking if the player has permission to run the command
+                        if(!player.hasPermission("playtimeutils.playtime.main")) noPermission(player);
+
                         String message = plugin.getConfig().getString("messages.player-playtime.main", "&e%player%'s playtime is &e&l%playtime_mainValue%&a!");
                         message = PlaceholderAPI.setPlaceholders(targetPlayer, message);
                         message = message.replace("%player%", targetPlayer.getName());
@@ -110,6 +127,9 @@ public class CommandManager implements CommandExecutor {
                     }
 
                     case "tournament" -> {
+                        //Checking if the player has permission
+                        if(!player.hasPermission("playtimeutils.playtime.tournament")) noPermission(player);
+
                         String message = plugin.getConfig().getString("messages.player-playtime.tournament", "&e%player%'s tournament playtime is &e&l%playtime_tournamentValue%&a!");
                         message = PlaceholderAPI.setPlaceholders(targetPlayer, message);
                         message = message.replace("%player%", targetPlayer.getName());
@@ -137,6 +157,9 @@ public class CommandManager implements CommandExecutor {
 
                 switch(args[0]){
                     case "main" -> {
+                        //Checking if the player has permission
+                        if(!player.hasPermission("playtimeutils.topplaytime.main")) noPermission(player);
+
                         List<String> rawMessage = plugin.getConfig().getStringList("messages.top-3-main-players");
                         for(String line : rawMessage){
                             line = PlaceholderAPI.setPlaceholders(player, line);
@@ -146,6 +169,18 @@ public class CommandManager implements CommandExecutor {
                     }
 
                     case "tournament" -> {
+                        //Checking if the player has permission
+                        if(!player.hasPermission("playtimeutils.topplaytime.tournament")) noPermission(player);
+
+                        //Checking if the tournament is enabled
+                        AtomicLong duration = new AtomicLong();
+                        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> duration.set(plugin.getDatabaseManager().getTournamentTimestamp("duration")));
+                        if(duration.get() == 0){
+                            player.sendMessage(MiniMessage.miniMessage().deserialize("<red>The Playtime Tournament is not active yet! Be on the lookout for <yellow>the next one<red>!"));
+                            player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
+                            return true;
+                        }
+
                         List<String> rawMessage = plugin.getConfig().getStringList("messages.top-3-tournament-players");
                         for(String line : rawMessage){
                             line = PlaceholderAPI.setPlaceholders(player, line);
@@ -350,48 +385,44 @@ public class CommandManager implements CommandExecutor {
                                         }
 
                                         //Checking if the tournament is already disabled
-                                        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
-                                            long eventDuration = plugin.getConfig().getLong("reward-system.tournament-duration", 0);
+                                        AtomicLong duration = new AtomicLong();
+                                        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> duration.set(plugin.getDatabaseManager().getTournamentTimestamp("duration")));
+                                        if(duration.get() == 0){
+                                            player.sendMessage(MiniMessage.miniMessage().deserialize("<red>The tournament is already disabled!"));
+                                            player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
+                                            return true;
+                                        }
 
-                                            Bukkit.getScheduler().runTask(plugin, () -> {
-                                                if(eventDuration == 0){
-                                                    player.sendMessage(MiniMessage.miniMessage().deserialize("<red>The tournament is already disabled!"));
-                                                    player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
-                                                }
-                                                else{
-                                                    //Wiping the 'Reward Playtime' column in the db.
-                                                    Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> plugin.getDatabaseManager().wipeTournamentPlaytime());
-                                                    plugin.getLogger().warning("[PlaytimeUtils] Reward System disabled. Reward playtime has been wiped.");
+                                        //Wiping the 'Reward Playtime' column in the db.
+                                        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> plugin.getDatabaseManager().wipeTournamentPlaytime());
+                                        plugin.getLogger().warning("[PlaytimeUtils] Reward System disabled. Reward playtime has been wiped.");
 
-                                                    //Broadcasting the Tournament Disabled Message
-                                                    for(Player onlinePlayer : Bukkit.getOnlinePlayers()){
-                                                        onlinePlayer.playSound(onlinePlayer.getLocation(), Sound.BLOCK_NOTE_BLOCK_PLING, 1, 1);
+                                        //Broadcasting the Tournament Disabled Message
+                                        for(Player onlinePlayer : Bukkit.getOnlinePlayers()){
+                                            onlinePlayer.playSound(onlinePlayer.getLocation(), Sound.BLOCK_NOTE_BLOCK_PLING, 1, 1);
 
-                                                        List<String> messageLines = plugin.getConfig().getStringList("reward-system.tournament-messages.disabled");
-                                                        for(String line : messageLines){
-                                                            line = PlaceholderAPI.setPlaceholders(onlinePlayer, line);
-                                                            Component coloredLine = LegacyComponentSerializer.legacyAmpersand().deserialize(line);
+                                            List<String> messageLines = plugin.getConfig().getStringList("reward-system.tournament-messages.disabled");
+                                            for(String line : messageLines){
+                                                line = PlaceholderAPI.setPlaceholders(onlinePlayer, line);
+                                                Component coloredLine = LegacyComponentSerializer.legacyAmpersand().deserialize(line);
 
-                                                            //Adding a component designed to have a hover and click event (to open the discord link)
-                                                            coloredLine = replaceDiscordComponent(coloredLine);
+                                                //Adding a component designed to have a hover and click event (to open the discord link)
+                                                coloredLine = replaceDiscordComponent(coloredLine);
 
-                                                            onlinePlayer.sendMessage(coloredLine);
-                                                        }
-                                                    }
+                                                onlinePlayer.sendMessage(coloredLine);
+                                            }
+                                        }
 
-                                                    //Deleting the tournament timestamps from the database.
-                                                    Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> plugin.getDatabaseManager().deleteTournamentTimestamps());
+                                        //Deleting the tournament timestamps from the database.
+                                        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> plugin.getDatabaseManager().deleteTournamentTimestamps());
 
-                                                    //Stopping the 2 tasks
-                                                    plugin.getGivingRewardsSystem().getRewardingTask().cancel();
-                                                    plugin.getGivingRewardsSystem().getBroadcastTask().cancel();
+                                        //Stopping the 2 tasks
+                                        plugin.getGivingRewardsSystem().getRewardingTask().cancel();
+                                        plugin.getGivingRewardsSystem().getBroadcastTask().cancel();
 
-                                                    player.sendMessage(MiniMessage.miniMessage().deserialize("<green>The tournament has been disabled!"));
-                                                    player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
-                                                    plugin.getLogger().info("The tournament has been disabled!");
-                                                }
-                                            });
-                                        });
+                                        player.sendMessage(MiniMessage.miniMessage().deserialize("<green>The tournament has been disabled!"));
+                                        player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
+                                        plugin.getLogger().info("The tournament has been disabled!");
                                     }
                                 }
                             }
