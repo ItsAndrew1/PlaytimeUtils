@@ -43,7 +43,7 @@ public class PlayerJoin implements Listener {
                 player.sendTitle(title, subtitle);
 
 
-                Sound firstJoinSound = Registry.SOUNDS.get(new NamespacedKey(plugin, plugin.getConfig().getString("first-join.sound", "ENTITY_PLAYER_LEVELUP").toUpperCase()));
+                Sound firstJoinSound = Registry.SOUNDS.get(NamespacedKey.minecraft(plugin.getConfig().getString("first-join.sound", "entity.player.levelup").toLowerCase()));
                 float fjsVolume = plugin.getConfig().getInt("first-join.sound-volume", 1);
                 float fjsPitch = plugin.getConfig().getInt("first-join.sound-pitch", 1);
                 player.playSound(player.getLocation(), firstJoinSound, fjsVolume, fjsPitch);

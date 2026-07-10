@@ -16,6 +16,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
@@ -78,7 +79,7 @@ public class GivingRewards implements Listener {
                         tournamentEnded.set(true);
 
                         //Sending the broadcast message/sound
-                        String soundName = mainConfig.getString("reward-system.tournament-sounds.end.name", "ENTITY_PLAYER_LEVELUP");
+                        String soundName = mainConfig.getString("reward-system.tournament-sounds.end.name", "entity.player.levelup");
                         double soundVolume = mainConfig.getDouble("reward-system.tournament-sounds.end.volume", 1);
                         double soundPitch = mainConfig.getDouble("reward-system.tournament-sounds.end.pitch", 1);
                         Sound sound = Registry.SOUNDS.get(NamespacedKey.minecraft(soundName.toLowerCase()));
@@ -112,7 +113,7 @@ public class GivingRewards implements Listener {
                     if(System.currentTimeMillis() >= tournamentStart.get() + tournamentDuration.get() / 3 && !oneThirdMessage.get()){
                         oneThirdMessage.set(true);
 
-                        String soundName = mainConfig.getString("reward-system.tournament-sounds.1/3-of-duration.name", "BLOCK_NOTE_BLOCK_PLING");
+                        String soundName = mainConfig.getString("reward-system.tournament-sounds.1/3-of-duration.name", "block.note_block.pling");
                         float soundVolume = mainConfig.getInt("reward-system.tournament-sounds.1/3-of-duration.volume", 1);
                         float soundPitch = mainConfig.getInt("reward-system.tournament-sounds.1/3-of-duration.pitch", 1);
                         Sound sound = Registry.SOUNDS.get(NamespacedKey.minecraft(soundName.toLowerCase()));
@@ -134,7 +135,7 @@ public class GivingRewards implements Listener {
                     if(System.currentTimeMillis() >= tournamentStart.get() + tournamentDuration.get() / 2 && !halfMessage.get()){
                         halfMessage.set(true);
 
-                        String soundName = mainConfig.getString("reward-system.tournament-sounds.half-of-duration.name", "BLOCK_NOTE_BLOCK_PLING");
+                        String soundName = mainConfig.getString("reward-system.tournament-sounds.half-of-duration.name", "block.note_block.pling");
                         float soundVolume = mainConfig.getInt("reward-system.tournament-sounds.half-of-duration.volume", 1);
                         float soundPitch = mainConfig.getInt("reward-system.tournament-sounds.half-of-duration.pitch", 1);
                         Sound sound = Registry.SOUNDS.get(NamespacedKey.minecraft(soundName.toLowerCase()));
@@ -156,7 +157,7 @@ public class GivingRewards implements Listener {
                     if(System.currentTimeMillis() >= tournamentStart.get() + 5 * tournamentDuration.get() / 6 && !fiveSixthMessage.get()){
                         fiveSixthMessage.set(true);
 
-                        String soundName = mainConfig.getString("reward-system.tournament-sounds.5/6-of-duration.name", "BLOCK_NOTE_BLOCK_PLING");
+                        String soundName = mainConfig.getString("reward-system.tournament-sounds.5/6-of-duration.name", "block.note_block.pling");
                         float soundVolume = mainConfig.getInt("reward-system.tournament-sounds.5/6-of-duration.volume", 1);
                         float soundPitch = mainConfig.getInt("reward-system.tournament-sounds.5/6-of-duration.pitch", 1);
                         Sound sound = Registry.SOUNDS.get(NamespacedKey.minecraft(soundName.toLowerCase()));
@@ -222,7 +223,7 @@ public class GivingRewards implements Listener {
                         HashMap<Integer,ItemStack> attemptToAdd = winner.getPlayer().getInventory().addItem(rewardsItem);
                         if(!attemptToAdd.isEmpty()){
                             //Building the sound
-                            String soundName = plugin.getConfig().getString("reward-system.pending-reward-notification.sound.name", "BLOCK_NOTE_BLOCK_PLING").toLowerCase();
+                            String soundName = plugin.getConfig().getString("reward-system.pending-reward-notification.sound.name", "block.note_block.pling").toLowerCase();
                             double soundVolume = plugin.getConfig().getDouble("reward-system.pending-reward-notification.sound.volume", 1.0);
                             double soundPitch = plugin.getConfig().getDouble("reward-system.pending-reward-notification.sound.pitch", 1.0);
                             Sound sound = Registry.SOUNDS.get(NamespacedKey.minecraft(soundName));
@@ -248,17 +249,28 @@ public class GivingRewards implements Listener {
                             Component noSpaceComponent = LegacyComponentSerializer.legacyAmpersand().deserialize(noSpaceMessage);
                             winner.getPlayer().sendMessage(noSpaceComponent);
 
-                            //Starting a task to tell the winner to open the rewards menu to collect the reward
-                            inventorySpaceWarningTask = Bukkit.getScheduler().runTaskTimer(plugin, () -> {
-                                AtomicLong pendingRewardAmount = new AtomicLong();
-                                Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> pendingRewardAmount.set(plugin.getDatabaseManager().getPendingRewardAmount(winnerUUID, rank)));
+                            //Adding the reward as Pending.
+                            Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+                                plugin.getDatabaseManager().insertPendingReward(winnerUUID, rank);
 
-                                if(pendingRewardAmount.get() != 0){
-                                    winner.getPlayer().playSound(winner.getPlayer().getLocation(), sound, (float) soundVolume, (float) soundPitch);
-                                    for(Component line : finalMessage) winner.getPlayer().sendMessage(line);
-                                }
-                                else inventorySpaceWarningTask.cancel();
-                            }, 100, 1200);
+                                //Starting a task to tell the winner to open the rewards menu to collect the reward
+                                Bukkit.getScheduler().runTask(plugin, () -> {
+                                    inventorySpaceWarningTask = Bukkit.getScheduler().runTaskTimer(plugin, () -> {
+                                        Bukkit.getScheduler().runTaskAsynchronously(plugin, () ->{
+                                            AtomicLong pendingRewardAmount = new AtomicLong();
+                                            pendingRewardAmount.set(plugin.getDatabaseManager().getPendingRewardAmount(winnerUUID, rank));
+
+                                            Bukkit.getScheduler().runTask(plugin, () -> {
+                                                if(pendingRewardAmount.get() != 0){
+                                                    winner.getPlayer().playSound(winner.getPlayer().getLocation(), sound, (float) soundVolume, (float) soundPitch);
+                                                    for(Component line : finalMessage) winner.getPlayer().sendMessage(line);
+                                                }
+                                                else inventorySpaceWarningTask.cancel();
+                                            });
+                                        });
+                                    }, 100, 600);
+                                });
+                            });
                         }
                     }
                     //If the winner is offline, adding his UUID to the Pending Rewards Table in the DB.
@@ -290,6 +302,8 @@ public class GivingRewards implements Listener {
     }
 
     private boolean isUrlValid(String url) {
+        if(!url.contains("discord.gg")) return false;
+
         try {
             URI uri = new URI(url);
             return uri.getScheme() != null;
@@ -306,10 +320,22 @@ public class GivingRewards implements Listener {
             Component discordWord = Component.text("Discord")
                     .hoverEvent(HoverEvent.showText(Component.text(hoverText)))
                     .clickEvent(ClickEvent.openUrl(discordLink));
-            component = component.replaceText(TextReplacementConfig.builder().match("discord").replacement(discordWord).build());
+            component = component.replaceText(TextReplacementConfig.builder().match("Discord").replacement(discordWord).build());
         }
 
         return component;
+    }
+
+    @EventHandler
+    public void onItemDrop(PlayerDropItemEvent event){
+        ItemStack droppedItem = event.getItemDrop().getItemStack();
+        ItemMeta droppedMeta = droppedItem.getItemMeta();
+        if(droppedMeta == null) return;
+
+        String droppedData = droppedMeta.getPersistentDataContainer().get(dataContainer, PersistentDataType.STRING);
+        if(droppedData == null) return;
+
+        if(droppedData.equals("first-place") || droppedData.equals("second-place") || droppedData.equals("third-place")) event.setCancelled(true);
     }
 
     @EventHandler
@@ -369,8 +395,10 @@ public class GivingRewards implements Listener {
             if(reward instanceof ItemStack) items.add((ItemStack) reward);
         }
 
-        int contentSize = player.getInventory().getContents().length;
-        if(player.getInventory().getSize() - contentSize < items.size()){
+        //Getting the content size of the player's inventory
+        long contentSize = Arrays.stream(player.getInventory().getContents()).filter(item -> item != null && !item.getType().isAir()).count();
+
+        if(player.getInventory().getSize() - 7 - contentSize >= items.size()){
             for(ItemStack item : items) player.getInventory().addItem(item);
 
             player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1, 1.4f);
@@ -381,7 +409,6 @@ public class GivingRewards implements Listener {
             //Removing the pending reward from the database
             UUID playerUUID = player.getUniqueId();
             Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> plugin.getDatabaseManager().removePendingReward(playerUUID, getIntRank(clickedData)));
-
             return true;
         }
         else{
@@ -390,8 +417,6 @@ public class GivingRewards implements Listener {
             Component message = LegacyComponentSerializer.legacyAmpersand().deserialize(noInventorySpaceMessage);
             player.sendMessage(message);
             player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
-
-            player.closeInventory();
         }
 
         return false;

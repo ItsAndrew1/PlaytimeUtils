@@ -42,7 +42,7 @@ public class CommandManager implements CommandExecutor {
                 if(!player.hasPermission("playtimeutils.myplaytime")) noPermission(player);
 
                 if(args.length < 1){
-                    player.sendMessage(MiniMessage.miniMessage().deserialize("<red>Usage: /myplaytime <tournament | main>"));
+                    player.sendMessage(MiniMessage.miniMessage().deserialize("<red>Usage: /myplaytime <tournament | main | rewards>"));
                     player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
                     return true;
                 }
@@ -356,11 +356,11 @@ public class CommandManager implements CommandExecutor {
 
                                                         //Broadcasting the tournament start message to everyone
                                                         for(Player onlinePlayer : Bukkit.getOnlinePlayers()){
-                                                            String startSoundName = plugin.getConfig().getString("reward-system.tournament-sounds.start.name", "BLOCK_NOTE_BLOCK_PLING");
-                                                            float startSoundVolume = plugin.getConfig().getInt("reward-system.tournament-sounds.start.volume", 1);
-                                                            float startSoundPitch = plugin.getConfig().getInt("reward-system.tournament-sounds.start.pitch", 1);
+                                                            String startSoundName = plugin.getConfig().getString("reward-system.tournament-sounds.start.name", "block.note_block.pling");
+                                                            double startSoundVolume = plugin.getConfig().getDouble("reward-system.tournament-sounds.start.volume", 1.0);
+                                                            double startSoundPitch = plugin.getConfig().getDouble("reward-system.tournament-sounds.start.pitch", 1.0);
                                                             Sound startSound = Registry.SOUNDS.get(NamespacedKey.minecraft(startSoundName.toLowerCase()));
-                                                            onlinePlayer.playSound(onlinePlayer.getLocation(), startSound, startSoundVolume, startSoundPitch);
+                                                            onlinePlayer.playSound(onlinePlayer.getLocation(), startSound, (float) startSoundVolume, (float) startSoundPitch);
 
                                                             List<String> messageLines = plugin.getConfig().getStringList("reward-system.tournament-messages.start");
                                                             for(String line : messageLines){
@@ -493,6 +493,8 @@ public class CommandManager implements CommandExecutor {
     }
 
     private boolean isUrlValid(String url){
+        if(!url.contains("discord.gg")) return false;
+
         try {
             URI uri = new URI(url);
             return uri.getScheme() != null;
@@ -508,7 +510,7 @@ public class CommandManager implements CommandExecutor {
             Component discordWord = Component.text("Discord")
                     .hoverEvent(HoverEvent.showText(Component.text(hoverText)))
                     .clickEvent(ClickEvent.openUrl(discordLink));
-            component = component.replaceText(TextReplacementConfig.builder().match("discord").replacement(discordWord).build());
+            component = component.replaceText(TextReplacementConfig.builder().match("Discord").replacement(discordWord).build());
         }
         return component;
     }

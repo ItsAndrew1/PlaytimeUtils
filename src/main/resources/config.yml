@@ -67,7 +67,7 @@ first-join:
   title: "&d&lWELCOME!"
   subtitle: ""
 
-  sound: ENTITY_PLAYER_LEVELUP
+  sound: entity.player.levelup
   sound-volume: 1.0
   sound-pitch: 1.0
 
@@ -82,40 +82,40 @@ reward-system:
   #Configure the sounds for the tournament.
   tournament-sounds:
     start:
-      name: BLOCK_NOTE_BLOCK_PLING
+      name: block.note_block.pling
       pitch: 1.0
       volume: 1.0
 
     disabled:
-      name: BLOCK_NOTE_BLOCK_PLING
+      name: block.note_block.pling
       volume: 1.0
       pitch: 1.0
 
     end:
-      name: ENTITY_PLAYER_LEVELUP
+      name: entity.player.levelup
       volume: 1.0
       pitch: 1.0
 
     1/3-of-duration:
-      name: BLOCK_NOTE_BLOCK_PLING
+      name: block.note_block.pling
       volume: 1.0
       pitch: 1.0
 
     half-of-duration:
-      name: BLOCK_NOTE_BLOCK_PLING
+      name: block.note_block.pling
       volume: 1.0
       pitch: 1.0
 
     5/6-of-duration:
-      name: BLOCK_NOTE_BLOCK_PLING
+      name: block.note_block.pling
       volume: 1.0
       pitch: 1.0
 
   #Configure the tournament chat message at these timestamps. You may use PAPI placeholders and '&' for colors!
   tournament-messages:
-    #You may even use the word 'discord' in any of the messages below, then put your discord server link here to have a clickable word which
-    #will redirect to your Discord Server.
-    discord-link:
+    #You may even use the word 'Discord' in any of the messages below, then put your discord server link here to have a clickable word which
+    #will redirect the player to your Discord Server Invite.
+    discord-link: ""
     discord-hover-text: "Click here to join our Discord Server!"
 
     #Placeholders: '%tournament_enddate%' -> The date (e.g.: 24 Mar 2026) when the tournament ends.
@@ -258,7 +258,7 @@ reward-system:
   #Configure the notification a winner will get if they don't have enough inventory space to claim their reward.
   pending-reward-notification:
     sound:
-      name: BLOCK_NOTE_BLOCK_PLING
+      name: block.note_block.pling
       volume: 1.0
       pitch: 1.0
 

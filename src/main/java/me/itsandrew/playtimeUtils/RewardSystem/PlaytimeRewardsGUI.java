@@ -22,6 +22,7 @@ import org.bukkit.persistence.PersistentDataType;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class PlaytimeRewardsGUI implements Listener {
@@ -71,89 +72,102 @@ public class PlaytimeRewardsGUI implements Listener {
         AtomicInteger firstPlacePendingRewards = new AtomicInteger();
         AtomicInteger secondPlacePendingRewards = new AtomicInteger();
         AtomicInteger thirdPlacePendingRewards = new AtomicInteger();
+
         Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
             firstPlacePendingRewards.set(plugin.getDatabaseManager().getPendingRewardAmount(player.getUniqueId(), 1));
             secondPlacePendingRewards.set(plugin.getDatabaseManager().getPendingRewardAmount(player.getUniqueId(), 2));
             thirdPlacePendingRewards.set(plugin.getDatabaseManager().getPendingRewardAmount(player.getUniqueId(), 3));
+
+            Bukkit.getScheduler().runTask(plugin, () -> {
+                //Displaying the No Pending Rewards Item if there are no rewards.
+                if(firstPlacePendingRewards.get() == 0 && secondPlacePendingRewards.get() == 0 && thirdPlacePendingRewards.get() == 0){
+                    Material noPendingRewardsMat = Material.valueOf(config.getString("reward-system.playtime-rewards-menu.no-pending-rewards-item.material", "BARRIER").toUpperCase());
+                    String displayName = config.getString("reward-system.playtime-rewards-menu.no-pending-rewards-item.display-name", "&cYou have no pending rewards!");
+                    List<String> lore = config.getStringList("reward-system.playtime-rewards-menu.no-pending-rewards.lore");
+                    ItemStack noPendingRewardsItem = createItem(noPendingRewardsMat, displayName, lore, player, "no-pending-rewards");
+
+                    int slot = config.getInt("reward-system.playtime-rewards-menu.no-pending-rewards-item.slot", 22);
+                    if(slot < 0 || slot > 54) slot = 22;
+                    GUI.setItem(slot, noPendingRewardsItem);
+                }
+                //Displaying the Pending Rewards Items if there are rewards.
+                else{
+                    int savingSlot;
+
+                    List<String> rawLore = config.getStringList("reward-system.rewards-item.playtime-rewards-menu-lore");
+                    List<Component> lore = new ArrayList<>();
+                    for(String line : rawLore){
+                        line = PlaceholderAPI.setPlaceholders(player, line);
+                        Component coloredLine = LegacyComponentSerializer.legacyAmpersand().deserialize(line);
+                        lore.add(coloredLine);
+                    }
+                    Material rewardItemMat = Material.valueOf(config.getString("reward-system.rewards-item.material", "ENDER_CHEST").toUpperCase());
+
+                    ItemStack rewardItem = new ItemStack(rewardItemMat);
+                    ItemMeta rewardItemMeta = rewardItem.getItemMeta();
+
+                    for(int i = 0; i < firstPlacePendingRewards.get(); i++){
+                        savingSlot = i + 9;
+
+                        String rewardDisplayName = config.getString("reward-system.rewards-item.display-name", "&e&lPlaytime Tournament Reward");
+                        rewardDisplayName = PlaceholderAPI.setPlaceholders(player, rewardDisplayName);
+                        Component rewardDisplayNameComponent = LegacyComponentSerializer.legacyAmpersand().deserialize(rewardDisplayName);
+                        rewardItemMeta.displayName(rewardDisplayNameComponent);
+                        rewardItemMeta.lore(lore);
+
+                        //Adding a persistent data to the reward item.
+                        rewardItemMeta.getPersistentDataContainer().set(dataContainer, PersistentDataType.STRING, "first-place");
+
+                        rewardItem.setItemMeta(rewardItemMeta);
+                        GUI.setItem(savingSlot, rewardItem);
+                    }
+
+                    for(int i = 0; i < secondPlacePendingRewards.get(); i++){
+                        savingSlot = firstPlacePendingRewards.get() + i + 9;
+
+                        String rewardDisplayName = config.getString("reward-system.rewards-item.display-name", "Playtime Tournament Reward");
+                        rewardDisplayName = PlaceholderAPI.setPlaceholders(player, rewardDisplayName);
+                        Component rewardDisplayNameComponent = LegacyComponentSerializer.legacyAmpersand().deserialize(rewardDisplayName);
+                        rewardItemMeta.displayName(rewardDisplayNameComponent);
+                        rewardItemMeta.lore(lore);
+
+                        //Adding a persistent data to the reward item.
+                        rewardItemMeta.getPersistentDataContainer().set(dataContainer, PersistentDataType.STRING, "second-place");
+
+                        rewardItem.setItemMeta(rewardItemMeta);
+                        GUI.setItem(savingSlot, rewardItem);
+                    }
+
+                    for(int i = 0; i < thirdPlacePendingRewards.get(); i++){
+                        savingSlot = firstPlacePendingRewards.get() + secondPlacePendingRewards.get() + i + 9;
+
+                        String rewardDisplayName = config.getString("reward-system.rewards-item.display-name", "&e&lPlaytime Tournament Reward");
+                        rewardDisplayName = PlaceholderAPI.setPlaceholders(player, rewardDisplayName);
+                        Component rewardDisplayNameComponent = LegacyComponentSerializer.legacyAmpersand().deserialize(rewardDisplayName);
+                        rewardItemMeta.displayName(rewardDisplayNameComponent);
+                        rewardItemMeta.lore(lore);
+
+                        //Adding a persistent data to the reward item.
+                        rewardItemMeta.getPersistentDataContainer().set(dataContainer, PersistentDataType.STRING, "third-place");
+
+                        rewardItem.setItemMeta(rewardItemMeta);
+                        GUI.setItem(savingSlot, rewardItem);
+                    }
+                }
+
+                player.openInventory(GUI);
+            });
         });
+    }
 
-        //Displaying the No Pending Rewards Item if there are no rewards.
-        if(firstPlacePendingRewards.get() == 0 && secondPlacePendingRewards.get() == 0 && thirdPlacePendingRewards.get() == 0){
-            Material noPendingRewardsMat = Material.valueOf(config.getString("reward-system.playtime-rewards-menu.no-pending-rewards-item.material", "BARRIER").toUpperCase());
-            String displayName = config.getString("reward-system.playtime-rewards-menu.no-pending-rewards-item.display-name", "&cYou have no pending rewards!");
-            List<String> lore = config.getStringList("reward-system.playtime-rewards-menu.no-pending-rewards.lore");
-            ItemStack noPendingRewardsItem = createItem(noPendingRewardsMat, displayName, lore, player, "no-pending-rewards");
-
-            int slot = config.getInt("reward-system.playtime-rewards-menu.no-pending-rewards-item.slot", 22);
-            if(slot < 0 || slot > 54) slot = 22;
-            GUI.setItem(slot, noPendingRewardsItem);
+    private int getIntRank(String rank){
+        int rankInt = 0;
+        switch(rank){
+            case "first-place" -> rankInt = 1;
+            case "second-place" -> rankInt = 2;
+            case "third-place" -> rankInt = 3;
         }
-        //Displaying the Pending Rewards Items if there are rewards.
-        else{
-            int savingSlot;
-
-            List<String> rawLore = config.getStringList("reward-system.rewards-item.playtime-rewards-menu-lore");
-            List<Component> lore = new ArrayList<>();
-            for(String line : rawLore){
-                line = PlaceholderAPI.setPlaceholders(player, line);
-                Component coloredLine = LegacyComponentSerializer.legacyAmpersand().deserialize(line);
-                lore.add(coloredLine);
-            }
-            Material rewardItemMat = Material.valueOf(config.getString("reward-system.rewards-item.material", "ENDER_CHEST").toUpperCase());
-
-            ItemStack rewardItem = new ItemStack(rewardItemMat);
-            ItemMeta rewardItemMeta = rewardItem.getItemMeta();
-
-            for(int i = 0; i < firstPlacePendingRewards.get(); i++){
-                savingSlot = i + 9;
-
-                String rewardDisplayName = config.getString("reward-system.rewards-item.display-name", "&e&lPlaytime Tournament Reward");
-                rewardDisplayName = PlaceholderAPI.setPlaceholders(player, rewardDisplayName);
-                Component rewardDisplayNameComponent = LegacyComponentSerializer.legacyAmpersand().deserialize(rewardDisplayName);
-                rewardItemMeta.displayName(rewardDisplayNameComponent);
-                rewardItemMeta.lore(lore);
-
-                //Adding a persistent data to the reward item.
-                rewardItemMeta.getPersistentDataContainer().set(dataContainer, PersistentDataType.STRING, "first-place");
-
-                rewardItem.setItemMeta(rewardItemMeta);
-                GUI.setItem(savingSlot, rewardItem);
-            }
-
-            for(int i = 0; i < secondPlacePendingRewards.get(); i++){
-                savingSlot = firstPlacePendingRewards.get() + i + 9;
-
-                String rewardDisplayName = config.getString("reward-system.rewards-item.display-name", "Playtime Tournament Reward");
-                rewardDisplayName = PlaceholderAPI.setPlaceholders(player, rewardDisplayName);
-                Component rewardDisplayNameComponent = LegacyComponentSerializer.legacyAmpersand().deserialize(rewardDisplayName);
-                rewardItemMeta.displayName(rewardDisplayNameComponent);
-                rewardItemMeta.lore(lore);
-
-                //Adding a persistent data to the reward item.
-                rewardItemMeta.getPersistentDataContainer().set(dataContainer, PersistentDataType.STRING, "second-place");
-
-                rewardItem.setItemMeta(rewardItemMeta);
-                GUI.setItem(savingSlot, rewardItem);
-            }
-
-            for(int i = 0; i < thirdPlacePendingRewards.get(); i++){
-                savingSlot = firstPlacePendingRewards.get() + secondPlacePendingRewards.get() + i + 9;
-
-                String rewardDisplayName = config.getString("reward-system.rewards-item.display-name", "&e&lPlaytime Tournament Reward");
-                rewardDisplayName = PlaceholderAPI.setPlaceholders(player, rewardDisplayName);
-                Component rewardDisplayNameComponent = LegacyComponentSerializer.legacyAmpersand().deserialize(rewardDisplayName);
-                rewardItemMeta.displayName(rewardDisplayNameComponent);
-                rewardItemMeta.lore(lore);
-
-                //Adding a persistent data to the reward item.
-                rewardItemMeta.getPersistentDataContainer().set(dataContainer, PersistentDataType.STRING, "third-place");
-
-                rewardItem.setItemMeta(rewardItemMeta);
-                GUI.setItem(savingSlot, rewardItem);
-            }
-        }
-
-        player.openInventory(GUI);
+        return rankInt;
     }
 
     private ItemStack createItem(Material material, String displayName, List<String> rawLore, Player player, String itemData){
@@ -244,6 +258,10 @@ public class PlaytimeRewardsGUI implements Listener {
                     Component rewardReceivedComponent = LegacyComponentSerializer.legacyAmpersand().deserialize(rewardReceivedMessage);
                     player.sendMessage(rewardReceivedComponent);
                     player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1, 1.4f);
+
+                    //Removing the pending reward from the database
+                    UUID playerUUID = player.getUniqueId();
+                    Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> plugin.getDatabaseManager().removePendingReward(playerUUID, getIntRank(clickedData)));
                 }
             }
         }

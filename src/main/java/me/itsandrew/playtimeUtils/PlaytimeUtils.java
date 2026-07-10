@@ -243,7 +243,11 @@ public final class PlaytimeUtils extends JavaPlugin implements Listener {
             if(toggleRewardSystem && tournamentDuration != 0){
                 for(UUID uuid : onlinePlayerUUIDs) getPlaceholdersManager().addTournamentPlaytimeCache(uuid, getDatabaseManager().getTournamentPlaytimeString(uuid));
             }
-        }, 0, 200);
+
+            //Updating the tournament duration placeholder
+            long endTime = getDatabaseManager().getTournamentTimestamp("tournamentEnd");
+            getPlaceholdersManager().setCachedTournamentDuration(formatTime(endTime - System.currentTimeMillis()));
+        }, 0, 100);
     }
 
     private void removeAfkPrefixNodeFromPlayer(Player player){
@@ -372,13 +376,14 @@ public final class PlaytimeUtils extends JavaPlugin implements Listener {
         millis -=  TimeUnit.HOURS.toMillis(hours);
 
         long minutes =  TimeUnit.MILLISECONDS.toMinutes(millis);
+        long seconds =  TimeUnit.MILLISECONDS.toSeconds(millis);
 
         StringBuilder sb = new StringBuilder();
 
         if(days > 0) sb.append(days).append("d ");
         if(hours > 0) sb.append(hours).append("h ");
         if(minutes > 0) sb.append(minutes).append("m ");
-        if(sb.isEmpty()) sb.append(0).append("m ");
+        if(sb.isEmpty()) sb.append(seconds).append("s");
 
         return sb.toString().trim();
     }
