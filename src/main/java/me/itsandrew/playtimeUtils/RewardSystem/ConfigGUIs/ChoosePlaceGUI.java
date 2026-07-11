@@ -7,7 +7,7 @@ import me.itsandrew.playtimeUtils.RewardSystem.States.PlacementChoice;
 import me.itsandrew.playtimeUtils.RewardSystem.States.RewardType;
 import me.itsandrew.playtimeUtils.RewardSystem.States.StaffState;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.minimessage.MiniMessage;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -42,7 +42,7 @@ public class ChoosePlaceGUI implements Listener {
         //Return Button
         ItemStack returnButton = new ItemStack(Material.ARROW);
         ItemMeta returnButtonMeta = returnButton.getItemMeta();
-        if(returnButtonMeta != null) returnButtonMeta.displayName(MiniMessage.miniMessage().deserialize("<#ff003c><b>Return"));
+        if(returnButtonMeta != null) returnButtonMeta.displayName(LegacyComponentSerializer.legacyAmpersand().deserialize("&c&lReturn"));
         returnButton.setItemMeta(returnButtonMeta);
         GUI.setItem(40, returnButton);
 
@@ -57,9 +57,9 @@ public class ChoosePlaceGUI implements Listener {
             String line = "Click to ";
             line += staffState.choice == AddRemoveChoice.ADD ? "add" : "remove";
             line += " rewards for the First Place.";
-            lore.add(MiniMessage.miniMessage().deserialize("<gray>" + line));
+            lore.add(LegacyComponentSerializer.legacyAmpersand().deserialize("&7" + line));
 
-            firstPlaceButtonMeta.displayName(MiniMessage.miniMessage().deserialize("<gradient:#ffee55:#ffaa00><b>1st Place"));
+            firstPlaceButtonMeta.displayName(LegacyComponentSerializer.legacyAmpersand().deserialize("&e&l1st Place"));
             firstPlaceButtonMeta.lore(lore);
             firstPlaceButton.setItemMeta(firstPlaceButtonMeta);
             GUI.setItem(20, firstPlaceButton);
@@ -73,9 +73,9 @@ public class ChoosePlaceGUI implements Listener {
             String line = "Click to ";
             line += staffState.choice == AddRemoveChoice.ADD ? "add" : "remove";
             line += " rewards for the Second Place.";
-            lore.add(MiniMessage.miniMessage().deserialize("<gray>" + line));
+            lore.add(LegacyComponentSerializer.legacyAmpersand().deserialize("&7" + line));
 
-            secondPlaceButtonMeta.displayName(MiniMessage.miniMessage().deserialize("<gradient:#ffffff:#bbbacc><b>2nd Place"));
+            secondPlaceButtonMeta.displayName(LegacyComponentSerializer.legacyAmpersand().deserialize("&f&l2nd Place"));
             secondPlaceButtonMeta.lore(lore);
             secondPlaceButton.setItemMeta(secondPlaceButtonMeta);
             GUI.setItem(22, secondPlaceButton);
@@ -89,9 +89,9 @@ public class ChoosePlaceGUI implements Listener {
             String line = "Click to ";
             line += staffState.choice == AddRemoveChoice.ADD ? "add" : "remove";
             line += " rewards for the Third Place.";
-            lore.add(MiniMessage.miniMessage().deserialize("<gray>" + line));
+            lore.add(LegacyComponentSerializer.legacyAmpersand().deserialize("&7" + line));
 
-            thirdPlaceButtonMeta.displayName(MiniMessage.miniMessage().deserialize("<gradient:#ccc923:#e6765a><b>3rd Place"));
+            thirdPlaceButtonMeta.displayName(LegacyComponentSerializer.legacyAmpersand().deserialize("&6&l3rd Place"));
             thirdPlaceButtonMeta.lore(lore);
             thirdPlaceButton.setItemMeta(thirdPlaceButtonMeta);
             GUI.setItem(24, thirdPlaceButton);
@@ -108,7 +108,7 @@ public class ChoosePlaceGUI implements Listener {
 
                 player.closeInventory();
 
-                player.sendMessage(MiniMessage.miniMessage().deserialize("<green>Enter the amount of <b>exp levels</b>:"));
+                player.sendMessage(LegacyComponentSerializer.legacyAmpersand().deserialize("&aEnter the amount of &lexp levels&a:"));
                 plugin.playerInput(player, message -> {
                     try{
                         String plainMessage = PlainTextComponentSerializer.plainText().serialize(message);
@@ -116,10 +116,10 @@ public class ChoosePlaceGUI implements Listener {
                         config.set("reward-system.rewards."+staffState.placement.toConfigFileForm()+".exp-levels", expLevels);
                         plugin.saveConfig();
 
-                        player.sendMessage(MiniMessage.miniMessage().deserialize("<green>Saved <b>" + expLevels + "</b> Exp Levels for <b>"+staffState.placement.toString().toLowerCase()+" place</b>!"));
+                        player.sendMessage(LegacyComponentSerializer.legacyAmpersand().deserialize("&aSaved &l"+expLevels+"&a exp levels for &l"+staffState.placement.toColoredStringForm()+" place&a!"));
                         player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1, 1.4f);
                     } catch (Exception e){
-                        player.sendMessage(MiniMessage.miniMessage().deserialize("<red>Invalid input! Please enter a number of <b>exp levels</b>."));
+                        player.sendMessage(LegacyComponentSerializer.legacyAmpersand().deserialize("&cInvalid input! Please enter a number of &lexp levels&c."));
                         player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
                     }
                 });
@@ -138,7 +138,7 @@ public class ChoosePlaceGUI implements Listener {
                 config.set("reward-system.rewards."+staffState.placement.toConfigFileForm()+".exp-levels", 0);
                 plugin.saveConfig();
 
-                player.sendMessage(MiniMessage.miniMessage().deserialize("<green>Removed <b>All Exp Levels</b> for "+staffState.placement.toColoredStringForm()+"!"));
+                player.sendMessage(LegacyComponentSerializer.legacyAmpersand().deserialize("&aRemoved all exp levels for &l"+staffState.placement.toColoredStringForm()+"&a!"));
                 player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1, 1.4f);
 
                 plugin.getStaffStates().remove(player);

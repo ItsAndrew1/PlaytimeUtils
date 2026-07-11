@@ -6,13 +6,13 @@
 
   <groupId>me.itsandrew</groupId>
   <artifactId>PlaytimeUtils</artifactId>
-  <version>1.0</version>
+  <version>1.1</version>
   <packaging>jar</packaging>
 
   <name>PlaytimeUtils</name>
 
   <properties>
-    <java.version>25</java.version>
+    <java.version>17</java.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
 
@@ -66,14 +66,14 @@
     <dependency>
       <groupId>io.papermc.paper</groupId>
       <artifactId>paper-api</artifactId>
-      <version>[26.1.1.build,)</version>
+      <version>1.18-R0.1-SNAPSHOT</version>
       <scope>provided</scope>
     </dependency>
 
     <dependency>
       <groupId>me.clip</groupId>
       <artifactId>placeholderapi</artifactId>
-      <version>2.12.2</version>
+      <version>2.12.3</version>
       <scope>provided</scope>
     </dependency>
 

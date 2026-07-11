@@ -3,7 +3,7 @@ package me.itsandrew.playtimeUtils.RewardSystem.ConfigGUIs;
 import me.itsandrew.playtimeUtils.PlaytimeUtils;
 import me.itsandrew.playtimeUtils.RewardSystem.States.StaffState;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.minimessage.MiniMessage;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -41,7 +41,7 @@ public class AddRewardsGUI implements Listener {
         ItemMeta returnButtonItemMeta = returnButton.getItemMeta();
         if(returnButtonItemMeta != null) {
             returnButtonItemMeta.getPersistentDataContainer().set(container, PersistentDataType.STRING, "return");
-            returnButtonItemMeta.displayName(MiniMessage.miniMessage().deserialize("<#ff003c><b>Return"));
+            returnButtonItemMeta.displayName(LegacyComponentSerializer.legacyAmpersand().deserialize("&c&lReturn"));
         }
         returnButton.setItemMeta(returnButtonItemMeta);
         GUI.setItem(21, returnButton);
@@ -50,7 +50,7 @@ public class AddRewardsGUI implements Listener {
         ItemStack saveButton = new ItemStack(Material.GREEN_CONCRETE);
         ItemMeta saveButtonMeta = saveButton.getItemMeta();
         if(saveButtonMeta != null){
-            saveButtonMeta.displayName(MiniMessage.miniMessage().deserialize("<green><b>Save Rewards for "+state.placement.toColoredStringForm()+"<green><b>!"));
+            saveButtonMeta.displayName(LegacyComponentSerializer.legacyAmpersand().deserialize("&a&lSave Rewards for "+state.placement.toColoredStringForm()+"&a&l!"));
             saveButtonMeta.getPersistentDataContainer().set(container, PersistentDataType.STRING, "save");
         }
         saveButton.setItemMeta(saveButtonMeta);
@@ -110,7 +110,7 @@ public class AddRewardsGUI implements Listener {
                     //Checking if there are any items in the GUI
                     if(items.isEmpty()){
                         player.closeInventory();
-                        player.sendMessage(MiniMessage.miniMessage().deserialize("<red>You must put at least <b>1 item</b> in the GUI!"));
+                        player.sendMessage(LegacyComponentSerializer.legacyAmpersand().deserialize("&cYou must put at least &c1 Item &cin the GUI!"));
                         player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
                         return;
                     }
@@ -129,11 +129,11 @@ public class AddRewardsGUI implements Listener {
                     mainConfig.set("reward-system.rewards."+state.placement.toConfigFileForm()+".items", currentItems);
                     plugin.saveConfig();
 
-                    player.sendMessage(MiniMessage.miniMessage().deserialize("<green>Saved <b>"+items.size()+" item(s)</b> for "+state.placement.toColoredStringForm()+"<green>!"));
+                    player.sendMessage(LegacyComponentSerializer.legacyAmpersand().deserialize("&aSaved &l"+items.size()+" item(s) &afor "+state.placement.toColoredStringForm()+"&a!"));
                     player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1, 1.4f);
                     player.closeInventory();
                 }
-                case null, default -> event.setCancelled(true);
+                default -> event.setCancelled(true);
             }
         }
     }

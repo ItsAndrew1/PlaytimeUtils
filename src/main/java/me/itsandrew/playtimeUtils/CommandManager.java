@@ -8,9 +8,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextReplacementConfig;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.event.HoverEvent;
-import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
-import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.*;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -21,7 +19,6 @@ import org.bukkit.inventory.meta.BookMeta;
 import org.jetbrains.annotations.NotNull;
 
 import java.net.URI;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicLong;
@@ -42,7 +39,7 @@ public class CommandManager implements CommandExecutor {
                 if(!player.hasPermission("playtimeutils.myplaytime")) noPermission(player);
 
                 if(args.length < 1){
-                    player.sendMessage(MiniMessage.miniMessage().deserialize("<red>Usage: /myplaytime <tournament | main | rewards>"));
+                    player.sendMessage(LegacyComponentSerializer.legacyAmpersand().deserialize("&cUsage: &l/myplaytime <main | tournament | rewards>"));
                     player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
                     return true;
                 }
@@ -68,7 +65,7 @@ public class CommandManager implements CommandExecutor {
                             long tournamentDuration = plugin.getDatabaseManager().getTournamentTimestamp("duration");
                             Bukkit.getScheduler().runTask(plugin, () -> {
                                 if (tournamentDuration == 0) {
-                                    player.sendMessage(MiniMessage.miniMessage().deserialize("<red>The Playtime Tournament is not active yet! Be on the lookout for <yellow>the next one<red>!"));
+                                    player.sendMessage(LegacyComponentSerializer.legacyAmpersand().deserialize("&cThe Playtime Tournament is not active yet! Be on the lookout for &ethe next one&c!"));
                                     player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
                                 } else {
                                     String message = plugin.getConfig().getString("messages.my-playtime.tournament", "&aYour tournament playtime is &e&l%playtime_tournamentValue%&a!");
@@ -90,7 +87,7 @@ public class CommandManager implements CommandExecutor {
                     }
 
                     default -> {
-                        player.sendMessage(MiniMessage.miniMessage().deserialize("<red>Unknown command."));
+                        player.sendMessage(LegacyComponentSerializer.legacyAmpersand().deserialize("&cUnknown command."));
                         player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
                     }
                 }
@@ -102,14 +99,14 @@ public class CommandManager implements CommandExecutor {
                 if(!player.hasPermission("playtimeutils.playtime")) noPermission(player);
 
                 if(args.length < 2){
-                    player.sendMessage(MiniMessage.miniMessage().deserialize("<red>Usage: /playtime <main | tournament> <player>"));
+                    player.sendMessage(LegacyComponentSerializer.legacyAmpersand().deserialize("&cUsage: &l/playtime <main | tournament> <player>"));
                     player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
                     return true;
                 }
 
                 OfflinePlayer targetPlayer = Bukkit.getOfflinePlayer(args[1]);
                 if(!targetPlayer.hasPlayedBefore()){
-                    player.sendMessage(MiniMessage.miniMessage().deserialize("<red>Player <yellow><b>"+targetPlayer.getName()+"<red> has never played before!"));
+                    player.sendMessage(LegacyComponentSerializer.legacyAmpersand().deserialize("&cPlayer &e&l" + targetPlayer.getName() + " &chas never played before!"));
                     player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
                     return true;
                 }
@@ -137,7 +134,7 @@ public class CommandManager implements CommandExecutor {
 
                             Bukkit.getScheduler().runTask(plugin, () -> {
                                 if(duration.get() == 0){
-                                    player.sendMessage(MiniMessage.miniMessage().deserialize("<red>The Playtime Tournament is not active yet!"));
+                                    player.sendMessage(LegacyComponentSerializer.legacyAmpersand().deserialize("&cThe Playtime Tournament is not active yet!"));
                                     player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
                                     return;
                                 }
@@ -152,7 +149,7 @@ public class CommandManager implements CommandExecutor {
                     }
 
                     default -> {
-                        player.sendMessage(MiniMessage.miniMessage().deserialize("<red>Unknown command."));
+                        player.sendMessage(LegacyComponentSerializer.legacyAmpersand().deserialize("&cUnknown command."));
                         player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
                     }
                 }
@@ -165,7 +162,7 @@ public class CommandManager implements CommandExecutor {
 
                 if(args.length < 1){
                     player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
-                    player.sendMessage(MiniMessage.miniMessage().deserialize("<red>Usage: /topplaytime <main | tournament>"));
+                    player.sendMessage(LegacyComponentSerializer.legacyAmpersand().deserialize("&cUsage: &l/topplaytime <main | tournament>"));
                     return true;
                 }
 
@@ -191,7 +188,7 @@ public class CommandManager implements CommandExecutor {
                             //Checking if the tournament is enabled
                             duration.set(plugin.getDatabaseManager().getTournamentTimestamp("duration"));
                             if(duration.get() == 0){
-                                player.sendMessage(MiniMessage.miniMessage().deserialize("<red>The Playtime Tournament is not active yet! Be on the lookout for <yellow>the next one<red>!"));
+                                player.sendMessage(LegacyComponentSerializer.legacyAmpersand().deserialize("&cThe Playtime Tournament is not active yet! Be on the lookout for &ethe next one&c!"));
                                 player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
                                 return;
                             }
@@ -210,7 +207,7 @@ public class CommandManager implements CommandExecutor {
 
             case "ptutils" -> {
                 if(args.length < 1){
-                    player.sendMessage(MiniMessage.miniMessage().deserialize("<red>Usage: <b>/ptutils <reload | rewards></b>"));
+                    player.sendMessage(LegacyComponentSerializer.legacyAmpersand().deserialize("&cUsage: &l/ptutils <reload | rewards>"));
                     player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
                     return true;
                 }
@@ -222,7 +219,7 @@ public class CommandManager implements CommandExecutor {
 
                         plugin.reloadConfig();
 
-                        player.sendMessage(MiniMessage.miniMessage().deserialize("<green>The configuration has been reloaded!"));
+                        player.sendMessage(LegacyComponentSerializer.legacyAmpersand().deserialize("&aThe configuration has been reloaded!"));
                         player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1, 1.4f);
                         return true;
                     }
@@ -232,7 +229,7 @@ public class CommandManager implements CommandExecutor {
                         if(!player.hasPermission("playtimeutils.ptutils.rewards")) noPermission(player);
 
                         if(args.length < 2){
-                            player.sendMessage(MiniMessage.miniMessage().deserialize("<red>Usage: <b>/ptutils rewards <tournament | add | remove></b>"));
+                            player.sendMessage(LegacyComponentSerializer.legacyAmpersand().deserialize("&cUsage: &l/ptutils rewards <tournament | add | remove>"));
                             player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
                             return true;
                         }
@@ -243,7 +240,7 @@ public class CommandManager implements CommandExecutor {
                                 if(!player.hasPermission("playtimeutils.ptutils.rewards.tournament")) noPermission(player);
 
                                 if(args.length < 3){
-                                    player.sendMessage(MiniMessage.miniMessage().deserialize("<red>Usage: /ptutils rewards tournament <b><settimer | enable | disable></b>"));
+                                    player.sendMessage(LegacyComponentSerializer.legacyAmpersand().deserialize("&cUsage: &l/ptutils rewards tournament <settimer | setbook | enable | disable>"));
                                     player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
                                     return true;
                                 }
@@ -254,7 +251,7 @@ public class CommandManager implements CommandExecutor {
                                         if(!player.hasPermission("playtimeutils.ptutils.rewards.tournament.settimer")) noPermission(player);
 
                                         if(args.length < 4){
-                                            player.sendMessage(MiniMessage.miniMessage().deserialize("<red>Usage: /ptutils rewards tournament settimer <b><days></b>"));
+                                            player.sendMessage(LegacyComponentSerializer.legacyAmpersand().deserialize("&cUsage: &l/ptutils rewards tournament settimer <days>"));
                                             player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
                                             return true;
                                         }
@@ -264,14 +261,14 @@ public class CommandManager implements CommandExecutor {
                                         try{
                                             input = Integer.parseInt(rawInput);
                                         } catch (Exception e){
-                                            player.sendMessage(MiniMessage.miniMessage().deserialize("<red>Invalid input! Please enter a number of <b>days</b>."));
+                                            player.sendMessage(LegacyComponentSerializer.legacyAmpersand().deserialize("&cInvalid input! Please enter a number of &ldays."));
                                             player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
                                             return true;
                                         }
 
                                         plugin.getConfig().set("reward-system.tournament-timer", input);
                                         plugin.saveConfig();
-                                        player.sendMessage(MiniMessage.miniMessage().deserialize("<green>The tournament timer has been set to <b>" + input + "</b> days!"));
+                                        player.sendMessage(LegacyComponentSerializer.legacyAmpersand().deserialize("&aThe tournament timer has been set to &l" + input + " &adays!"));
                                         player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
                                     }
 
@@ -281,7 +278,7 @@ public class CommandManager implements CommandExecutor {
                                         //Getting the player's item in hand
                                         ItemStack itemInHand = player.getInventory().getItemInMainHand();
                                         if(itemInHand.getType() != Material.WRITTEN_BOOK){
-                                            player.sendMessage(MiniMessage.miniMessage().deserialize("<red>You must hold a <b>written book</b> in order to set the tournament book!"));
+                                            player.sendMessage(LegacyComponentSerializer.legacyAmpersand().deserialize("&cYou must hold a &lwritten book&c in order to set the tournament book!"));
                                             player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
                                             return true;
                                         }
@@ -296,7 +293,7 @@ public class CommandManager implements CommandExecutor {
                                         plugin.getConfig().set("reward-system.pending-reward-book.pages", pages);
                                         plugin.saveConfig();
 
-                                        player.sendMessage(MiniMessage.miniMessage().deserialize("<green>The tournament book has been set!"));
+                                        player.sendMessage(LegacyComponentSerializer.legacyAmpersand().deserialize("&aThe tournament book has been set!"));
                                         player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1, 1.4f);
                                     }
 
@@ -307,7 +304,7 @@ public class CommandManager implements CommandExecutor {
                                         //Checking if the Reward System is enabled
                                         boolean toggleRewardSystem = plugin.getConfig().getBoolean("reward-system.toggle", false);
                                         if(!toggleRewardSystem){
-                                            player.sendMessage(MiniMessage.miniMessage().deserialize("<red>The <b>Reward System</b> is disabled! Enable it in <yellow><b>config.yml <red>to use this command."));
+                                            player.sendMessage(LegacyComponentSerializer.legacyAmpersand().deserialize("&cThe &lReward System&c is disabled! Enable it in &e&lconfig.yml &cto use this command."));
                                             player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
                                             return true;
                                         }
@@ -319,7 +316,7 @@ public class CommandManager implements CommandExecutor {
                                             //Checking if the tournament is already enabled
                                             Bukkit.getScheduler().runTask(plugin, () -> {
                                                 if(duration.get() != 0){
-                                                    player.sendMessage(MiniMessage.miniMessage().deserialize("<red>The tournament is already enabled!"));
+                                                    player.sendMessage(LegacyComponentSerializer.legacyAmpersand().deserialize("&cThe tournament is already enabled!"));
                                                     player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
                                                     return;
                                                 }
@@ -329,7 +326,7 @@ public class CommandManager implements CommandExecutor {
                                                 List<?> secondPlaceRewards = plugin.getConfig().getList("reward-system.rewards.second-place.items");
                                                 List<?> thirdPlaceRewards = plugin.getConfig().getList("reward-system.rewards.third-place.items");
                                                 if(firstPlaceRewards == null || secondPlaceRewards == null || thirdPlaceRewards == null){
-                                                    player.sendMessage(MiniMessage.miniMessage().deserialize("<red>The rewards (items) are not set up properly! Set them up using <yellow>/ptutils rewards add<red>!"));
+                                                    player.sendMessage(LegacyComponentSerializer.legacyAmpersand().deserialize("&cThe rewards (items) are not set up properly! Set them up using &e/ptutils rewards add&c!"));
                                                     player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
                                                     return;
                                                 }
@@ -339,14 +336,14 @@ public class CommandManager implements CommandExecutor {
                                                 String author = plugin.getConfig().getString("reward-system.pending-reward-book.author");
                                                 List<String> pages = plugin.getConfig().getStringList("reward-system.pending-reward-book.pages");
                                                 if(title == null || author == null || pages.isEmpty()){
-                                                    player.sendMessage(MiniMessage.miniMessage().deserialize("<red>The pending reward book is not set up properly! Set it up using <yellow>/ptutils rewards tournament setbook<red>!"));
+                                                    player.sendMessage(LegacyComponentSerializer.legacyAmpersand().deserialize("&cThe pending reward book is not set up properly! Set it up using &e/ptutils rewards tournament setbook&c!"));
                                                     player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
                                                     return;
                                                 }
 
                                                 //Saving the value when the tournament will end in the config
                                                 int numberOfDays = plugin.getConfig().getInt("reward-system.tournament-timer", 7);
-                                                long millis = numberOfDays * 60 * 1000L;
+                                                long millis = numberOfDays * 24 * 60 * 60 * 1000L;
                                                 Bukkit.getScheduler().runTaskAsynchronously(plugin, () ->{
                                                     plugin.getDatabaseManager().setTournamentTimestamps(System.currentTimeMillis(), millis, System.currentTimeMillis() + millis);
 
@@ -379,7 +376,7 @@ public class CommandManager implements CommandExecutor {
                                                         }
 
                                                         plugin.getGivingRewardsSystem().startTasks();
-                                                        player.sendMessage(MiniMessage.miniMessage().deserialize("<green>The tournament has been enabled!"));
+                                                        player.sendMessage(LegacyComponentSerializer.legacyAmpersand().deserialize("&aThe tournament has been enabled!"));
                                                         plugin.getLogger().info("[PlaytimeUtils] The playtime tournament has been enabled!");
                                                     });
                                                 });
@@ -394,7 +391,7 @@ public class CommandManager implements CommandExecutor {
                                         //Checking reward system is enabled
                                         boolean toggleRewardSystem = plugin.getConfig().getBoolean("reward-system.toggle", false);
                                         if(!toggleRewardSystem){
-                                            player.sendMessage(MiniMessage.miniMessage().deserialize("<red>The <b>Reward System</b> is disabled! Enable it in <yellow><b>config.yml <red>to use this command."));
+                                            player.sendMessage(LegacyComponentSerializer.legacyAmpersand().deserialize("&cThe &lReward System&c is disabled! Enable it in &e&lconfig.yml &cto use this command."));
                                             player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
                                             return true;
                                         }
@@ -406,7 +403,7 @@ public class CommandManager implements CommandExecutor {
 
                                             Bukkit.getScheduler().runTask(plugin, () -> {
                                                 if(duration.get() == 0){
-                                                    player.sendMessage(MiniMessage.miniMessage().deserialize("<red>The tournament is already disabled!"));
+                                                    player.sendMessage(LegacyComponentSerializer.legacyAmpersand().deserialize("&cThe tournament is already disabled!"));
                                                     player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
                                                     return;
                                                 }
@@ -438,7 +435,7 @@ public class CommandManager implements CommandExecutor {
                                                 plugin.getGivingRewardsSystem().getRewardingTask().cancel();
                                                 plugin.getGivingRewardsSystem().getBroadcastTask().cancel();
 
-                                                player.sendMessage(MiniMessage.miniMessage().deserialize("<green>The tournament has been disabled!"));
+                                                player.sendMessage(LegacyComponentSerializer.legacyAmpersand().deserialize("&aThe tournament has been disabled!"));
                                                 plugin.getLogger().info("The tournament has been disabled!");
                                             });
                                         });
@@ -473,7 +470,7 @@ public class CommandManager implements CommandExecutor {
                             }
 
                             default -> {
-                                player.sendMessage(MiniMessage.miniMessage().deserialize("<red>Unknown command."));
+                                player.sendMessage(LegacyComponentSerializer.legacyAmpersand().deserialize("&cUnknown command."));
                                 player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
                                 return true;
                             }
@@ -483,7 +480,7 @@ public class CommandManager implements CommandExecutor {
             }
 
             default -> {
-                player.sendMessage(MiniMessage.miniMessage().deserialize("<red>Unknown command."));
+                player.sendMessage(LegacyComponentSerializer.legacyAmpersand().deserialize("&cUnknown command."));
                 player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
                 return true;
             }

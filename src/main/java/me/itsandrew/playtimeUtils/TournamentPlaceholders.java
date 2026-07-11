@@ -3,7 +3,6 @@ package me.itsandrew.playtimeUtils;
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import org.bukkit.OfflinePlayer;
 import org.jetbrains.annotations.NotNull;
-import org.jspecify.annotations.NonNull;
 
 public class TournamentPlaceholders extends PlaceholderExpansion {
     private final PlaytimeUtils plugin;
@@ -33,7 +32,7 @@ public class TournamentPlaceholders extends PlaceholderExpansion {
     }
 
     @Override
-    public String onRequest(OfflinePlayer player, @NonNull String params){
+    public String onRequest(OfflinePlayer player, @NotNull String params){
         //Use '%tournament_duration%' to display the formatted duration (e.g.: 5d 12h 30m)
         if(params.equalsIgnoreCase("duration")){
             return plugin.getPlaceholdersManager().getCachedTournamentDuration();

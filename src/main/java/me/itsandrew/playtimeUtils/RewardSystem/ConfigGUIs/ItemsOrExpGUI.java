@@ -6,7 +6,7 @@ import me.itsandrew.playtimeUtils.RewardSystem.States.AddRemoveChoice;
 import me.itsandrew.playtimeUtils.RewardSystem.States.RewardType;
 import me.itsandrew.playtimeUtils.RewardSystem.States.StaffState;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.minimessage.MiniMessage;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.Sound;
@@ -46,9 +46,9 @@ public class ItemsOrExpGUI implements Listener {
             String line = "Click to ";
             line += plugin.getStaffStates().get(player).choice == AddRemoveChoice.ADD ? "add" : "remove";
             line += " items to the reward pool.";
-            lore.add(MiniMessage.miniMessage().deserialize("<gray>" + line));
+            lore.add(LegacyComponentSerializer.legacyAmpersand().deserialize("&7" + line));
 
-            Component itemDisplayName = MiniMessage.miniMessage().deserialize("<gradient:#2fff05:#03ff9e><b>Items</gradient>");
+            Component itemDisplayName = LegacyComponentSerializer.legacyAmpersand().deserialize("&a&lItems");
             itemsButtonMeta.displayName(itemDisplayName);
             itemsButtonMeta.lore(lore);
             itemsButton.setItemMeta(itemsButtonMeta);
@@ -65,9 +65,9 @@ public class ItemsOrExpGUI implements Listener {
             String line = "Click to ";
             line += plugin.getStaffStates().get(player).choice == AddRemoveChoice.ADD ? "add" : "remove";
             line += " experience levels to the reward pool.";
-            lore.add(MiniMessage.miniMessage().deserialize("<gray>" + line));
+            lore.add(LegacyComponentSerializer.legacyAmpersand().deserialize("&7" + line));
 
-            Component expDisplayName = MiniMessage.miniMessage().deserialize("<gradient:#21a6ff:#8b85ff><b>Experience Levels</gradient> ");
+            Component expDisplayName = LegacyComponentSerializer.legacyAmpersand().deserialize("&b&lExperience Levels");
             expButtonMeta.displayName(expDisplayName);
             expButtonMeta.lore(lore);
             expButton.setItemMeta(expButtonMeta);
@@ -78,7 +78,7 @@ public class ItemsOrExpGUI implements Listener {
         ItemStack closeButton = new ItemStack(Material.RED_CONCRETE);
         ItemMeta closeButtonMeta = closeButton.getItemMeta();
         if(closeButtonMeta != null){
-            closeButtonMeta.displayName(MiniMessage.miniMessage().deserialize("<#aa0000><b>Close"));
+            closeButtonMeta.displayName(LegacyComponentSerializer.legacyAmpersand().deserialize("&c&lClose"));
             closeButton.setItemMeta(closeButtonMeta);
         }
         GUI.setItem(40, closeButton);

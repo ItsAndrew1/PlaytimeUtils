@@ -77,7 +77,7 @@ reward-system:
   toggle: false #If you want to use Rewards or not.
 
   #Set the timer for the tournament. (In DAYS)
-  tournament-timer: 3 #As you can see, by default it is set to 7 days/1 week.
+  tournament-timer: 7 #As you can see, by default it is set to 7 days/1 week.
 
   #Configure the sounds for the tournament.
   tournament-sounds:

@@ -10,9 +10,9 @@ public enum PlacementChoice {
 
     public String toColoredStringForm(){
         switch(this){
-            case FIRST -> {return "<gradient:#ffee55:#ffaa00><b>1st Place";}
-            case SECOND -> {return "<gradient:#ffffff:#bbbacc><b>2nd Place";}
-            case THIRD -> {return "<gradient:#ccc923:#e6765a><b>3rd Place";}
+            case FIRST -> {return "&e&l1st Place";}
+            case SECOND -> {return "&f&l2nd Place";}
+            case THIRD -> {return "&6&l3rd Place";}
             default -> {return " ";}
         }
     }

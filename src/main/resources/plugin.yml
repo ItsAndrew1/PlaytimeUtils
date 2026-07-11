@@ -1,9 +1,9 @@
 name: PlaytimeUtils
-description: $description
-version: '1.0'
+description: Track each player's playtime and reward them for it!
+version: '1.1'
 
 main: me.itsandrew.playtimeUtils.PlaytimeUtils
-api-version: '1.21'
+api-version: '1.18'
 load: POSTWORLD
 
 authors: [_ItsAndrew_]

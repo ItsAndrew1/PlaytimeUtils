@@ -4,7 +4,7 @@ package me.itsandrew.playtimeUtils.RewardSystem.ConfigGUIs;
 import me.itsandrew.playtimeUtils.PlaytimeUtils;
 import me.itsandrew.playtimeUtils.RewardSystem.States.StaffState;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.minimessage.MiniMessage;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -52,7 +52,7 @@ public class RemoveRewardsGUIs implements Listener {
         ItemStack returnButton = new ItemStack(Material.ARROW);
         ItemMeta returnButtonMeta = returnButton.getItemMeta();
         if(returnButtonMeta != null){
-            returnButtonMeta.displayName(MiniMessage.miniMessage().deserialize("<#ff003c><b>Return"));
+            returnButtonMeta.displayName(LegacyComponentSerializer.legacyAmpersand().deserialize("&c&lReturn"));
             returnButtonMeta.getPersistentDataContainer().set(container, PersistentDataType.STRING, "return");
         }
         returnButton.setItemMeta(returnButtonMeta);
@@ -64,7 +64,7 @@ public class RemoveRewardsGUIs implements Listener {
             ItemStack noItems = new ItemStack(Material.BARRIER);
             ItemMeta noItemsMeta = noItems.getItemMeta();
             if(noItemsMeta != null){
-                noItemsMeta.displayName(MiniMessage.miniMessage().deserialize("<red><b>There are no items configured"));
+                noItemsMeta.displayName(LegacyComponentSerializer.legacyAmpersand().deserialize("&c&lThere are no items configured"));
                 noItemsMeta.getPersistentDataContainer().set(container, PersistentDataType.STRING, "no-items");
             }
             noItems.setItemMeta(noItemsMeta);
@@ -80,10 +80,10 @@ public class RemoveRewardsGUIs implements Listener {
 
                     List<Component> lore = new ArrayList<>();
                     lore.add(Component.text(" "));
-                    lore.add(MiniMessage.miniMessage().deserialize("<gray>Click to remove this item."));
+                    lore.add(LegacyComponentSerializer.legacyAmpersand().deserialize("&7Click to remove this item."));
                     itemMeta.lore(lore);
 
-                    itemMeta.displayName(MiniMessage.miniMessage().deserialize("<b>"+item.getType().name()+"<b>"));
+                    itemMeta.displayName(LegacyComponentSerializer.legacyAmpersand().deserialize("&l"+item.getType().name()));
 
                     item.setItemMeta(itemMeta);
                 }
@@ -100,14 +100,14 @@ public class RemoveRewardsGUIs implements Listener {
         //Confirm Button
         ItemStack confirmButton = new ItemStack(Material.GREEN_CONCRETE);
         ItemMeta confirmButtonMeta = confirmButton.getItemMeta();
-        if(confirmButtonMeta != null) confirmButtonMeta.displayName(MiniMessage.miniMessage().deserialize("<green><b>Confirm"));
+        if(confirmButtonMeta != null) confirmButtonMeta.displayName(LegacyComponentSerializer.legacyAmpersand().deserialize("&a&lConfirm"));
         confirmButton.setItemMeta(confirmButtonMeta);
         GUI.setItem(24, confirmButton);
 
         //Return Button
         ItemStack returnButton = new ItemStack(Material.RED_CONCRETE);
         ItemMeta returnButtonMeta = returnButton.getItemMeta();
-        if(returnButtonMeta != null) returnButtonMeta.displayName(MiniMessage.miniMessage().deserialize("<#ff003c><b>Return"));
+        if(returnButtonMeta != null) returnButtonMeta.displayName(LegacyComponentSerializer.legacyAmpersand().deserialize("&c&lReturn"));
         returnButton.setItemMeta(returnButtonMeta);
         GUI.setItem(20, returnButton);
 
@@ -232,7 +232,7 @@ public class RemoveRewardsGUIs implements Listener {
 
             player.closeInventory();
             player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1, 1.4f);
-            player.sendMessage(MiniMessage.miniMessage().deserialize("<green>Removed <b>item</b> from "+state.placement.toColoredStringForm()+"<green>!"));
+            player.sendMessage(LegacyComponentSerializer.legacyAmpersand().deserialize("&aRemoved &litem&a from "+state.placement.toColoredStringForm()+"&a!"));
         }
     }
 }
