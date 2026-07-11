@@ -1,7 +1,4 @@
-<img src = "https://img.shields.io/github/v/release/ItsAndrew1/PlaytimeUtils?display_name=tag&style=flat&label=Plugin%20Version" alt="plugin version"> 
-<img src = "https://img.shields.io/badge/Minecraft%20Version-1.21%2B-green?style=flat" alt="MC Version">
-<img src = "https://img.shields.io/modrinth/dt/MJmnDxVw?label=Modrinth%20Downloads&color=%2314e025" alt = "Modrinth Downloads">
-<img src = "https://img.shields.io/spiget/downloads/136465?style=flat&label=Spigot%20Downloads" alt="Spigot Downloads">
+<img src = "https://img.shields.io/github/v/release/ItsAndrew1/PlaytimeUtils?display_name=tag&style=flat&label=Plugin%20Version" alt="plugin version"> <img src = "https://img.shields.io/badge/Minecraft%20Version-1.18%2B-green?style=flat" alt="MC Version"> <img src = "https://img.shields.io/modrinth/dt/MJmnDxVw?label=Modrinth%20Downloads&color=%2314e025" alt = "Modrinth Downloads"> <img src = "https://img.shields.io/spiget/downloads/136465?style=flat&label=Spigot%20Downloads" alt="Spigot Downloads">
 
 # PlaytimeUtils 
 
