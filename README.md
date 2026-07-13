@@ -38,7 +38,7 @@ And much more! See **config.yml** for all the features.
  | `/myplaytime rewards`                  | Opens up the **Playtime Rewards** Menu                   | `playtimeutils.myplaytime.rewards` |
 | `/playtime <player> <main/tournament>` | Shows the **main/tournament playtime** of another player | `playtimeutils.playtime...`        |
 | `/topplaytime <main/tournament>`       | Shows the **main/tournament playtime** top 3 leaderboard | `playtimeutils.topplaytime...`     |
-| `/putils ...`                          | Handles the main configuration of the plugin             | `playtimeutils.ptutils...`         |
+| `/ptutils ...`                          | Handles the main configuration of the plugin             | `playtimeutils.ptutils...`         |
 
 ## 📜 Permissions
 | Permission                                  | Description                                                       | 
