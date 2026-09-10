@@ -73,7 +73,12 @@ first-join:
 
 #Set the necessary time that a player needs in order to chat. IN SECONDS!!
 #By default this value is set to 600
+toggle-needed-playtime-for-chat: true
 playtime-needed-for-chat: 600
+not-enough-playtime-message: "&cYou need &l%needed_playtime% &cto chat!" #Use %needed_playtime% to display the needed playtime for chatting
+needed-playtime-sound: entity.enderman.teleport
+nps-volume: 1
+nps-pitch: 1
 
 #Configure the Reward System. This will be like a mini-tournament system.
 reward-system:

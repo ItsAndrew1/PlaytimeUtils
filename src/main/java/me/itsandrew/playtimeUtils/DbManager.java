@@ -116,6 +116,7 @@ public class DbManager {
 
         return time.toString();
     }
+
     public int getMainPlaytime(UUID playerUUID){
         String statement = "SELECT mainPlaytime FROM playersPlaytime WHERE uuid = ?";
         try(PreparedStatement ps = dbConnection.prepareStatement(statement)){
@@ -280,7 +281,7 @@ public class DbManager {
     }
 
     public void setTournamentTimestamps(long tournamentStart, long duration, long tournamentEnd){
-        String statement = "INSERT INTO tournamentTimestampsTable (tournamentStart, duration, tournamentEnd) VALUES (?, ?, ?)";
+        String statement = "INSERT INTO tournamentTimestamps (tournamentStart, duration, tournamentEnd) VALUES (?, ?, ?)";
         try(PreparedStatement ps = dbConnection.prepareStatement(statement)){
             ps.setLong(1, tournamentStart);
             ps.setLong(2, duration);
