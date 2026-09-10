@@ -280,7 +280,7 @@ public class DbManager {
     }
 
     public void setTournamentTimestamps(long tournamentStart, long duration, long tournamentEnd){
-        String statement = "INSERT INTO tournamentTimestamps (tournamentStart, duration, tournamentEnd) VALUES (?, ?, ?)";
+        String statement = "INSERT INTO tournamentTimestampsTable (tournamentStart, duration, tournamentEnd) VALUES (?, ?, ?)";
         try(PreparedStatement ps = dbConnection.prepareStatement(statement)){
             ps.setLong(1, tournamentStart);
             ps.setLong(2, duration);
@@ -301,7 +301,7 @@ public class DbManager {
         }
     }
     public long getTournamentTimestamp(String option){
-        String statement = "SELECT " + option + " FROM tournamentTimestamps";
+        String statement = "SELECT " + option + " FROM tournamentTimestampsTable";
         try(PreparedStatement ps = dbConnection.prepareStatement(statement)){
             try(ResultSet rs = ps.executeQuery()){
                 if(rs.next()){

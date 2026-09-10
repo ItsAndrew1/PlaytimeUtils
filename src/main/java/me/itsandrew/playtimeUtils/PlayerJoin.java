@@ -28,33 +28,34 @@ public class PlayerJoin implements Listener {
     public void playerJoin(PlayerJoinEvent event){
         Player player = event.getPlayer();
 
-        //Checking if the player is registered or not in the db
-        boolean toggleFirstJoin = plugin.getConfig().getBoolean("first-join.toggle", true);
-        if(!plugin.getDatabaseManager().isPlayerRegistered(player.getUniqueId())){
-            plugin.getDatabaseManager().createPlayerRow(player.getUniqueId());
-
-            if(toggleFirstJoin){
-                String title = ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("first-join.title", "&aWelcome to the server!"));
-                title = PlaceholderAPI.setPlaceholders(player, title);
-
-                String subtitle = ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("first-join.subtitle", "&aEnjoy your stay!"));
-                subtitle = PlaceholderAPI.setPlaceholders(player, subtitle);
-
-                player.sendTitle(title, subtitle);
-
-
-                Sound firstJoinSound = Registry.SOUNDS.get(NamespacedKey.minecraft(plugin.getConfig().getString("first-join.sound", "entity.player.levelup").toLowerCase()));
-                float fjsVolume = plugin.getConfig().getInt("first-join.sound-volume", 1);
-                float fjsPitch = plugin.getConfig().getInt("first-join.sound-pitch", 1);
-                player.playSound(player.getLocation(), firstJoinSound, fjsVolume, fjsPitch);
-            }
-        }
-
         //Putting the player in the maps
         plugin.getLastActivity().put(player.getUniqueId(), System.currentTimeMillis());
         plugin.getMainPlaytimeMap().put(player.getUniqueId(), 0);
 
+        boolean toggleFirstJoin = plugin.getConfig().getBoolean("first-join.toggle", true);
         Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+            //Checking if the player is registered or not in the db
+            if(!plugin.getDatabaseManager().isPlayerRegistered(player.getUniqueId())){
+                plugin.getDatabaseManager().createPlayerRow(player.getUniqueId());
+
+                if(toggleFirstJoin){
+                    Bukkit.getScheduler().runTask(plugin, () -> {
+                        String title = ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("first-join.title", "&aWelcome to the server!"));
+                        title = PlaceholderAPI.setPlaceholders(player, title);
+
+                        String subtitle = ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("first-join.subtitle", "&aEnjoy your stay!"));
+                        subtitle = PlaceholderAPI.setPlaceholders(player, subtitle);
+
+                        player.sendTitle(title, subtitle);
+
+                        Sound firstJoinSound = Registry.SOUNDS.get(NamespacedKey.minecraft(plugin.getConfig().getString("first-join.sound", "entity.player.levelup").toLowerCase()));
+                        float fjsVolume = plugin.getConfig().getInt("first-join.sound-volume", 1);
+                        float fjsPitch = plugin.getConfig().getInt("first-join.sound-pitch", 1);
+                        player.playSound(player.getLocation(), firstJoinSound, fjsVolume, fjsPitch);
+                    });
+                }
+            }
+
             long duration = plugin.getDatabaseManager().getTournamentTimestamp("duration");
             if(duration != 0) plugin.getTournamentPlaytimeMap().put(player.getUniqueId(), 0);
         });

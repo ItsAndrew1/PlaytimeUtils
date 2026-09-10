@@ -120,6 +120,11 @@ public final class PlaytimeUtils extends JavaPlugin implements Listener {
 
         getLogger().info("[PlaytimeUtils] Plugin enabled successfully.");
 
+        //Putting the saved playtime from the DB back into the mainPlaytimeMap
+        for(OfflinePlayer player : Bukkit.getOfflinePlayers()){
+            mainPlaytimeMap.put(player.getUniqueId(), databaseManager.getMainPlaytime(player.getUniqueId()));
+        }
+
         //Starting the task to track the playtime of players
         getServer().getScheduler().runTaskTimer(this, () -> {
             for(Player player : Bukkit.getOnlinePlayers()){
