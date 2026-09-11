@@ -58,6 +58,7 @@ public final class PlaytimeUtils extends JavaPlugin implements Listener {
     private final AddRewardsGUI addRewardsGUI = new AddRewardsGUI(this);
     private final RemoveRewardsGUIs removeRewardsGUIs = new RemoveRewardsGUIs(this);
     private GivingRewards givingRewardsSystem;
+    private final PlayerChatCheck playerChatCheck = new PlayerChatCheck(this);
 
     private final PlaceholdersManager placeholdersManager = new PlaceholdersManager();
     private PlaytimeRewardsGUI playtimeRewardsGUI;
@@ -92,6 +93,7 @@ public final class PlaytimeUtils extends JavaPlugin implements Listener {
         getServer().getPluginManager().registerEvents(removeRewardsGUIs, this);
         getServer().getPluginManager().registerEvents(playtimeRewardsGUI, this);
         getServer().getPluginManager().registerEvents(givingRewardsSystem, this);
+        getServer().getPluginManager().registerEvents(playerChatCheck, this);
 
         //Connecting the database
         try{

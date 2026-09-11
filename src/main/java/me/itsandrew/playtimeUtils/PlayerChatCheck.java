@@ -11,7 +11,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 
-import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
 public class PlayerChatCheck implements Listener {

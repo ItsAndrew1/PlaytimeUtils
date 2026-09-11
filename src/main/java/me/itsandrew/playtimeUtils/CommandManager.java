@@ -224,6 +224,11 @@ public class CommandManager implements CommandExecutor {
                         return true;
                     }
 
+                    case "neededplaytimeforchat" -> {
+
+                        return true;
+                    }
+
                     case "rewards" -> {
                         //Checking if the player has permission
                         if(!player.hasPermission("playtimeutils.ptutils.rewards")) noPermission(player);
