@@ -22,16 +22,19 @@ public class PlayerChatCheck implements Listener {
 
     @EventHandler
     public void onPlayerChat(AsyncChatEvent event) {
-        boolean toggleNecessaryPlaytime = plugin.getConfig().getBoolean("toggle-needed-playtime-for-chat", false);
+        boolean toggleNecessaryPlaytime = plugin.getConfig().getBoolean("toggle-needed-playtime-to-chat", false);
         if(!toggleNecessaryPlaytime) return;
 
         if(playerHasNecessaryPlaytime(event.getPlayer())) return;
+        event.setCancelled(true);
 
-        int secondsNeededForChat = plugin.getConfig().getInt("playtime-needed-for-chat", 600);
+        int secondsNeededForChat = plugin.getConfig().getInt("playtime-needed-to-chat", 600);
         String neededPlaytimeString = getNeededPlaytimeString(secondsNeededForChat);
 
-        String neededPlaytimeMessage = LegacyComponentSerializer.legacyAmpersand().serialize(Component.text(plugin.getConfig().getString("not-enough-playtime-message", "&cYou need &l%needed_playtime% &cto chat!").replace("%needed_playtime%", neededPlaytimeString)));
-        neededPlaytimeMessage = PlaceholderAPI.setPlaceholders(event.getPlayer(), neededPlaytimeMessage);
+        String rawMessage = plugin.getConfig().getString("not-enough-playtime-message", "&cYou need &l%needed_playtime% &cof playtime to chat!")
+                .replace("%needed_playtime%", neededPlaytimeString);
+        rawMessage = PlaceholderAPI.setPlaceholders(event.getPlayer(), rawMessage);
+        Component neededPlaytimeMessage = LegacyComponentSerializer.legacyAmpersand().deserialize(rawMessage);
         event.getPlayer().sendMessage(neededPlaytimeMessage);
 
         float soundVolume = plugin.getConfig().getInt("nps-volume", 1);
@@ -58,7 +61,7 @@ public class PlayerChatCheck implements Listener {
     }
 
     private boolean playerHasNecessaryPlaytime(Player player){
-        int secondsNeededForChat = plugin.getConfig().getInt("playtime-needed-for-chat", 600);
+        int secondsNeededForChat = plugin.getConfig().getInt("playtime-needed-to-chat", 600);
         return plugin.getMainPlaytimeMap().get(player.getUniqueId()) >= secondsNeededForChat;
     }
 }

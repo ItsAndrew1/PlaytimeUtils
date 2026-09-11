@@ -73,9 +73,9 @@ first-join:
 
 #Set the necessary time that a player needs in order to chat. IN SECONDS!!
 #By default this value is set to 600
-toggle-needed-playtime-for-chat: true
-playtime-needed-for-chat: 600
-not-enough-playtime-message: "&cYou need &l%needed_playtime% &cto chat!" #Use %needed_playtime% to display the needed playtime for chatting
+toggle-needed-playtime-to-chat: true
+playtime-needed-to-chat: 600
+not-enough-playtime-message: "&cYou need &l%needed_playtime% &cof playtime to chat!" #Use %needed_playtime% to display the needed playtime for chatting
 needed-playtime-sound: entity.enderman.teleport
 nps-volume: 1
 nps-pitch: 1

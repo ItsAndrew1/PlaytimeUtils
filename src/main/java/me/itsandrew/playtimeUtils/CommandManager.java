@@ -224,7 +224,82 @@ public class CommandManager implements CommandExecutor {
                         return true;
                     }
 
-                    case "neededplaytimeforchat" -> {
+                    case "playtimetochat" -> {
+                        //Checking for permission
+                        if(!player.hasPermission("playtimeutils.ptutils.playtimetochat")) noPermission(player);
+
+                        if(args.length < 2){
+                            player.sendMessage(LegacyComponentSerializer.legacySection().deserialize("&cUsage: &l/ptutils playtimetochat <enable | disable | set>"));
+                            player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
+                            return true;
+                        }
+
+                        switch(args[1]){
+                            case "enable" -> {
+                                //Check permission
+                                if(!player.hasPermission("playtimeutils.ptutils.playtimetochat.enable")) noPermission(player);
+
+                                boolean togglePlaytimeToChat = plugin.getConfig().getBoolean("toggle-needed-playtime-to-chat", false);
+                                if(togglePlaytimeToChat){
+                                    player.sendMessage(LegacyComponentSerializer.legacyAmpersand().deserialize("&cFeature already enabled!"));
+                                    player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
+                                    return true;
+                                }
+
+                                plugin.getConfig().set("toggle-needed-playtime-to-chat", true);
+                                plugin.saveConfig();
+
+                                player.sendMessage(LegacyComponentSerializer.legacyAmpersand().deserialize("&aToggled ON feature."));
+                                player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1, 1.4f);
+                                return true;
+                            }
+
+                            case "disable" -> {
+                                //Check permission
+                                if(!player.hasPermission("playtimeutils.ptutils.playtimetochat.disable")) noPermission(player);
+
+                                boolean togglePlaytimeToChat = plugin.getConfig().getBoolean("toggle-needed-playtime-to-chat", false);
+                                if(!togglePlaytimeToChat){
+                                    player.sendMessage(LegacyComponentSerializer.legacyAmpersand().deserialize("&cFeature already disabled!"));
+                                    player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
+                                    return true;
+                                }
+
+                                plugin.getConfig().set("toggle-needed-playtime-to-chat", false);
+                                plugin.saveConfig();
+
+                                player.sendMessage(LegacyComponentSerializer.legacyAmpersand().deserialize("&aToggled OFF feature."));
+                                player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1, 1.4f);
+                                return true;
+                            }
+
+                            case "set" -> {
+                                //Check permission
+                                if(!player.hasPermission("playtimeutils.ptutils.playtimetochat.set")) noPermission(player);
+
+                                player.sendMessage(LegacyComponentSerializer.legacyAmpersand().deserialize("&aEnter a needed playtime (in seconds!): "));
+                                player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_PLING, 1, 1);
+                                plugin.playerInput(player, message -> {
+                                    String rawMessage = LegacyComponentSerializer.legacyAmpersand().serialize(message);
+                                    try{
+                                        int seconds = Integer.parseInt(rawMessage);
+                                        if(seconds < 0){
+                                            player.sendMessage(LegacyComponentSerializer.legacyAmpersand().deserialize("&cInvalid value."));
+                                            player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
+                                        }
+
+                                        plugin.getConfig().set("playtime-needed-to-chat", seconds);
+                                        plugin.saveConfig();
+
+                                        player.sendMessage(LegacyComponentSerializer.legacyAmpersand().deserialize("&aSaved playtime successfully!"));
+                                        player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1, 1.4f);
+                                    } catch (Exception e) {
+                                        player.sendMessage(LegacyComponentSerializer.legacyAmpersand().deserialize("&cInvalid value."));
+                                        player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
+                                    }
+                                });
+                            }
+                        }
 
                         return true;
                     }

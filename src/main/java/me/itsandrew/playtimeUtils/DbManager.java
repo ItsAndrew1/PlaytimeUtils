@@ -69,7 +69,7 @@ public class DbManager {
 
         //Creating the tournament timestamps table
         String tournamentTimestampsTable = """
-                CREATE TABLE IF NOT EXISTS tournamentTimestamps (
+                CREATE TABLE IF NOT EXISTS tournamentTimestampsTable (
                     tournamentStart BIGINT,
                     duration BIGINT,
                     tournamentEnd BIGINT

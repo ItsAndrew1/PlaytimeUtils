@@ -1,6 +1,6 @@
 name: PlaytimeUtils
 description: Track each player's playtime and reward them for it!
-version: '1.1'
+version: '1.2'
 
 main: me.itsandrew.playtimeUtils.PlaytimeUtils
 api-version: '1.18'
@@ -57,6 +57,22 @@ permissions:
 
   playtimeutils.ptutils.reload:
     description: Allows the player to reload the plugin's configuration.
+    default: op
+
+  playtimeutils.ptutils.playtimetochat:
+    description: Allows the player to manage the needed playtime for a player to chat
+    default: op
+
+  playtimeutils.ptutils.playtimetochat.enable:
+    description: Allows the player to enable the feature "Needed Playtime to Chat"
+    default: op
+
+  playtimeutils.ptutils.playtimetochat.disable:
+    description: Allows the player to disable the feature "Needed Playtime to Chat"
+    default: op
+
+  playtimeutils.ptutils.playtimetochat.set:
+    description: Allows the player to set the playtime needed tp chat
     default: op
 
   playtimeutils.ptutils.rewards:
