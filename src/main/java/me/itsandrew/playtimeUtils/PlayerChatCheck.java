@@ -33,7 +33,7 @@ public class PlayerChatCheck implements Listener {
 
         String rawMessage = plugin.getConfig().getString("not-enough-playtime-message", "&cYou need &l%needed_playtime% &cof playtime to chat!")
                 .replace("%needed_playtime%", neededPlaytimeString);
-        rawMessage = PlaceholderAPI.setPlaceholders(event.getPlayer(), rawMessage);
+        rawMessage = plugin.setPP(rawMessage, event.getPlayer());
         Component neededPlaytimeMessage = LegacyComponentSerializer.legacyAmpersand().deserialize(rawMessage);
         event.getPlayer().sendMessage(neededPlaytimeMessage);
 

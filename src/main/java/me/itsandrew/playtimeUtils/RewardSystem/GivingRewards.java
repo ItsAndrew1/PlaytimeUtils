@@ -87,7 +87,7 @@ public class GivingRewards implements Listener {
 
                             List<String> messageLines = plugin.getConfig().getStringList("reward-system.tournament-messages.end");
                             for(String line : messageLines){
-                                line = PlaceholderAPI.setPlaceholders(onlinePlayer, line);
+                                line = plugin.setPP(line, onlinePlayer);
                                 Component coloredLine = LegacyComponentSerializer.legacyAmpersand().deserialize(line);
                                 coloredLine = replaceDiscordComponent(coloredLine);
                                 onlinePlayer.sendMessage(coloredLine);
@@ -121,7 +121,7 @@ public class GivingRewards implements Listener {
 
                             List<String> messageLines = plugin.getConfig().getStringList("reward-system.tournament-messages.1/3-of-duration");
                             for(String line : messageLines){
-                                line = PlaceholderAPI.setPlaceholders(onlinePlayer, line);
+                                line = plugin.setPP(line, onlinePlayer);
                                 Component coloredLine = LegacyComponentSerializer.legacyAmpersand().deserialize(line);
                                 coloredLine = replaceDiscordComponent(coloredLine);
 
@@ -143,7 +143,7 @@ public class GivingRewards implements Listener {
 
                             List<String> messageLines = plugin.getConfig().getStringList("reward-system.tournament-messages.half-of-duration");
                             for(String line : messageLines){
-                                line = PlaceholderAPI.setPlaceholders(onlinePlayer, line);
+                                line = plugin.setPP(line, onlinePlayer);
                                 Component coloredLine = LegacyComponentSerializer.legacyAmpersand().deserialize(line);
                                 coloredLine = replaceDiscordComponent(coloredLine);
 
@@ -165,7 +165,7 @@ public class GivingRewards implements Listener {
 
                             List<String> messageLines = plugin.getConfig().getStringList("reward-system.tournament-messages.5/6-of-duration");
                             for(String line : messageLines){
-                                line = PlaceholderAPI.setPlaceholders(onlinePlayer, line);
+                                line = plugin.setPP(line, onlinePlayer);
                                 Component coloredLine = LegacyComponentSerializer.legacyAmpersand().deserialize(line);
                                 coloredLine = replaceDiscordComponent(coloredLine);
 
@@ -180,7 +180,7 @@ public class GivingRewards implements Listener {
 
     private void rewardWinners(){
         Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
-           List<Map.Entry<UUID, Integer>>top3tournament = plugin.getDatabaseManager().getTournamentTop3Players();
+           List<Map.Entry<UUID, Integer>> top3tournament = plugin.getDatabaseManager().getTournamentTop3Players();
 
            //Running the task to give the rewards on the main thread
             Bukkit.getScheduler().runTask(plugin, () -> {
@@ -198,7 +198,7 @@ public class GivingRewards implements Listener {
                         if(riMeta != null){
                             //Setting the display name
                             String DisplayName = plugin.getConfig().getString("reward-system.rewards-item.display-name", "&e&lPlaytime Tournament Reward");
-                            DisplayName = PlaceholderAPI.setPlaceholders(winner, DisplayName);
+                            DisplayName = plugin.setPP(DisplayName, winner);
                             Component realDisplayName = LegacyComponentSerializer.legacyAmpersand().deserialize(DisplayName);
                             riMeta.displayName(realDisplayName);
 
@@ -206,7 +206,7 @@ public class GivingRewards implements Listener {
                             List<String> rawLore = plugin.getConfig().getStringList("reward-system.rewards-item.lore");
                             List<Component> lore = new ArrayList<>();
                             for(String line : rawLore){
-                                line = PlaceholderAPI.setPlaceholders(winner, line);
+                                line = plugin.setPP(line, winner);
                                 Component coloredLine = LegacyComponentSerializer.legacyAmpersand().deserialize(line);
                                 lore.add(coloredLine);
                             }
@@ -231,7 +231,7 @@ public class GivingRewards implements Listener {
                             List<String> messageLines = plugin.getConfig().getStringList("reward-system.pending-reward-notification.chat-message");
                             List<Component> finalMessage = new ArrayList<>();
                             for(String line : messageLines){
-                                line = PlaceholderAPI.setPlaceholders(winner, line);
+                                line = plugin.setPP(line, winner);
                                 Component coloredLine = LegacyComponentSerializer.legacyAmpersand().deserialize(line);
 
                                 Component hereWord = Component.text("here")
@@ -244,7 +244,7 @@ public class GivingRewards implements Listener {
 
                             //Sending the winner a message about not having enough inv space
                             String noSpaceMessage = plugin.getConfig().getString("reward-system.no-inventory-space-message", "&cYou don't have enough inventory space to receive your reward!");
-                            noSpaceMessage = PlaceholderAPI.setPlaceholders(winner, noSpaceMessage);
+                            noSpaceMessage = plugin.setPP(noSpaceMessage, winner);
                             Component noSpaceComponent = LegacyComponentSerializer.legacyAmpersand().deserialize(noSpaceMessage);
                             winner.getPlayer().sendMessage(noSpaceComponent);
 
@@ -412,7 +412,7 @@ public class GivingRewards implements Listener {
         }
         else{
             String noInventorySpaceMessage = plugin.getConfig().getString("reward-system.no-inventory-space-message", "&cYou don't have enough inventory space to claim your reward!");
-            noInventorySpaceMessage = PlaceholderAPI.setPlaceholders(player, noInventorySpaceMessage);
+            noInventorySpaceMessage = plugin.setPP(noInventorySpaceMessage, player);
             Component message = LegacyComponentSerializer.legacyAmpersand().deserialize(noInventorySpaceMessage);
             player.sendMessage(message);
             player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);

@@ -50,7 +50,7 @@ public class CommandManager implements CommandExecutor {
                         if(!player.hasPermission("playtimeutils.myplaytime.main")) noPermission(player);
 
                         String message = plugin.getConfig().getString("messages.my-playtime.main", "&aYour playtime is &e&l%playtime_mainValue%&a!");
-                        message = PlaceholderAPI.setPlaceholders(player, message);
+                        message = plugin.setPP(message, player);
                         Component playtimeMessage = LegacyComponentSerializer.legacyAmpersand().deserialize(message);
                         player.sendMessage(playtimeMessage);
                         player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
@@ -69,7 +69,7 @@ public class CommandManager implements CommandExecutor {
                                     player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
                                 } else {
                                     String message = plugin.getConfig().getString("messages.my-playtime.tournament", "&aYour tournament playtime is &e&l%playtime_tournamentValue%&a!");
-                                    message = PlaceholderAPI.setPlaceholders(player, message);
+                                    message = plugin.setPP(message, player);
                                     Component playtimeMessage = LegacyComponentSerializer.legacyAmpersand().deserialize(message);
                                     player.sendMessage(playtimeMessage);
                                     player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
@@ -117,7 +117,7 @@ public class CommandManager implements CommandExecutor {
                         if(!player.hasPermission("playtimeutils.playtime.main")) noPermission(player);
 
                         String message = plugin.getConfig().getString("messages.player-playtime.main", "&e%player%'s playtime is &e&l%playtime_mainValue%&a!");
-                        message = PlaceholderAPI.setPlaceholders(targetPlayer, message);
+                        message = plugin.setPP(message, player);
                         message = message.replace("%player%", targetPlayer.getName());
                         Component playtimeMessage = LegacyComponentSerializer.legacyAmpersand().deserialize(message);
                         player.sendMessage(playtimeMessage);
@@ -140,7 +140,7 @@ public class CommandManager implements CommandExecutor {
                                 }
 
                                 String message = plugin.getConfig().getString("messages.player-playtime.tournament", "&e%player%'s tournament playtime is &e&l%playtime_tournamentValue%&a!");
-                                message = PlaceholderAPI.setPlaceholders(targetPlayer, message);
+                                message = plugin.setPP(message, player);
                                 message = message.replace("%player%", targetPlayer.getName());
                                 Component playtimeMessage = LegacyComponentSerializer.legacyAmpersand().deserialize(message);
                                 player.sendMessage(playtimeMessage);
@@ -173,7 +173,7 @@ public class CommandManager implements CommandExecutor {
 
                         List<String> rawMessage = plugin.getConfig().getStringList("messages.top-3-main-players");
                         for(String line : rawMessage){
-                            line = PlaceholderAPI.setPlaceholders(player, line);
+                            line = plugin.setPP(line, player);
                             Component coloredLine = LegacyComponentSerializer.legacyAmpersand().deserialize(line);
                             player.sendMessage(coloredLine);
                         }
@@ -195,7 +195,7 @@ public class CommandManager implements CommandExecutor {
 
                             List<String> rawMessage = plugin.getConfig().getStringList("messages.top-3-tournament-players");
                             for(String line : rawMessage){
-                                line = PlaceholderAPI.setPlaceholders(player, line);
+                                line = plugin.setPP(line, player);
                                 Component coloredLine = LegacyComponentSerializer.legacyAmpersand().deserialize(line);
                                 player.sendMessage(coloredLine);
                             }
@@ -441,7 +441,7 @@ public class CommandManager implements CommandExecutor {
 
                                                             List<String> messageLines = plugin.getConfig().getStringList("reward-system.tournament-messages.start");
                                                             for(String line : messageLines){
-                                                                line = PlaceholderAPI.setPlaceholders(onlinePlayer, line);
+                                                                line = plugin.setPP(line, player);
                                                                 Component coloredLine = LegacyComponentSerializer.legacyAmpersand().deserialize(line);
 
                                                                 //Adding a component designed to have a hover and click event (to open the discord link)
@@ -498,7 +498,7 @@ public class CommandManager implements CommandExecutor {
 
                                                     List<String> messageLines = plugin.getConfig().getStringList("reward-system.tournament-messages.disabled");
                                                     for(String line : messageLines){
-                                                        line = PlaceholderAPI.setPlaceholders(onlinePlayer, line);
+                                                        line = plugin.setPP(line, onlinePlayer);
                                                         Component coloredLine = LegacyComponentSerializer.legacyAmpersand().deserialize(line);
 
                                                         //Adding a component designed to have a hover and click event (to open the discord link)
@@ -594,7 +594,7 @@ public class CommandManager implements CommandExecutor {
 
     private void noPermission(Player player){
         String noPermissionMessage = LegacyComponentSerializer.legacyAmpersand().serialize(Component.text(plugin.getConfig().getString("messages.no-permission", "&cYou don't have permission to do that!")));
-        noPermissionMessage = PlaceholderAPI.setPlaceholders(player, noPermissionMessage);
+        noPermissionMessage = plugin.setPP(noPermissionMessage, player);
 
         player.sendMessage(noPermissionMessage);
         player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);

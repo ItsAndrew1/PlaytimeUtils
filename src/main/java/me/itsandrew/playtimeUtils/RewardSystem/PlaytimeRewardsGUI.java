@@ -97,7 +97,7 @@ public class PlaytimeRewardsGUI implements Listener {
                     List<String> rawLore = config.getStringList("reward-system.rewards-item.playtime-rewards-menu-lore");
                     List<Component> lore = new ArrayList<>();
                     for(String line : rawLore){
-                        line = PlaceholderAPI.setPlaceholders(player, line);
+                        line = plugin.setPP(line, player);
                         Component coloredLine = LegacyComponentSerializer.legacyAmpersand().deserialize(line);
                         lore.add(coloredLine);
                     }
@@ -110,7 +110,7 @@ public class PlaytimeRewardsGUI implements Listener {
                         savingSlot = i + 9;
 
                         String rewardDisplayName = config.getString("reward-system.rewards-item.display-name", "&e&lPlaytime Tournament Reward");
-                        rewardDisplayName = PlaceholderAPI.setPlaceholders(player, rewardDisplayName);
+                        rewardDisplayName = plugin.setPP(rewardDisplayName, player);
                         Component rewardDisplayNameComponent = LegacyComponentSerializer.legacyAmpersand().deserialize(rewardDisplayName);
                         rewardItemMeta.displayName(rewardDisplayNameComponent);
                         rewardItemMeta.lore(lore);
@@ -126,7 +126,7 @@ public class PlaytimeRewardsGUI implements Listener {
                         savingSlot = firstPlacePendingRewards.get() + i + 9;
 
                         String rewardDisplayName = config.getString("reward-system.rewards-item.display-name", "Playtime Tournament Reward");
-                        rewardDisplayName = PlaceholderAPI.setPlaceholders(player, rewardDisplayName);
+                        rewardDisplayName = plugin.setPP(rewardDisplayName, player);
                         Component rewardDisplayNameComponent = LegacyComponentSerializer.legacyAmpersand().deserialize(rewardDisplayName);
                         rewardItemMeta.displayName(rewardDisplayNameComponent);
                         rewardItemMeta.lore(lore);
@@ -142,7 +142,7 @@ public class PlaytimeRewardsGUI implements Listener {
                         savingSlot = firstPlacePendingRewards.get() + secondPlacePendingRewards.get() + i + 9;
 
                         String rewardDisplayName = config.getString("reward-system.rewards-item.display-name", "&e&lPlaytime Tournament Reward");
-                        rewardDisplayName = PlaceholderAPI.setPlaceholders(player, rewardDisplayName);
+                        rewardDisplayName = plugin.setPP(rewardDisplayName, player);
                         Component rewardDisplayNameComponent = LegacyComponentSerializer.legacyAmpersand().deserialize(rewardDisplayName);
                         rewardItemMeta.displayName(rewardDisplayNameComponent);
                         rewardItemMeta.lore(lore);
@@ -174,13 +174,13 @@ public class PlaytimeRewardsGUI implements Listener {
         ItemStack newItem = new ItemStack(material);
         ItemMeta itemMeta = newItem.getItemMeta();
 
-        displayName = PlaceholderAPI.setPlaceholders(player, displayName);
+        displayName = plugin.setPP(displayName, player);
         itemMeta.displayName(LegacyComponentSerializer.legacyAmpersand().deserialize(displayName));
 
         if(rawLore != null){
             List<Component> lore = new ArrayList<>();
             for(String line : rawLore){
-                line = PlaceholderAPI.setPlaceholders(player, line);
+                line = plugin.setPP(line, player);
                 lore.add(LegacyComponentSerializer.legacyAmpersand().deserialize(line));
             }
             itemMeta.lore(lore);
@@ -225,14 +225,14 @@ public class PlaytimeRewardsGUI implements Listener {
                 ItemMeta rewardItemMeta = rewardItem.getItemMeta();
 
                 String displayName = config.getString("reward-system.rewards-item.display-name", "&e&lPlaytime Tournament Reward");
-                displayName = PlaceholderAPI.setPlaceholders(player, displayName);
+                displayName = plugin.setPP(displayName, player);
                 Component rewardDisplayNameComponent = LegacyComponentSerializer.legacyAmpersand().deserialize(displayName);
                 rewardItemMeta.displayName(rewardDisplayNameComponent);
 
                 List<String> rawLore = config.getStringList("reward-system.rewards-item.lore");
                 List<Component> lore = new ArrayList<>();
                 for(String line : rawLore){
-                    line = PlaceholderAPI.setPlaceholders(player, line);
+                    line = plugin.setPP(line, player);
                     Component coloredLine = LegacyComponentSerializer.legacyAmpersand().deserialize(line);
                     lore.add(coloredLine);
                 }
@@ -245,7 +245,7 @@ public class PlaytimeRewardsGUI implements Listener {
                 player.closeInventory();
                 if(!addItem.isEmpty()){
                     String noInvSpaceMessage = plugin.getConfig().getString("reward-system.no-inventory-space-message", "&cYou do not have enough inventory space to get your reward!");
-                    noInvSpaceMessage = PlaceholderAPI.setPlaceholders(player, noInvSpaceMessage);
+                    noInvSpaceMessage = plugin.setPP(noInvSpaceMessage, player);
                     Component noInvSpaceComponent = LegacyComponentSerializer.legacyAmpersand().deserialize(noInvSpaceMessage);
                     player.sendMessage(noInvSpaceComponent);
                     player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
@@ -254,7 +254,7 @@ public class PlaytimeRewardsGUI implements Listener {
                 }
                 else{
                     String rewardReceivedMessage = plugin.getConfig().getString("reward-system.reward-item-received-message", "&aYou have received your reward! &lClick &aor &lRight Click &ait to open.");
-                    rewardReceivedMessage = PlaceholderAPI.setPlaceholders(player, rewardReceivedMessage);
+                    rewardReceivedMessage = plugin.setPP(rewardReceivedMessage, player);
                     Component rewardReceivedComponent = LegacyComponentSerializer.legacyAmpersand().deserialize(rewardReceivedMessage);
                     player.sendMessage(rewardReceivedComponent);
                     player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1, 1.4f);

@@ -41,10 +41,10 @@ public class PlayerJoin implements Listener {
                 if(toggleFirstJoin){
                     Bukkit.getScheduler().runTask(plugin, () -> {
                         String title = ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("first-join.title", "&aWelcome to the server!"));
-                        title = PlaceholderAPI.setPlaceholders(player, title);
+                        title = plugin.setPP(title, player);
 
                         String subtitle = ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("first-join.subtitle", "&aEnjoy your stay!"));
-                        subtitle = PlaceholderAPI.setPlaceholders(player, subtitle);
+                        subtitle = plugin.setPP(subtitle, player);
 
                         player.sendTitle(title, subtitle);
 
@@ -83,7 +83,7 @@ public class PlayerJoin implements Listener {
 
                         //Adding the pages of the book
                         for(String rawPage : rawPages){
-                            rawPage = PlaceholderAPI.setPlaceholders(player, rawPage);
+                            rawPage = plugin.setPP(rawPage, player);
 
                             Component commandWord = Component.text("here")
                                     .clickEvent(ClickEvent.runCommand("/myplaytime rewards"))

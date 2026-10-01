@@ -1,6 +1,9 @@
 //Developed by _ItsAndrew_
 package me.itsandrew.playtimeUtils;
 
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
+
 import java.io.File;
 import java.sql.*;
 import java.util.*;
@@ -9,7 +12,7 @@ import java.util.concurrent.TimeUnit;
 //Main class for managing the database.
 public class DbManager {
     private final PlaytimeUtils plugin;
-    private Connection dbConnection;
+    private HikariDataSource dataSource;
 
     public DbManager(PlaytimeUtils plugin) {
         this.plugin = plugin;
@@ -18,6 +21,7 @@ public class DbManager {
     public boolean connectDb() throws SQLException {
         //Getting the type of database. By default, it is set to 'sqlite'
         String databaseType = plugin.getConfig().getString("database.type", "sqlite");
+        HikariConfig config = new HikariConfig();
 
         //Setting up the connection to the database.
         try{
@@ -26,8 +30,9 @@ public class DbManager {
                     String fileName = plugin.getConfig().getString("database.file-name", "database.db");
                     File dbFile = new File(plugin.getDataFolder(), fileName);
 
-                    String url = "jdbc:sqlite:" + dbFile.getAbsolutePath();
-                    dbConnection = DriverManager.getConnection(url);
+                    config.setDriverClassName("org.sqlite.JDBC");
+                    config.setJdbcUrl("jdbc:sqlite:" + dbFile.getAbsolutePath());
+                    config.setMaximumPoolSize(1);
                 }
 
                 case "mysql" -> {
@@ -38,9 +43,18 @@ public class DbManager {
                     String username = plugin.getConfig().getString("database-system.username");
                     String password = plugin.getConfig().getString("database-system.password");
 
-                    String url = "jdbc:mysql://" + host + ":" + port + "/" + database +
-                            "?useSSL=false&autoReconnect=true&characterEncoding=utf8";
-                    dbConnection = DriverManager.getConnection(url, username, password);
+                    config.setDriverClassName("com.mysql.cj.jdbc.Driver");
+                    config.setJdbcUrl("jdbc:mysql://" + host + ":" + port + "/" + database +
+                            "?useSSL=false&allowPublicKeyRetrieval=true");
+                    config.setUsername(username);
+                    config.setPassword(password);
+
+                    config.setMaximumPoolSize(10);
+                    config.setMinimumIdle(2);
+
+                    config.addDataSourceProperty("cachePrepStmts", "true");
+                    config.addDataSourceProperty("prepStmtCacheSize", "250");
+                    config.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
                 }
 
                 default -> {
@@ -48,7 +62,12 @@ public class DbManager {
                     return false;
                 }
             }
-            if(dbConnection == null) return false;
+
+            config.setPoolName("DiscordUtils Pool");
+            config.setConnectionTimeout(10000);
+            config.setMaxLifetime(1800000); //30 Minutes Max Lifetime for a connection
+
+            this.dataSource = new HikariDataSource(config);
         } catch (Exception e){
             plugin.getLogger().severe("[PlaytimeUtils] Failed to connect to the database. See message below for more details: ");
             plugin.getLogger().severe("[PlaytimeUtils] " + e.getMessage());
@@ -63,7 +82,7 @@ public class DbManager {
                     tournamentPlaytime INTEGER
                 )
                 """;
-        try(PreparedStatement statement = dbConnection.prepareStatement(playtimeTable)) {
+        try(Connection connection = dataSource.getConnection(); PreparedStatement statement = connection.prepareStatement(playtimeTable)) {
             statement.executeUpdate();
         }
 
@@ -75,7 +94,7 @@ public class DbManager {
                     tournamentEnd BIGINT
                 )
                 """;
-        try(PreparedStatement statement = dbConnection.prepareStatement(tournamentTimestampsTable)){
+        try(Connection connection = dataSource.getConnection(); PreparedStatement statement = connection.prepareStatement(tournamentTimestampsTable)){
             statement.executeUpdate();
         }
 
@@ -87,7 +106,7 @@ public class DbManager {
                     amount INTEGER
                 )
                 """;
-        try(PreparedStatement statement = dbConnection.prepareStatement(pendingRewardsTable)){
+        try(Connection connection = dataSource.getConnection(); PreparedStatement statement = connection.prepareStatement(pendingRewardsTable)){
             statement.executeUpdate();
             return true;
         }
@@ -119,7 +138,7 @@ public class DbManager {
 
     public int getMainPlaytime(UUID playerUUID){
         String statement = "SELECT mainPlaytime FROM playersPlaytime WHERE uuid = ?";
-        try(PreparedStatement ps = dbConnection.prepareStatement(statement)){
+        try(Connection connection = dataSource.getConnection(); PreparedStatement ps = connection.prepareStatement(statement)){
             ps.setString(1, playerUUID.toString());
             try(ResultSet rs = ps.executeQuery()){
                 if(rs.next()){
@@ -138,7 +157,7 @@ public class DbManager {
 
         //Getting the map in seconds
         String statement = "SELECT mainPlaytime, uuid FROM playersPlaytime ORDER BY mainPlaytime DESC LIMIT 3";
-        try(PreparedStatement ps = dbConnection.prepareStatement(statement)){
+        try(Connection connection = dataSource.getConnection(); PreparedStatement ps = connection.prepareStatement(statement)){
             try(ResultSet rs = ps.executeQuery()){
                 while(rs.next()){
                     UUID playerUUID = UUID.fromString(rs.getString("uuid"));
@@ -163,7 +182,7 @@ public class DbManager {
         Map<UUID, Integer> top3PlayersSeconds = new HashMap<>();
 
         String statement = "SELECT tournamentPlaytime, uuid FROM playersPlaytime ORDER BY tournamentPlaytime DESC LIMIT 3";
-        try(PreparedStatement ps = dbConnection.prepareStatement(statement)){
+        try(Connection connection = dataSource.getConnection(); PreparedStatement ps = connection.prepareStatement(statement)){
             try(ResultSet rs = ps.executeQuery()){
                 while(rs.next()){
                     UUID playerUUID = UUID.fromString(rs.getString("uuid"));
@@ -185,7 +204,7 @@ public class DbManager {
 
     public boolean isPlayerRegistered(UUID playerUUID){
         String statement = "SELECT 1 FROM playersPlaytime WHERE uuid = ?";
-        try(PreparedStatement ps = dbConnection.prepareStatement(statement)){
+        try(Connection connection = dataSource.getConnection(); PreparedStatement ps = connection.prepareStatement(statement)){
             ps.setString(1, playerUUID.toString());
             try(ResultSet rs = ps.executeQuery()){
                 return rs.next();
@@ -199,7 +218,7 @@ public class DbManager {
 
     public void createPlayerRow(UUID playerUUID){
         String statement = "INSERT INTO playersPlaytime (uuid, mainPlaytime, tournamentPlaytime) VALUES (?, ?, ?)";
-        try(PreparedStatement ps = dbConnection.prepareStatement(statement)){
+        try(Connection connection = dataSource.getConnection(); PreparedStatement ps = connection.prepareStatement(statement)){
             ps.setString(1, playerUUID.toString());
             ps.setInt(2, 0);
             ps.setInt(3, 0);
@@ -211,7 +230,7 @@ public class DbManager {
 
     public int getTournamentPlaytime(UUID playerUUID){
         String SQL = "SELECT tournamentPlaytime FROM playersPlaytime WHERE uuid = ?";
-        try(PreparedStatement ps = dbConnection.prepareStatement(SQL)){
+        try(Connection connection = dataSource.getConnection(); PreparedStatement ps = connection.prepareStatement(SQL)){
             ps.setString(1, playerUUID.toString());
             try(ResultSet rs = ps.executeQuery()){
                 if(rs.next()){
@@ -249,7 +268,7 @@ public class DbManager {
 
     public void wipeTournamentPlaytime(){
         String SQL = "UPDATE playersPlaytime SET tournamentPlaytime = 0";
-        try(PreparedStatement ps = dbConnection.prepareStatement(SQL)){
+        try(Connection connection = dataSource.getConnection(); PreparedStatement ps = connection.prepareStatement(SQL)){
             ps.executeUpdate();
         } catch (SQLException e) {
             plugin.getLogger().severe("[PlaytimeUtils] Failed to wipe tournament playtime: " + e.getMessage());
@@ -258,7 +277,7 @@ public class DbManager {
 
     public void updatePlayerMainPlaytime(UUID playerUUID, int seconds){
         String statement = "UPDATE playersPlaytime SET mainPlaytime = ? WHERE uuid = ?";
-        try(PreparedStatement ps = dbConnection.prepareStatement(statement)){
+        try(Connection connection = dataSource.getConnection(); PreparedStatement ps = connection.prepareStatement(statement)){
             ps.setInt(1, seconds + getMainPlaytime(playerUUID));
             ps.setString(2, playerUUID.toString());
 
@@ -270,7 +289,7 @@ public class DbManager {
 
     public void updatePlayerTournamentPlaytime(UUID playerUUID, int seconds){
         String statement = "UPDATE playersPlaytime SET tournamentPlaytime = ? WHERE uuid = ?";
-        try(PreparedStatement ps = dbConnection.prepareStatement(statement)){
+        try(Connection connection = dataSource.getConnection(); PreparedStatement ps = connection.prepareStatement(statement)){
             ps.setInt(1, seconds + getTournamentPlaytime(playerUUID));
             ps.setString(2, playerUUID.toString());
 
@@ -282,7 +301,7 @@ public class DbManager {
 
     public void setTournamentTimestamps(long tournamentStart, long duration, long tournamentEnd){
         String statement = "INSERT INTO tournamentTimestamps (tournamentStart, duration, tournamentEnd) VALUES (?, ?, ?)";
-        try(PreparedStatement ps = dbConnection.prepareStatement(statement)){
+        try(Connection connection = dataSource.getConnection(); PreparedStatement ps = connection.prepareStatement(statement)){
             ps.setLong(1, tournamentStart);
             ps.setLong(2, duration);
             ps.setLong(3, tournamentEnd);
@@ -295,7 +314,7 @@ public class DbManager {
     }
     public void deleteTournamentTimestamps(){
         String statement = "DELETE FROM tournamentTimestamps";
-        try(PreparedStatement ps = dbConnection.prepareStatement(statement)){
+        try(Connection connection = dataSource.getConnection(); PreparedStatement ps = connection.prepareStatement(statement)){
             ps.executeUpdate();
         } catch (SQLException e) {
             plugin.getLogger().severe("[PlaytimeUtils] Failed to delete tournament timestamps: " + e.getMessage());
@@ -303,7 +322,7 @@ public class DbManager {
     }
     public long getTournamentTimestamp(String option){
         String statement = "SELECT " + option + " FROM tournamentTimestampsTable";
-        try(PreparedStatement ps = dbConnection.prepareStatement(statement)){
+        try(Connection connection = dataSource.getConnection(); PreparedStatement ps = connection.prepareStatement(statement)){
             try(ResultSet rs = ps.executeQuery()){
                 if(rs.next()){
                     return rs.getLong(option);
@@ -317,7 +336,7 @@ public class DbManager {
 
     public int getPendingRewardAmount(UUID playerUUID, int placement){
         String statement = "SELECT amount FROM pendingRewards WHERE uuid = ? AND placement = ?";
-        try(PreparedStatement ps = dbConnection.prepareStatement(statement)){
+        try(Connection connection = dataSource.getConnection(); PreparedStatement ps = connection.prepareStatement(statement)){
             ps.setString(1, playerUUID.toString());
             ps.setInt(2, placement);
             try(ResultSet rs = ps.executeQuery()){
@@ -335,7 +354,7 @@ public class DbManager {
 
         if(pendingAmount == 0){
             String statement = "INSERT INTO pendingRewards (uuid, placement, amount) VALUES (?, ?, ?)";
-            try(PreparedStatement ps = dbConnection.prepareStatement(statement)){
+            try(Connection connection = dataSource.getConnection(); PreparedStatement ps = connection.prepareStatement(statement)){
                 ps.setString(1, playerUUID.toString());
                 ps.setInt(2, placement);
                 ps.setInt(3, 1);
@@ -346,7 +365,7 @@ public class DbManager {
         }
         else{
             String statement = "UPDATE pendingRewards SET amount = ? WHERE uuid = ? AND placement = ?";
-            try(PreparedStatement ps = dbConnection.prepareStatement(statement)){
+            try(Connection connection = dataSource.getConnection(); PreparedStatement ps = connection.prepareStatement(statement)){
                 ps.setInt(1, pendingAmount + 1);
                 ps.setString(2, playerUUID.toString());
                 ps.setInt(3, placement);
@@ -361,7 +380,7 @@ public class DbManager {
 
         if(pendingAmount == 1){
             String statement = "DELETE FROM pendingRewards WHERE uuid = ? AND placement = ?";
-            try(PreparedStatement ps = dbConnection.prepareStatement(statement)){
+            try(Connection connection = dataSource.getConnection(); PreparedStatement ps = connection.prepareStatement(statement)){
                 ps.setString(1, playerUUID.toString());
                 ps.setInt(2, placement);
                 ps.executeUpdate();
@@ -371,7 +390,7 @@ public class DbManager {
         }
         else{
             String statement = "UPDATE pendingRewards SET amount = ? WHERE uuid = ? AND placement = ?";
-            try(PreparedStatement ps = dbConnection.prepareStatement(statement)){
+            try(Connection connection = dataSource.getConnection(); PreparedStatement ps = connection.prepareStatement(statement)){
                 ps.setInt(1, pendingAmount - 1);
                 ps.setString(2, playerUUID.toString());
                 ps.setInt(3, placement);

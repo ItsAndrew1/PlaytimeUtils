@@ -73,28 +73,6 @@ public final class PlaytimeUtils extends JavaPlugin implements Listener {
         givingRewardsSystem = new GivingRewards(this);
         playtimeRewardsGUI = new PlaytimeRewardsGUI(this);
 
-        //Registering commands and the TABs.
-        getCommand("myplaytime").setExecutor(new CommandManager(this));
-        getCommand("playtime").setExecutor(new CommandManager(this));
-        getCommand("topplaytime").setExecutor(new CommandManager(this));
-        getCommand("ptutils").setExecutor(new CommandManager(this));
-
-        getCommand("myplaytime").setTabCompleter(new CommandTABs());
-        getCommand("ptutils").setTabCompleter(new CommandTABs());
-        getCommand("topplaytime").setTabCompleter(new CommandTABs());
-        getCommand("playtime").setTabCompleter(new CommandTABs());
-
-        //Registering events.
-        getServer().getPluginManager().registerEvents(new PlayerJoin(this), this);
-        getServer().getPluginManager().registerEvents(this, this);
-        getServer().getPluginManager().registerEvents(itemsOrExpGUI, this);
-        getServer().getPluginManager().registerEvents(choosePlaceGUI, this);
-        getServer().getPluginManager().registerEvents(addRewardsGUI, this);
-        getServer().getPluginManager().registerEvents(removeRewardsGUIs, this);
-        getServer().getPluginManager().registerEvents(playtimeRewardsGUI, this);
-        getServer().getPluginManager().registerEvents(givingRewardsSystem, this);
-        getServer().getPluginManager().registerEvents(playerChatCheck, this);
-
         //Connecting the database
         try{
             if(!databaseManager.connectDb()){
@@ -136,7 +114,7 @@ public final class PlaytimeUtils extends JavaPlugin implements Listener {
                 //Checking if the player is now AFK (4 secs)
                 if(isPlayerAFK(player.getUniqueId())){
                     String chatMessage = getConfig().getString("messages.player-afk", "&7You are now AFK!");
-                    chatMessage = PlaceholderAPI.setPlaceholders(player, chatMessage);
+                    chatMessage = setPP(chatMessage, player);
                     player.sendMessage(ChatColor.translateAlternateColorCodes('&', chatMessage));
 
                     //Putting the player in an "AFK" group (if luckperms is enabled)
@@ -255,6 +233,28 @@ public final class PlaytimeUtils extends JavaPlugin implements Listener {
             long endTime = getDatabaseManager().getTournamentTimestamp("tournamentEnd");
             getPlaceholdersManager().setCachedTournamentDuration(formatTime(endTime - System.currentTimeMillis()));
         }, 0, 100);
+
+        //Registering commands and the TABs.
+        getCommand("myplaytime").setExecutor(new CommandManager(this));
+        getCommand("playtime").setExecutor(new CommandManager(this));
+        getCommand("topplaytime").setExecutor(new CommandManager(this));
+        getCommand("ptutils").setExecutor(new CommandManager(this));
+
+        getCommand("myplaytime").setTabCompleter(new CommandTABs());
+        getCommand("ptutils").setTabCompleter(new CommandTABs());
+        getCommand("topplaytime").setTabCompleter(new CommandTABs());
+        getCommand("playtime").setTabCompleter(new CommandTABs());
+
+        //Registering events.
+        getServer().getPluginManager().registerEvents(new PlayerJoin(this), this);
+        getServer().getPluginManager().registerEvents(this, this);
+        getServer().getPluginManager().registerEvents(itemsOrExpGUI, this);
+        getServer().getPluginManager().registerEvents(choosePlaceGUI, this);
+        getServer().getPluginManager().registerEvents(addRewardsGUI, this);
+        getServer().getPluginManager().registerEvents(removeRewardsGUIs, this);
+        getServer().getPluginManager().registerEvents(playtimeRewardsGUI, this);
+        getServer().getPluginManager().registerEvents(givingRewardsSystem, this);
+        getServer().getPluginManager().registerEvents(playerChatCheck, this);
     }
 
     private void removeAfkPrefixNodeFromPlayer(Player player){
@@ -295,7 +295,7 @@ public final class PlaytimeUtils extends JavaPlugin implements Listener {
             //Checking if the player is already AFK
             if(isPlayerAFK(event.getPlayer().getUniqueId())){
                 String message = getConfig().getString("messages.player-no-more-afk", "&7You are not AFK anymore.");
-                message = PlaceholderAPI.setPlaceholders(event.getPlayer(), message);
+                message = setPP(message, event.getPlayer());
                 event.getPlayer().sendMessage(ChatColor.translateAlternateColorCodes('&', message));
 
                 afkMap.remove(event.getPlayer().getUniqueId());
@@ -393,6 +393,12 @@ public final class PlaytimeUtils extends JavaPlugin implements Listener {
         if(sb.isEmpty()) sb.append(seconds).append("s");
 
         return sb.toString().trim();
+    }
+
+    public String setPP(String message, OfflinePlayer player){
+        if(!Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")) return message;
+
+        return PlaceholderAPI.setPlaceholders(player, message);
     }
 
     //Getters
