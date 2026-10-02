@@ -33,6 +33,10 @@ public class DbManager {
                     config.setDriverClassName("org.sqlite.JDBC");
                     config.setJdbcUrl("jdbc:sqlite:" + dbFile.getAbsolutePath());
                     config.setMaximumPoolSize(1);
+
+                    config.addDataSourceProperty("busy_timeout", 10000);
+                    config.addDataSourceProperty("journal_mode", "WAL");
+                    config.addDataSourceProperty("sync_mode", "NORMAL");
                 }
 
                 case "mysql" -> {
@@ -63,7 +67,7 @@ public class DbManager {
                 }
             }
 
-            config.setPoolName("DiscordUtils Pool");
+            config.setPoolName("PlaytimeUtils Pool");
             config.setConnectionTimeout(10000);
             config.setMaxLifetime(1800000); //30 Minutes Max Lifetime for a connection
 
@@ -276,9 +280,9 @@ public class DbManager {
     }
 
     public void updatePlayerMainPlaytime(UUID playerUUID, int seconds){
-        String statement = "UPDATE playersPlaytime SET mainPlaytime = ? WHERE uuid = ?";
+        String statement = "UPDATE playersPlaytime SET mainPlaytime = mainPlaytime + ? WHERE uuid = ?";
         try(Connection connection = dataSource.getConnection(); PreparedStatement ps = connection.prepareStatement(statement)){
-            ps.setInt(1, seconds + getMainPlaytime(playerUUID));
+            ps.setInt(1, seconds);
             ps.setString(2, playerUUID.toString());
 
             ps.executeUpdate();
@@ -288,9 +292,9 @@ public class DbManager {
     }
 
     public void updatePlayerTournamentPlaytime(UUID playerUUID, int seconds){
-        String statement = "UPDATE playersPlaytime SET tournamentPlaytime = ? WHERE uuid = ?";
+        String statement = "UPDATE playersPlaytime SET tournamentPlaytime = tournamentPlaytime + ? WHERE uuid = ?";
         try(Connection connection = dataSource.getConnection(); PreparedStatement ps = connection.prepareStatement(statement)){
-            ps.setInt(1, seconds + getTournamentPlaytime(playerUUID));
+            ps.setInt(1, seconds);
             ps.setString(2, playerUUID.toString());
 
             ps.executeUpdate();
@@ -300,7 +304,7 @@ public class DbManager {
     }
 
     public void setTournamentTimestamps(long tournamentStart, long duration, long tournamentEnd){
-        String statement = "INSERT INTO tournamentTimestamps (tournamentStart, duration, tournamentEnd) VALUES (?, ?, ?)";
+        String statement = "INSERT INTO tournamentTimestampsTable (tournamentStart, duration, tournamentEnd) VALUES (?, ?, ?)";
         try(Connection connection = dataSource.getConnection(); PreparedStatement ps = connection.prepareStatement(statement)){
             ps.setLong(1, tournamentStart);
             ps.setLong(2, duration);
@@ -313,7 +317,7 @@ public class DbManager {
         }
     }
     public void deleteTournamentTimestamps(){
-        String statement = "DELETE FROM tournamentTimestamps";
+        String statement = "DELETE FROM tournamentTimestampsTable";
         try(Connection connection = dataSource.getConnection(); PreparedStatement ps = connection.prepareStatement(statement)){
             ps.executeUpdate();
         } catch (SQLException e) {

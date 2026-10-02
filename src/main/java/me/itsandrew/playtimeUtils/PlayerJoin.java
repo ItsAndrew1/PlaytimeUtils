@@ -33,6 +33,7 @@ public class PlayerJoin implements Listener {
         plugin.getMainPlaytimeMap().put(player.getUniqueId(), 0);
 
         boolean toggleFirstJoin = plugin.getConfig().getBoolean("first-join.toggle", true);
+        boolean toggleRewardSystem = plugin.getConfig().getBoolean("reward-system.toggle", false);
         Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
             //Checking if the player is registered or not in the db
             if(!plugin.getDatabaseManager().isPlayerRegistered(player.getUniqueId())){
@@ -58,17 +59,13 @@ public class PlayerJoin implements Listener {
 
             long duration = plugin.getDatabaseManager().getTournamentTimestamp("duration");
             if(duration != 0) plugin.getTournamentPlaytimeMap().put(player.getUniqueId(), 0);
-        });
 
-        //Opening the pending reward book if the player has any pending rewards
-        boolean toggleRewardSystem = plugin.getConfig().getBoolean("reward-system.toggle", false);
-        if(toggleRewardSystem){
-            Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+            if(toggleRewardSystem){
                 int pendingFirstPlace = plugin.getDatabaseManager().getPendingRewardAmount(player.getUniqueId(), 1);
                 int pendingSecondPlace = plugin.getDatabaseManager().getPendingRewardAmount(player.getUniqueId(), 2);
                 int pendingThirdPlace = plugin.getDatabaseManager().getPendingRewardAmount(player.getUniqueId(), 3);
 
-                if(pendingFirstPlace != 0 || pendingSecondPlace != 0 || pendingThirdPlace != 0){
+                if(pendingFirstPlace != 0 || pendingSecondPlace != 0 || pendingThirdPlace != 0) {
                     //Opens the book
                     Bukkit.getScheduler().runTask(plugin, () -> {
                         String title = plugin.getConfig().getString("reward-system.pending-reward-book.title");
@@ -76,13 +73,13 @@ public class PlayerJoin implements Listener {
                         List<Component> pages = new ArrayList<>();
                         List<String> rawPages = plugin.getConfig().getStringList("reward-system.pending-reward-book.pages");
 
-                        if(title == null || author == null){
+                        if (title == null || author == null) {
                             plugin.getLogger().severe("[PlaytimeUtils] The pending reward book is missing a required parameter! Set the book again using '/ptutils rewards tournament setbook'");
                             return;
                         }
 
                         //Adding the pages of the book
-                        for(String rawPage : rawPages){
+                        for (String rawPage : rawPages) {
                             rawPage = plugin.setPP(rawPage, player);
 
                             Component commandWord = Component.text("here")
@@ -98,7 +95,7 @@ public class PlayerJoin implements Listener {
                         player.openBook(finalBook);
                     });
                 }
-            });
-        }
+            }
+        });
     }
 }
