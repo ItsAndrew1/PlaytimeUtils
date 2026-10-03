@@ -17,11 +17,11 @@ database:
 messages:
   no-permission: "&cYou don't have permission to do that!"
   my-playtime:
-    main: "&aYour playtime is &e&l%playtime_mainValue%&a!" #Use %playtime_mainValue% to display the main playtime
-    tournament: "&aYour current playtime in the tournament is &e&l%playtime_tournamentValue%&a!" #Use %playtime_tournamentValue% to display the tournament playtime
+    main: "&aYour playtime is: &e&l%playtime_mainValue%" #Use %playtime_mainValue% to display the main playtime
+    tournament: "&aYour current playtime in the tournament is: &e&l%playtime_tournamentValue%" #Use %playtime_tournamentValue% to display the tournament playtime
   player-playtime:
-    main: "&a%player%'s playtime is &e&l%playtime_mainValue%&a!" #Use %player% to display the player's name and %playtime_mainValue% to display their main playtime'
-    tournament: "&a%player%'s playtime is &e&l%playtime_tournamentValue%&a!" #Use %player% to display the player's name and %playtime_tournamentValue% to display their tournament playtime'
+    main: "&a%player%'s playtime is: &e&l%playtime_mainValue%" #Use %player% to display the player's name and %playtime_mainValue% to display their main playtime'
+    tournament: "&a%player%'s playtime is: &e&l%playtime_tournamentValue%" #Use %player% to display the player's name and %playtime_tournamentValue% to display their tournament playtime'
   player-afk: "&7You are now AFK!"
   player-no-more-afk: "&7You are not AFK anymore."
 

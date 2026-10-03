@@ -49,7 +49,7 @@ public class CommandManager implements CommandExecutor {
                         //Checking if the player has permission to use the command
                         if(!player.hasPermission("playtimeutils.myplaytime.main")) noPermission(player);
 
-                        String message = plugin.getConfig().getString("messages.my-playtime.main", "&aYour playtime is &e&l%playtime_mainValue%&a!");
+                        String message = plugin.getConfig().getString("messages.my-playtime.main", "&aYour playtime is: &e&l%playtime_mainValue%");
                         message = plugin.setPP(message, player);
                         Component playtimeMessage = LegacyComponentSerializer.legacyAmpersand().deserialize(message);
                         player.sendMessage(playtimeMessage);
@@ -68,7 +68,7 @@ public class CommandManager implements CommandExecutor {
                                     player.sendMessage(LegacyComponentSerializer.legacyAmpersand().deserialize("&cThe Playtime Tournament is not active yet! Be on the lookout for &ethe next one&c!"));
                                     player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
                                 } else {
-                                    String message = plugin.getConfig().getString("messages.my-playtime.tournament", "&aYour tournament playtime is &e&l%playtime_tournamentValue%&a!");
+                                    String message = plugin.getConfig().getString("messages.my-playtime.tournament", "&aYour tournament playtime is: &e&l%playtime_tournamentValue%");
                                     message = plugin.setPP(message, player);
                                     Component playtimeMessage = LegacyComponentSerializer.legacyAmpersand().deserialize(message);
                                     player.sendMessage(playtimeMessage);
@@ -116,8 +116,8 @@ public class CommandManager implements CommandExecutor {
                         //Checking if the player has permission to run the command
                         if(!player.hasPermission("playtimeutils.playtime.main")) noPermission(player);
 
-                        String message = plugin.getConfig().getString("messages.player-playtime.main", "&e%player%'s playtime is &e&l%playtime_mainValue%&a!");
-                        message = plugin.setPP(message, player);
+                        String message = plugin.getConfig().getString("messages.player-playtime.main", "&e%player%'s playtime is: &e&l%playtime_mainValue%");
+                        message = plugin.setPP(message, targetPlayer);
                         message = message.replace("%player%", targetPlayer.getName());
                         Component playtimeMessage = LegacyComponentSerializer.legacyAmpersand().deserialize(message);
                         player.sendMessage(playtimeMessage);
@@ -139,8 +139,8 @@ public class CommandManager implements CommandExecutor {
                                     return;
                                 }
 
-                                String message = plugin.getConfig().getString("messages.player-playtime.tournament", "&e%player%'s tournament playtime is &e&l%playtime_tournamentValue%&a!");
-                                message = plugin.setPP(message, player);
+                                String message = plugin.getConfig().getString("messages.player-playtime.tournament", "&e%player%'s tournament playtime is: &e&l%playtime_tournamentValue%");
+                                message = plugin.setPP(message, targetPlayer);
                                 message = message.replace("%player%", targetPlayer.getName());
                                 Component playtimeMessage = LegacyComponentSerializer.legacyAmpersand().deserialize(message);
                                 player.sendMessage(playtimeMessage);

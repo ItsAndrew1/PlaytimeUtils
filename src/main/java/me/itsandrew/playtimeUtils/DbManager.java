@@ -126,16 +126,14 @@ public class DbManager {
         //Building the string
         StringBuilder time = new StringBuilder();
         long days = TimeUnit.SECONDS.toDays(seconds);
-        long hours = TimeUnit.SECONDS.toHours(seconds);
-        long minutes = TimeUnit.SECONDS.toMinutes(seconds);
+        long hours = TimeUnit.SECONDS.toHours(seconds) % 24;
+        long minutes = TimeUnit.SECONDS.toMinutes(seconds) % 60;
+        long secs = seconds % 60;
 
         if (days > 0) time.append(days).append("d ");
         if (hours > 0) time.append(hours).append("h ");
-
-        if(minutes > 0 && seconds > 60) time.append(minutes).append("m");
-        else if (minutes > 0) time.append(minutes).append("m ");
-
-        if(seconds < 60) time.append(seconds).append("s");
+        if(minutes > 0) time.append(minutes).append("m ");
+        if(secs > 0 && time.isEmpty()) time.append(seconds).append("s");
 
         return time.toString();
     }
