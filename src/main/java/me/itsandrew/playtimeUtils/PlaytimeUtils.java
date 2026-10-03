@@ -22,6 +22,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.player.PlayerToggleSneakEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -288,24 +289,33 @@ public final class PlaytimeUtils extends JavaPlugin implements Listener {
         return System.currentTimeMillis() - lastActivity.get(playerUUID) > afkSeconds * 1000L;
     }
 
+    //Events for checking if the player is AFK
     @EventHandler
     public void onPlayerMove(PlayerMoveEvent event){
-        //Checking if the player moves (with WASD SPACE etc.).
-        if(event.getFrom().toVector().distanceSquared(event.getTo().toVector()) > 0.03){
-            //Checking if the player is already AFK
-            if(isPlayerAFK(event.getPlayer().getUniqueId())){
-                String message = getConfig().getString("messages.player-no-more-afk", "&7You are not AFK anymore.");
-                message = setPP(message, event.getPlayer());
-                event.getPlayer().sendMessage(ChatColor.translateAlternateColorCodes('&', message));
+        if(event.getFrom().getX() == event.getTo().getX() &&
+           event.getFrom().getY() == event.getTo().getY() &&
+           event.getFrom().getZ() == event.getTo().getZ() &&
+           event.getFrom().getYaw() == event.getTo().getYaw() &&
+           event.getFrom().getPitch() == event.getTo().getPitch()) return;
 
-                afkMap.remove(event.getPlayer().getUniqueId());
+        Player player = event.getPlayer();
+        //Checking if the player is already AFK
+        if(isPlayerAFK(event.getPlayer().getUniqueId())){
+            String message = getConfig().getString("messages.player-no-more-afk", "&7You are not AFK anymore.");
+            message = setPP(message, event.getPlayer());
+            event.getPlayer().sendMessage(ChatColor.translateAlternateColorCodes('&', message));
 
-                //Removing the AFK group from the player
-                removeAfkPrefixNodeFromPlayer(event.getPlayer());
-            }
+            afkMap.remove(event.getPlayer().getUniqueId());
 
-            lastActivity.put(event.getPlayer().getUniqueId(), System.currentTimeMillis());
+            //Removing the AFK group from the player
+            removeAfkPrefixNodeFromPlayer(event.getPlayer());
         }
+
+        lastActivity.put(player.getUniqueId(), System.currentTimeMillis());
+    }
+    @EventHandler
+    public void onSneak(PlayerToggleSneakEvent event){
+        lastActivity.put(event.getPlayer().getUniqueId(), System.currentTimeMillis());
     }
 
     //Building the functions to handle chat input from the player when needed.
