@@ -80,9 +80,9 @@ needed-playtime-sound: entity.enderman.teleport
 nps-volume: 1
 nps-pitch: 1
 
-#Configure the Reward System. This will be like a mini-tournament system.
+#Configure the Tournaments System.
 reward-system:
-  toggle: false #If you want to use Rewards or not.
+  toggle: false #If you want to use Tournaments or not.
 
   #Set the timer for the tournament. (In DAYS)
   tournament-timer: 7 #As you can see, by default it is set to 7 days/1 week.

@@ -44,7 +44,7 @@ public class ItemsOrExpGUI implements Listener {
             lore.add(Component.text(" "));
 
             String line = "Click to ";
-            line += plugin.getStaffStates().get(player).choice == AddRemoveChoice.ADD ? "add" : "remove";
+            line += plugin.getStaffStates().get(player.getUniqueId()).choice == AddRemoveChoice.ADD ? "add" : "remove";
             line += " items to the reward pool.";
             lore.add(LegacyComponentSerializer.legacyAmpersand().deserialize("&7" + line));
 
@@ -63,7 +63,7 @@ public class ItemsOrExpGUI implements Listener {
             lore.add(Component.text(" "));
 
             String line = "Click to ";
-            line += plugin.getStaffStates().get(player).choice == AddRemoveChoice.ADD ? "add" : "remove";
+            line += plugin.getStaffStates().get(player.getUniqueId()).choice == AddRemoveChoice.ADD ? "add" : "remove";
             line += " experience levels to the reward pool.";
             lore.add(LegacyComponentSerializer.legacyAmpersand().deserialize("&7" + line));
 
@@ -95,7 +95,7 @@ public class ItemsOrExpGUI implements Listener {
             InventoryView currentView = player.getOpenInventory();
             Component title = currentView.title();
 
-            if(!title.equals(Component.text("Choose The Placement"))) plugin.getStaffStates().remove(player);
+            if(!title.equals(Component.text("Choose The Placement"))) plugin.getStaffStates().remove(player.getUniqueId());
         }, 1);
     }
 
@@ -109,7 +109,7 @@ public class ItemsOrExpGUI implements Listener {
         if(clickedItem == null || clickedItem.getType().equals(Material.BLACK_STAINED_GLASS_PANE)) return;
 
         //Getting the player and it's StaffState
-        StaffState playerStaffState = plugin.getStaffStates().get(player);
+        StaffState playerStaffState = plugin.getStaffStates().get(player.getUniqueId());
 
         Material clickedMat = clickedItem.getType();
         switch (clickedMat){

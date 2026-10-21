@@ -27,10 +27,7 @@ public class PlayerJoin implements Listener {
     @EventHandler
     public void playerJoin(PlayerJoinEvent event){
         Player player = event.getPlayer();
-
-        //Putting the player in the maps
         plugin.getLastActivity().put(player.getUniqueId(), System.currentTimeMillis());
-        plugin.getMainPlaytimeMap().put(player.getUniqueId(), 0);
 
         boolean toggleFirstJoin = plugin.getConfig().getBoolean("first-join.toggle", true);
         boolean toggleRewardSystem = plugin.getConfig().getBoolean("reward-system.toggle", false);
@@ -57,8 +54,11 @@ public class PlayerJoin implements Listener {
                 }
             }
 
-            long duration = plugin.getDatabaseManager().getTournamentTimestamp("duration");
-            if(duration != 0) plugin.getTournamentPlaytimeMap().put(player.getUniqueId(), 0);
+            //Putting the player in the maps
+            plugin.getMainPlaytimeMap().put(player.getUniqueId(), 0);
+
+            long tournamentDuration = plugin.getDatabaseManager().getTournamentTimestamp("duration");
+            if(tournamentDuration != 0) plugin.getTournamentPlaytimeMap().put(player.getUniqueId(), 0);
 
             if(toggleRewardSystem){
                 int pendingFirstPlace = plugin.getDatabaseManager().getPendingRewardAmount(player.getUniqueId(), 1);

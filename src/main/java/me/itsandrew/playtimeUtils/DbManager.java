@@ -112,16 +112,75 @@ public class DbManager {
                 """;
         try(Connection connection = dataSource.getConnection(); PreparedStatement statement = connection.prepareStatement(pendingRewardsTable)){
             statement.executeUpdate();
+        }
+
+        //Creating the placeholders cache (for main and tournament playtime)
+        String placeholdersCacheTable = """
+                CREATE TABLE IF NOT EXISTS placeholdersCache (
+                    uuid TEXT PRIMARY KEY,
+                    mainPlaytime TEXT,
+                    tournamentPlaytime TEXT
+                )
+                """;
+        try(Connection connection = dataSource.getConnection(); PreparedStatement statement = connection.prepareStatement(placeholdersCacheTable)){
+            statement.executeUpdate();
             return true;
         }
     }
 
-    public String getMainPlaytimeString(UUID playerUUID){
-        //Getting the playtime of the player from the db
-        long seconds = getMainPlaytime(playerUUID);
+    public String getMainPlaytimePlaceholder(UUID playerUUID){
+        String sql = "SELECT mainPlaytime FROM placeholdersCache WHERE uuid = ?";
+        try(Connection connection = dataSource.getConnection(); PreparedStatement ps = connection.prepareStatement(sql)){
+            ps.setString(1, playerUUID.toString());
+            try(ResultSet rs = ps.executeQuery()){
+                if(rs.next()) return rs.getString("mainPlaytime");
+            }
+        } catch (Exception e){
+            plugin.getLogger().severe("Couldn't fetch the main playtime placeholder. See message: "+e.getMessage());
+        }
 
-        //Also adding the seconds from the playtime map
-        seconds += plugin.getMainPlaytimeMap().getOrDefault(playerUUID, 0);
+        return "0s";
+    }
+
+    public String getTournamentPlaytimePlaceholder(UUID playerUUID){
+        String sql = "SELECT tournamentPlaytime FROM placeholdersCache WHERE uuid = ?";
+        try(Connection connection = dataSource.getConnection(); PreparedStatement ps = connection.prepareStatement(sql)){
+            ps.setString(1, playerUUID.toString());
+            try(ResultSet rs = ps.executeQuery()){
+                if(rs.next()) return rs.getString("tournamentPlaytime");
+            }
+        } catch (Exception e){
+            plugin.getLogger().severe("Couldn't fetch the tournament playtime placeholder. See message: "+e.getMessage());
+        }
+
+        return "0s";
+    }
+
+    public void addPlaytimePlaceholder(UUID playerUUID, String mainPlaytime, String tournamentPlaytime){
+        String sql = "INSERT INTO placeholdersCache VALUES (?, ?, ?)";
+        try(Connection connection = dataSource.getConnection(); PreparedStatement ps = connection.prepareStatement(sql)){
+            ps.setString(1, playerUUID.toString());
+            ps.setString(2, mainPlaytime);
+            ps.setString(3, tournamentPlaytime);
+            ps.executeUpdate();
+        } catch (Exception e) {
+            plugin.getLogger().severe("Couldn't add playtime placeholder. See message: "+e.getMessage());
+        }
+    }
+
+    public String getMainPlaytimeString(UUID playerUUID){
+        int seconds;
+        if (plugin.getMainPlaytimeMap().containsKey(playerUUID)) {
+            seconds = plugin.getMainPlaytimeMap().get(playerUUID);
+        } else {
+            seconds = getMainPlaytime(playerUUID);
+        }
+
+        return formatTime(seconds);
+    }
+
+    public String formatTime(int seconds){
+        if(seconds <= 0) return "0s";
 
         //Building the string
         StringBuilder time = new StringBuilder();
@@ -245,27 +304,14 @@ public class DbManager {
         return 0;
     }
     public String getTournamentPlaytimeString(UUID playerUUID){
-        //Getting the playtime of the player from the db
-        long seconds = getTournamentPlaytime(playerUUID);
+        int seconds;
+        if (plugin.getTournamentPlaytimeMap().containsKey(playerUUID)) {
+            seconds = plugin.getTournamentPlaytimeMap().get(playerUUID);
+        } else {
+            seconds = getTournamentPlaytime(playerUUID);
+        }
 
-        //Also adding the seconds from the tournament playtime map
-        seconds += plugin.getTournamentPlaytimeMap().getOrDefault(playerUUID, 0);
-
-        //Building the string
-        StringBuilder time = new StringBuilder();
-        long days = TimeUnit.SECONDS.toDays(seconds);
-        long hours = TimeUnit.SECONDS.toHours(seconds);
-        long minutes = TimeUnit.SECONDS.toMinutes(seconds);
-
-        if (days > 0) time.append(days).append("d ");
-        if (hours > 0) time.append(hours).append("h ");
-
-        if(minutes > 0 && seconds > 60) time.append(minutes).append("m");
-        else if (minutes > 0) time.append(minutes).append("m ");
-
-        if(seconds < 60) time.append(seconds).append("s");
-
-        return time.toString();
+        return formatTime(seconds);
     }
 
     public void wipeTournamentPlaytime(){

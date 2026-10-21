@@ -4,6 +4,12 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class PlaceholdersManager {
+    private final PlaytimeUtils plugin;
+
+    public PlaceholdersManager(PlaytimeUtils plugin) {
+        this.plugin = plugin;
+    }
+
     //Caching all the placeholders which communicate with the Database.
     private String cachedTop1TournamentPlaytime = "Loading...";
     private String cachedTop2TournamentPlaytime = "Loading...";
@@ -45,10 +51,18 @@ public class PlaceholdersManager {
 
     //Getters for Maps
     public String getTournamentPlaytime(UUID playerUUID){
-        return tournamentPlaytimeCache.getOrDefault(playerUUID, " ");
+        if(tournamentPlaytimeCache.containsKey(playerUUID)){
+            return tournamentPlaytimeCache.get(playerUUID);
+        }
+
+        return plugin.getDatabaseManager().getTournamentPlaytimePlaceholder(playerUUID);
     }
     public String getMainPlaytime(UUID playerUUID){
-        return mainPlaytimeCache.getOrDefault(playerUUID, " ");
+        if(mainPlaytimeCache.containsKey(playerUUID)){
+            return mainPlaytimeCache.get(playerUUID);
+        }
+
+        return plugin.getDatabaseManager().getMainPlaytimePlaceholder(playerUUID);
     }
 
     //Getters for the cached placeholders

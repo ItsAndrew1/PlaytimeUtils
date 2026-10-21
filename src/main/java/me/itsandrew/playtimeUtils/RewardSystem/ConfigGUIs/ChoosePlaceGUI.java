@@ -46,7 +46,7 @@ public class ChoosePlaceGUI implements Listener {
         returnButton.setItemMeta(returnButtonMeta);
         GUI.setItem(40, returnButton);
 
-        StaffState staffState = plugin.getStaffStates().get(player);
+        StaffState staffState = plugin.getStaffStates().get(player.getUniqueId());
 
         //First, Second and Third Place buttons
         ItemStack firstPlaceButton = new ItemStack(Material.GOLD_INGOT);
@@ -101,7 +101,7 @@ public class ChoosePlaceGUI implements Listener {
     }
 
     private void continuing(Player player){
-        StaffState staffState = plugin.getStaffStates().get(player);
+        StaffState staffState = plugin.getStaffStates().get(player.getUniqueId());
         if(staffState.choice == AddRemoveChoice.ADD)
             if(staffState.rewardType == RewardType.EXP){
                 FileConfiguration config = plugin.getConfig();
@@ -124,7 +124,7 @@ public class ChoosePlaceGUI implements Listener {
                     }
                 });
 
-                plugin.getStaffStates().remove(player);
+                plugin.getStaffStates().remove(player.getUniqueId());
             }
             else{
                 player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
@@ -141,7 +141,7 @@ public class ChoosePlaceGUI implements Listener {
                 player.sendMessage(LegacyComponentSerializer.legacyAmpersand().deserialize("&aRemoved all exp levels for &l"+staffState.placement.toColoredStringForm()+"&a!"));
                 player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1, 1.4f);
 
-                plugin.getStaffStates().remove(player);
+                plugin.getStaffStates().remove(player.getUniqueId());
                 player.closeInventory();
             }
             else{
@@ -154,7 +154,7 @@ public class ChoosePlaceGUI implements Listener {
     @EventHandler
     public void onGuiQuit(InventoryCloseEvent event){
         if(!event.getView().title().equals(Component.text("Choose The Placement"))) return;
-        if(plugin.getStaffStates().get((Player) event.getPlayer()).rewardType.equals(RewardType.EXP)) return;
+        if(plugin.getStaffStates().get(event.getPlayer().getUniqueId()).rewardType.equals(RewardType.EXP)) return;
 
         Bukkit.getScheduler().runTaskLater(plugin, () -> {
             Player player = (Player) event.getPlayer();
@@ -163,7 +163,7 @@ public class ChoosePlaceGUI implements Listener {
             Component title = currentView.title();
 
             if(!title.equals(Component.text("Choose a Type of Reward")) && !title.equals(Component.text("Add Items")) && !title.equals(Component.text("Remove An Item"))){
-                plugin.getStaffStates().remove(player);
+                plugin.getStaffStates().remove(player.getUniqueId());
             }
         }, 1);
     }
@@ -177,7 +177,7 @@ public class ChoosePlaceGUI implements Listener {
         if(clickedItem == null || clickedItem.getType().equals(Material.BLACK_STAINED_GLASS_PANE)) return;
 
         Player player = (Player) event.getWhoClicked();
-        StaffState staffState = plugin.getStaffStates().get(player);
+        StaffState staffState = plugin.getStaffStates().get(player.getUniqueId());
 
         Material clickedMat = clickedItem.getType();
         switch(clickedMat){

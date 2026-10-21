@@ -34,7 +34,7 @@ public class AddRewardsGUI implements Listener {
 
     public void openGUI(Player player){
         Inventory GUI = plugin.getServer().createInventory(null, 27, Component.text("Add Items"));
-        StaffState state = plugin.getStaffStates().get(player);
+        StaffState state = plugin.getStaffStates().get(player.getUniqueId());
 
         //Return Button
         ItemStack returnButton = new ItemStack(Material.ARROW);
@@ -68,7 +68,7 @@ public class AddRewardsGUI implements Listener {
             InventoryView currentView = player.getOpenInventory();
             Component title = currentView.title();
 
-            if(!title.equals(Component.text("Choose The Placement"))) plugin.getStaffStates().remove(player);
+            if(!title.equals(Component.text("Choose The Placement"))) plugin.getStaffStates().remove(player.getUniqueId());
         }, 1);
     }
 
@@ -96,7 +96,7 @@ public class AddRewardsGUI implements Listener {
                 case "save" -> {
                     Inventory GUI = event.getView().getTopInventory();
                     FileConfiguration mainConfig = plugin.getConfig();
-                    StaffState state = plugin.getStaffStates().get(player);
+                    StaffState state = plugin.getStaffStates().get(player.getUniqueId());
 
                     List<ItemStack> items = new ArrayList<>();
 

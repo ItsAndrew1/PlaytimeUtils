@@ -488,7 +488,7 @@ public class CommandManager implements CommandExecutor {
                                                     return;
                                                 }
 
-                                                //Wiping the 'Reward Playtime' column in the db.
+                                                //Wiping the 'Tournament Playtime' column in the db.
                                                 Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> plugin.getDatabaseManager().wipeTournamentPlaytime());
                                                 plugin.getLogger().warning("[PlaytimeUtils] Reward System disabled. Reward playtime has been wiped.");
 
@@ -529,7 +529,7 @@ public class CommandManager implements CommandExecutor {
 
                                 //Creating a new StaffState for the specific staff
                                 StaffState newState = new StaffState(AddRemoveChoice.ADD, null, null, null);
-                                plugin.getStaffStates().put(player, newState);
+                                plugin.getStaffStates().put(player.getUniqueId(), newState);
 
                                 player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_PLING, 1, 1);
                                 plugin.getItemsOrExpGUI().openGUI(player);
@@ -542,7 +542,7 @@ public class CommandManager implements CommandExecutor {
 
                                 //Creating a new StaffState for the specific staff
                                 StaffState newState = new StaffState(AddRemoveChoice.REMOVE, null, null, null);
-                                plugin.getStaffStates().put(player, newState);
+                                plugin.getStaffStates().put(player.getUniqueId(), newState);
 
                                 player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_PLING, 1, 1);
                                 plugin.getItemsOrExpGUI().openGUI(player);

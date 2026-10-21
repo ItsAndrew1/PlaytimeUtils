@@ -34,7 +34,7 @@ public class RemoveRewardsGUIs implements Listener {
 
     public void openFirstGUI(Player player){
         Inventory GUI = plugin.getServer().createInventory(null, 54, Component.text("Remove An Item"));
-        StaffState state = plugin.getStaffStates().get(player);
+        StaffState state = plugin.getStaffStates().get(player.getUniqueId());
 
         //Decoration Glass
         for(int i = 0; i < 9; i++){
@@ -112,7 +112,7 @@ public class RemoveRewardsGUIs implements Listener {
         GUI.setItem(20, returnButton);
 
         //Displaying the item to be removed
-        StaffState state = plugin.getStaffStates().get(player);
+        StaffState state = plugin.getStaffStates().get(player.getUniqueId());
         GUI.setItem(13, state.itemToRemove);
 
         player.openInventory(GUI);
@@ -151,7 +151,7 @@ public class RemoveRewardsGUIs implements Listener {
             InventoryView currentView = player.getOpenInventory();
             Component title = currentView.title();
 
-            if(!title.equals(Component.text("Choose The Placement")) && !title.equals(Component.text("Remove Item?"))) plugin.getStaffStates().remove(player);
+            if(!title.equals(Component.text("Choose The Placement")) && !title.equals(Component.text("Remove Item?"))) plugin.getStaffStates().remove(player.getUniqueId());
         }, 10);
     }
 
@@ -164,7 +164,7 @@ public class RemoveRewardsGUIs implements Listener {
             InventoryView currentView = player.getOpenInventory();
             Component title = currentView.title();
 
-            if(!title.equals(Component.text("Remove An Item"))) plugin.getStaffStates().remove(player);
+            if(!title.equals(Component.text("Remove An Item"))) plugin.getStaffStates().remove(player.getUniqueId());
         }, 1);
     }
 
@@ -189,7 +189,7 @@ public class RemoveRewardsGUIs implements Listener {
                 plugin.getChoosePlaceGUI().openGUI(player);
             }
             else if(data.contains("itemtoremove")){
-                StaffState state = plugin.getStaffStates().get(player);
+                StaffState state = plugin.getStaffStates().get(player.getUniqueId());
                 state.itemToRemove = clickedItem;
 
                 player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
@@ -211,7 +211,7 @@ public class RemoveRewardsGUIs implements Listener {
         ItemMeta clickedMeta = clickedItem.getItemMeta();
         if(clickedMeta == null) return;
 
-        StaffState state = plugin.getStaffStates().get(player);
+        StaffState state = plugin.getStaffStates().get(player.getUniqueId());
 
         if(clickedItem.getType().equals(Material.RED_CONCRETE)){
             //Deleting the item to be removed from the state
