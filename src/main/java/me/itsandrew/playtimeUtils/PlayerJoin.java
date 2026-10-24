@@ -1,7 +1,6 @@
 //Developed by _ItsAndrew_
 package me.itsandrew.playtimeUtils;
 
-import me.clip.placeholderapi.PlaceholderAPI;
 import net.kyori.adventure.inventory.Book;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextReplacementConfig;

@@ -113,12 +113,13 @@ public final class PlaytimeUtils extends JavaPlugin implements Listener {
                     chatMessage = setPP(chatMessage, player);
                     player.sendMessage(ChatColor.translateAlternateColorCodes('&', chatMessage));
 
-                    //Putting the player in an "AFK" group (if luckperms is enabled)
-                    if (luckpermsAPI != null){
+                    //Putting the player in an "AFK" group (if luckperms is enabled and if the Afk Status System is toggled)
+                    boolean toggleAfkStatusSystem = getConfig().getBoolean("afk-status-system.toggle", false);
+                    if (luckpermsAPI != null && toggleAfkStatusSystem){
                         luckpermsAPI.getUserManager().modifyUser(player.getUniqueId(), user -> {
                             //Setting the AFK prefix to the player
                             try{
-                                String prefixString = getConfig().getString("lp-afk-prefix", "&7&l[AFK] &7");
+                                String prefixString = getConfig().getString("afk-status-system.luckperms-afk-prefix", "&7&l[AFK] &7");
                                 PrefixNode prefix = PrefixNode.builder(prefixString, 100000).build();
                                 user.data().add(prefix);
                                 luckpermsAPI.getUserManager().saveUser(user);
@@ -269,7 +270,7 @@ public final class PlaytimeUtils extends JavaPlugin implements Listener {
         if(luckpermsAPI == null) return;
 
         luckpermsAPI.getUserManager().modifyUser(player.getUniqueId(), user -> {
-            String prefix = getConfig().getString("lp-afk-prefix", "&7&l[AFK] &7");
+            String prefix = getConfig().getString("afk-status-system.luckperms-afk-prefix", "&7&l[AFK] &7");
             PrefixNode prefixNode = PrefixNode.builder(prefix, 100000).build();
             user.data().remove(prefixNode);
             luckpermsAPI.getUserManager().saveUser(user);
@@ -292,7 +293,7 @@ public final class PlaytimeUtils extends JavaPlugin implements Listener {
     }
 
     private boolean isPlayerAFK(UUID playerUUID){
-        int afkSeconds = getConfig().getInt("afk-seconds", 4);
+        int afkSeconds = getConfig().getInt("afk-status-system.needed-seconds", 5);
         return System.currentTimeMillis() - lastActivity.get(playerUUID) > afkSeconds * 1000L;
     }
 

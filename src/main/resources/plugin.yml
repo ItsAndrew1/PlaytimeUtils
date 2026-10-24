@@ -75,6 +75,14 @@ permissions:
     description: Allows the player to set the playtime needed tp chat
     default: op
 
+  playtimeutils.ptutils.resetplaytimes:
+    description: Allows the player to reset every player's playtime. Be careful who you give this permission to!
+    default: op
+
+  playtimeutils.ptutils.setplaytime:
+    description: Allows the player to set another player's playtime. Be careful who you give this permission to!
+    default: op
+
   playtimeutils.ptutils.rewards:
     description: Allows the player to manage the Reward System.
     default: op

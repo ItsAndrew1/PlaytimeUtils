@@ -14,17 +14,23 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.event.Listener;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BookMeta;
 import org.jetbrains.annotations.NotNull;
 
 import java.net.URI;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicLong;
 
-public class CommandManager implements CommandExecutor {
+public class CommandManager implements CommandExecutor, Listener {
     private final PlaytimeUtils plugin;
+
+    //Sets for caching the staff's uuid when doing the operations
+    private Set<UUID> resetPlaytimesUuidSet;
+    private Set<UUID> setPlaytimesUuidSet;
 
     public CommandManager(PlaytimeUtils plugin) {
         this.plugin = plugin;
@@ -36,7 +42,10 @@ public class CommandManager implements CommandExecutor {
 
         switch(command.getName()){
             case "myplaytime" -> {
-                if(!player.hasPermission("playtimeutils.myplaytime")) noPermission(player);
+                if(!player.hasPermission("playtimeutils.myplaytime")) {
+                    noPermission(player);
+                    return true;
+                }
 
                 if(args.length < 1){
                     player.sendMessage(LegacyComponentSerializer.legacyAmpersand().deserialize("&cUsage: &l/myplaytime <main | tournament | rewards>"));
@@ -47,7 +56,10 @@ public class CommandManager implements CommandExecutor {
                 switch(args[0]){
                     case "main" -> {
                         //Checking if the player has permission to use the command
-                        if(!player.hasPermission("playtimeutils.myplaytime.main")) noPermission(player);
+                        if(!player.hasPermission("playtimeutils.myplaytime.main")){
+                            noPermission(player);
+                            return true;
+                        }
 
                         String message = plugin.getConfig().getString("messages.my-playtime.main", "&aYour playtime is: &e&l%playtime_mainValue%");
                         message = plugin.setPP(message, player);
@@ -58,7 +70,10 @@ public class CommandManager implements CommandExecutor {
 
                     case "tournament" -> {
                         //Checking if the player has permission to use the command
-                        if (!player.hasPermission("playtimeutils.myplaytime.tournament")) noPermission(player);
+                        if (!player.hasPermission("playtimeutils.myplaytime.tournament")) {
+                            noPermission(player);
+                            return true;
+                        }
 
                         //Checking if the tournament is enabled
                         Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
@@ -80,7 +95,10 @@ public class CommandManager implements CommandExecutor {
 
                     case "rewards" -> {
                         //Checking if the player has permission
-                        if(!player.hasPermission("playtimeutils.myplaytime.rewards")) noPermission(player);
+                        if(!player.hasPermission("playtimeutils.myplaytime.rewards")){
+                            noPermission(player);
+                            return true;
+                        }
 
                         plugin.getPlaytimeRewardsGUI().openGUI(player);
                         player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
@@ -96,7 +114,10 @@ public class CommandManager implements CommandExecutor {
 
             case "playtime" -> {
                 //Checking if the sender has permission
-                if(!player.hasPermission("playtimeutils.playtime")) noPermission(player);
+                if(!player.hasPermission("playtimeutils.playtime")) {
+                    noPermission(player);
+                    return true;
+                }
 
                 if(args.length < 2){
                     player.sendMessage(LegacyComponentSerializer.legacyAmpersand().deserialize("&cUsage: &l/playtime <main | tournament> <player>"));
@@ -114,7 +135,10 @@ public class CommandManager implements CommandExecutor {
                 switch(args[0]){
                     case "main" -> {
                         //Checking if the player has permission to run the command
-                        if(!player.hasPermission("playtimeutils.playtime.main")) noPermission(player);
+                        if(!player.hasPermission("playtimeutils.playtime.main")){
+                            noPermission(player);
+                            return true;
+                        }
 
                         String message = plugin.getConfig().getString("messages.player-playtime.main", "&e%player%'s playtime is: &e&l%playtime_mainValue%");
                         message = plugin.setPP(message, targetPlayer);
@@ -126,7 +150,10 @@ public class CommandManager implements CommandExecutor {
 
                     case "tournament" -> {
                         //Checking if the player has permission
-                        if(!player.hasPermission("playtimeutils.playtime.tournament")) noPermission(player);
+                        if(!player.hasPermission("playtimeutils.playtime.tournament")){
+                            noPermission(player);
+                            return true;
+                        }
 
                         AtomicLong duration = new AtomicLong();
                         Bukkit.getScheduler().runTaskAsynchronously(plugin, () ->{
@@ -158,7 +185,10 @@ public class CommandManager implements CommandExecutor {
 
             case "topplaytime" -> {
                 //Checking if the player has permission
-                if(!player.hasPermission("playtimeutils.topplaytime")) noPermission(player);
+                if(!player.hasPermission("playtimeutils.topplaytime")) {
+                    noPermission(player);
+                    return true;
+                }
 
                 if(args.length < 1){
                     player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
@@ -169,7 +199,10 @@ public class CommandManager implements CommandExecutor {
                 switch(args[0]){
                     case "main" -> {
                         //Checking if the player has permission
-                        if(!player.hasPermission("playtimeutils.topplaytime.main")) noPermission(player);
+                        if(!player.hasPermission("playtimeutils.topplaytime.main")){
+                            noPermission(player);
+                            return true;
+                        }
 
                         List<String> rawMessage = plugin.getConfig().getStringList("messages.top-3-main-players");
                         for(String line : rawMessage){
@@ -181,7 +214,10 @@ public class CommandManager implements CommandExecutor {
 
                     case "tournament" -> {
                         //Checking if the player has permission
-                        if(!player.hasPermission("playtimeutils.topplaytime.tournament")) noPermission(player);
+                        if(!player.hasPermission("playtimeutils.topplaytime.tournament")){
+                            noPermission(player);
+                            return true;
+                        }
 
                         AtomicLong duration = new AtomicLong();
                         Bukkit.getScheduler().runTaskAsynchronously(plugin, () ->{
@@ -215,7 +251,10 @@ public class CommandManager implements CommandExecutor {
                 switch(args[0]){
                     case "reload" -> {
                         //Checking if the player has permission.
-                        if(!player.hasPermission("playtimeutils.ptutils.reload")) noPermission(player);
+                        if(!player.hasPermission("playtimeutils.ptutils.reload")){
+                            noPermission(player);
+                            return true;
+                        }
 
                         plugin.reloadConfig();
 
@@ -226,7 +265,10 @@ public class CommandManager implements CommandExecutor {
 
                     case "playtimetochat" -> {
                         //Checking for permission
-                        if(!player.hasPermission("playtimeutils.ptutils.playtimetochat")) noPermission(player);
+                        if(!player.hasPermission("playtimeutils.ptutils.playtimetochat")){
+                            noPermission(player);
+                            return true;
+                        }
 
                         if(args.length < 2){
                             player.sendMessage(LegacyComponentSerializer.legacySection().deserialize("&cUsage: &l/ptutils playtimetochat <enable | disable | set>"));
@@ -237,7 +279,10 @@ public class CommandManager implements CommandExecutor {
                         switch(args[1]){
                             case "enable" -> {
                                 //Check permission
-                                if(!player.hasPermission("playtimeutils.ptutils.playtimetochat.enable")) noPermission(player);
+                                if(!player.hasPermission("playtimeutils.ptutils.playtimetochat.enable")){
+                                    noPermission(player);
+                                    return true;
+                                }
 
                                 boolean togglePlaytimeToChat = plugin.getConfig().getBoolean("toggle-needed-playtime-to-chat", false);
                                 if(togglePlaytimeToChat){
@@ -256,7 +301,10 @@ public class CommandManager implements CommandExecutor {
 
                             case "disable" -> {
                                 //Check permission
-                                if(!player.hasPermission("playtimeutils.ptutils.playtimetochat.disable")) noPermission(player);
+                                if(!player.hasPermission("playtimeutils.ptutils.playtimetochat.disable")){
+                                    noPermission(player);
+                                    return true;
+                                }
 
                                 boolean togglePlaytimeToChat = plugin.getConfig().getBoolean("toggle-needed-playtime-to-chat", false);
                                 if(!togglePlaytimeToChat){
@@ -275,7 +323,10 @@ public class CommandManager implements CommandExecutor {
 
                             case "set" -> {
                                 //Check permission
-                                if(!player.hasPermission("playtimeutils.ptutils.playtimetochat.set")) noPermission(player);
+                                if(!player.hasPermission("playtimeutils.ptutils.playtimetochat.set")){
+                                    noPermission(player);
+                                    return true;
+                                }
 
                                 player.sendMessage(LegacyComponentSerializer.legacyAmpersand().deserialize("&aEnter a needed playtime (in seconds!): "));
                                 player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_PLING, 1, 1);
@@ -306,7 +357,10 @@ public class CommandManager implements CommandExecutor {
 
                     case "rewards" -> {
                         //Checking if the player has permission
-                        if(!player.hasPermission("playtimeutils.ptutils.rewards")) noPermission(player);
+                        if(!player.hasPermission("playtimeutils.ptutils.rewards")) {
+                            noPermission(player);
+                            return true;
+                        }
 
                         if(args.length < 2){
                             player.sendMessage(LegacyComponentSerializer.legacyAmpersand().deserialize("&cUsage: &l/ptutils rewards <tournament | add | remove>"));
@@ -317,7 +371,10 @@ public class CommandManager implements CommandExecutor {
                         switch(args[1]){
                             case "tournament" -> {
                                 //Checking if the player has permission.
-                                if(!player.hasPermission("playtimeutils.ptutils.rewards.tournament")) noPermission(player);
+                                if(!player.hasPermission("playtimeutils.ptutils.rewards.tournament")){
+                                    noPermission(player);
+                                    return true;
+                                }
 
                                 if(args.length < 3){
                                     player.sendMessage(LegacyComponentSerializer.legacyAmpersand().deserialize("&cUsage: &l/ptutils rewards tournament <settimer | setbook | enable | disable>"));
@@ -328,7 +385,10 @@ public class CommandManager implements CommandExecutor {
                                 switch(args[2]){
                                     case "settimer" -> {
                                         //Checking if the player has permission.
-                                        if(!player.hasPermission("playtimeutils.ptutils.rewards.tournament.settimer")) noPermission(player);
+                                        if(!player.hasPermission("playtimeutils.ptutils.rewards.tournament.settimer")){
+                                            noPermission(player);
+                                            return true;
+                                        }
 
                                         if(args.length < 4){
                                             player.sendMessage(LegacyComponentSerializer.legacyAmpersand().deserialize("&cUsage: &l/ptutils rewards tournament settimer <days>"));
@@ -353,7 +413,10 @@ public class CommandManager implements CommandExecutor {
                                     }
 
                                     case "setbook" -> {
-                                        if(!player.hasPermission("playtimeutils.ptutils.rewards.tournament.setbook")) noPermission(player);
+                                        if(!player.hasPermission("playtimeutils.ptutils.rewards.tournament.setbook")){
+                                            noPermission(player);
+                                            return true;
+                                        }
 
                                         //Getting the player's item in hand
                                         ItemStack itemInHand = player.getInventory().getItemInMainHand();
@@ -379,7 +442,10 @@ public class CommandManager implements CommandExecutor {
 
                                     case "enable" -> {
                                         //Checking if the player has permission.
-                                        if(!player.hasPermission("playtimeutils.ptutils.rewards.tournament.enable")) noPermission(player);
+                                        if(!player.hasPermission("playtimeutils.ptutils.rewards.tournament.enable")){
+                                            noPermission(player);
+                                            return true;
+                                        }
 
                                         //Checking if the Reward System is enabled
                                         boolean toggleRewardSystem = plugin.getConfig().getBoolean("reward-system.toggle", false);
@@ -466,7 +532,10 @@ public class CommandManager implements CommandExecutor {
 
                                     case "disable" -> {
                                         //Checking if the player has permission.
-                                        if(!player.hasPermission("playtimeutils.ptutils.rewards.tournament.disable")) noPermission(player);
+                                        if(!player.hasPermission("playtimeutils.ptutils.rewards.tournament.disable")){
+                                            noPermission(player);
+                                            return true;
+                                        }
 
                                         //Checking reward system is enabled
                                         boolean toggleRewardSystem = plugin.getConfig().getBoolean("reward-system.toggle", false);
@@ -525,7 +594,10 @@ public class CommandManager implements CommandExecutor {
 
                             case "add" -> {
                                 //Checking if the player has permission.
-                                if(!player.hasPermission("playtimeutils.ptutils.rewards.add")) noPermission(player);
+                                if(!player.hasPermission("playtimeutils.ptutils.rewards.add")){
+                                    noPermission(player);
+                                    return true;
+                                }
 
                                 //Creating a new StaffState for the specific staff
                                 StaffState newState = new StaffState(AddRemoveChoice.ADD, null, null, null);
@@ -538,7 +610,10 @@ public class CommandManager implements CommandExecutor {
 
                             case "remove" -> {
                                 //Checking if the player has permission.
-                                if(!player.hasPermission("playtimeutils.ptutils.rewards.remove")) noPermission(player);
+                                if(!player.hasPermission("playtimeutils.ptutils.rewards.remove")) {
+                                    noPermission(player);
+                                    return true;
+                                }
 
                                 //Creating a new StaffState for the specific staff
                                 StaffState newState = new StaffState(AddRemoveChoice.REMOVE, null, null, null);
@@ -554,6 +629,21 @@ public class CommandManager implements CommandExecutor {
                                 player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
                                 return true;
                             }
+                        }
+                    }
+
+                    case "resetplaytimes" -> {
+                        //Checking if the player has permission to do this.
+                        if(!player.hasPermission("playtimeutils.ptutils.resetplaytimes")){
+                            noPermission(player);
+                            return true;
+                        }
+
+                        if(resetPlaytimesUuidSet.contains(player.getUniqueId())){
+
+                        }
+                        else{
+
                         }
                     }
                 }
