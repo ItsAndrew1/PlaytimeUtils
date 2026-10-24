@@ -128,6 +128,10 @@ public class DbManager {
         }
     }
 
+    public HikariDataSource getDataSource() {
+        return dataSource;
+    }
+
     public String getMainPlaytimePlaceholder(UUID playerUUID){
         String sql = "SELECT mainPlaytime FROM placeholdersCache WHERE uuid = ?";
         try(Connection connection = dataSource.getConnection(); PreparedStatement ps = connection.prepareStatement(sql)){

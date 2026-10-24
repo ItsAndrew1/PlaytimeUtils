@@ -20,7 +20,10 @@ import org.bukkit.inventory.meta.BookMeta;
 import org.jetbrains.annotations.NotNull;
 
 import java.net.URI;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicLong;
@@ -640,10 +643,42 @@ public class CommandManager implements CommandExecutor, Listener {
                         }
 
                         if(resetPlaytimesUuidSet.contains(player.getUniqueId())){
+                            //Wiping out the main playtime from the DB
+                            Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+                                String SQL = "UPDATE playersPlaytime SET mainPlaytime = 0";
+                                try(Connection connection = plugin.getDatabaseManager().getDataSource().getConnection(); PreparedStatement ps = connection.prepareStatement(SQL)){
+                                    ps.executeUpdate();
+                                } catch (Exception e) {
+                                    plugin.getLogger().warning("Wiping main playtime failed! See message: "+e.getMessage());
+                                }
+                            });
 
+                            //Wiping from the main playtime map
+                            plugin.getMainPlaytimeMap().clear();
+                            for(Player p : Bukkit.getOnlinePlayers()) plugin.getMainPlaytimeMap().put(p.getUniqueId(), 0);
+
+                            Component warningMessage = LegacyComponentSerializer.legacyAmpersand().deserialize(plugin.getConfig().getString("resetplaytimes-command.done-chat-message", "&a&lSuccessfully wiped out the &lmain playtimes&a."));
+                            player.sendMessage(warningMessage);
+
+                            String soundName = plugin.getConfig().getString("resetplaytimes-command.done-sound.name", "entity.player.levelup");
+                            float soundVol = plugin.getConfig().getInt("resetplaytimes-command.done-sound.volume", 1);
+                            float soundPitch = plugin.getConfig().getInt("resetplaytimes-command.done-sound.pitch", 1);
+                            Sound sound = Registry.SOUNDS.get(NamespacedKey.minecraft(soundName.toLowerCase()));
+                            player.playSound(player.getLocation(), sound, soundPitch, soundVol);
+
+                            resetPlaytimesUuidSet.remove(player.getUniqueId());
                         }
                         else{
+                            Component warningMessage = LegacyComponentSerializer.legacyAmpersand().deserialize(plugin.getConfig().getString("resetplaytimes-command.warning-chat-message", "&7&l[&4&l!&7&l] &eThis will wipe out every player's &lmain &eplaytime! If you wish to continue, &crun this command again."));
+                            player.sendMessage(warningMessage);
 
+                            String soundName = plugin.getConfig().getString("resetplaytimes-command.warning-sound.name", "block.note_block.pling");
+                            float soundVol = plugin.getConfig().getInt("resetplaytimes-command.warning-sound.volume", 1);
+                            float soundPitch = plugin.getConfig().getInt("resetplaytimes-command.warning-sound.pitch", 1);
+                            Sound sound = Registry.SOUNDS.get(NamespacedKey.minecraft(soundName.toLowerCase()));
+                            player.playSound(player.getLocation(), sound, soundPitch, soundVol);
+
+                            resetPlaytimesUuidSet.add(player.getUniqueId());
                         }
                     }
                 }

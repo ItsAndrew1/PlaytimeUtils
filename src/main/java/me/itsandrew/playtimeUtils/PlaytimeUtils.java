@@ -46,7 +46,7 @@ import java.util.function.Consumer;
 public final class PlaytimeUtils extends JavaPlugin implements Listener {
     private DbManager databaseManager;
 
-    private final Map<UUID, Integer> mainPlaytimeMap = new HashMap<>();
+    private final ConcurrentHashMap<UUID, Integer> mainPlaytimeMap = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<UUID, Integer> tournamentPlaytimeMap = new ConcurrentHashMap<>();
     private final Map<UUID, Long> lastActivity = new HashMap<>();
     private final Map<UUID, Boolean> afkMap = new HashMap<>();

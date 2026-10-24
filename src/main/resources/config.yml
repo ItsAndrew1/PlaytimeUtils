@@ -61,6 +61,20 @@ afk-status-system:
   needed-seconds: 5 #In seconds!
   luckperms-afk-prefix: "&7&l[AFK] &7" #Set the prefix for an AFK player. Note that this only works if you have LuckPerms enabled on your server.
 
+#Configure some things about the "resetplaytimes" command
+resetplaytimes-command:
+  warning-chat-message: "&7&l[&4&l!&7&l] &eThis will wipe out every player's &lmain &eplaytime! If you wish to continue, &crun this command again."
+  warning-sound:
+    name: block.note_block.pling
+    volume: 1.0
+    pitch: 1.0
+
+  done-chat-message: "&a&lSuccessfully wiped out the &lmain playtimes&a."
+  done-sound:
+    name: entity.player.levelup
+    volume: 1.0
+    pitch: 1.4
+
 #Configure the sound / titles when a player joins for the first time. Use '&' for styles/colors.
 #First join means if the player is not registered in the database.
 #You can also use PAPI placeholders!
