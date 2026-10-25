@@ -24,10 +24,7 @@ import org.jetbrains.annotations.NotNull;
 import java.net.URI;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
-import java.util.List;
-import java.util.Locale;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -36,8 +33,8 @@ public class CommandManager implements CommandExecutor, Listener {
     private final PlaytimeUtils plugin;
 
     //Sets for caching the staff's uuid when doing the operations
-    private Set<UUID> resetPlaytimesUuidSet;
-    private Set<UUID> setPlaytimesUuidSet;
+    private final List<UUID> resetPlaytimesUuidSet = new ArrayList<>();
+    private final List<UUID> setPlaytimesUuidSet = new ArrayList<>();
 
     public CommandManager(PlaytimeUtils plugin) {
         this.plugin = plugin;
@@ -656,6 +653,17 @@ public class CommandManager implements CommandExecutor, Listener {
                                     plugin.getLogger().warning("Wiping main playtime failed! See message: "+e.getMessage());
                                     return;
                                 }
+
+                                //Wiping the placeholders from the DB
+                                String sql = "UPDATE placeholdersCache SET mainPlaytime = ?";
+                                try(Connection connection = plugin.getDatabaseManager().getDataSource().getConnection(); PreparedStatement ps = connection.prepareStatement(sql)){
+                                    ps.setString(1, "0s");
+                                    ps.executeUpdate();
+                                } catch (Exception e) {
+                                    plugin.getLogger().warning("Deleting placeholders failed! See message: "+e.getMessage());
+                                    return;
+                                }
+
                                 //Wiping from the main playtime map
                                 plugin.getMainPlaytimeMap().clear();
                                 for(Player p : Bukkit.getOnlinePlayers()) plugin.getMainPlaytimeMap().put(p.getUniqueId(), 0);
@@ -698,12 +706,19 @@ public class CommandManager implements CommandExecutor, Listener {
                         }
 
                         if(args.length < 3){
-                            player.sendMessage(LegacyComponentSerializer.legacySection().deserialize("&cUsage: &l/ptutils setplaytime <IGN> <playtime &e-> ex: 2d 4h 30m 35s>"));
+                            player.sendMessage(LegacyComponentSerializer.legacyAmpersand().deserialize("&cUsage: &l/ptutils setplaytime <IGN> <playtime &e-> ex: 2d 4h 30m 35s>"));
                             player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
                             return true;
                         }
 
-                        OfflinePlayer targetPlayer = Bukkit.getOfflinePlayer(args[1]);
+                        String playerName = args[1];
+                        if(playerName.equals(player.getName())){
+                            player.sendMessage(LegacyComponentSerializer.legacyAmpersand().deserialize("&cYou cannot set a playtime for yourself!"));
+                            player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
+                            return true;
+                        }
+
+                        OfflinePlayer targetPlayer = Bukkit.getOfflinePlayer(playerName);
                         if(!targetPlayer.hasPlayedBefore()){
                             player.sendMessage(LegacyComponentSerializer.legacyAmpersand().deserialize("&cThis player hasn't played on the server before!"));
                             player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
@@ -719,15 +734,17 @@ public class CommandManager implements CommandExecutor, Listener {
                         long secondsFromPlaytime = getSecondsFromPlaytimeString(playtime);
 
                         if(setPlaytimesUuidSet.contains(player.getUniqueId())){
+                            plugin.getLogger().warning("Secunde: "+secondsFromPlaytime);
+
                             Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
                                 //Changing the main playtime of the target player in DB
                                 String SQL = "UPDATE playersPlaytime SET mainPlaytime = ? WHERE uuid = ?";
                                 try(Connection connection = plugin.getDatabaseManager().getDataSource().getConnection(); PreparedStatement ps = connection.prepareStatement(SQL)){
                                     ps.setLong(1, secondsFromPlaytime);
                                     ps.setString(2, targetPlayer.getUniqueId().toString());
-
+                                    ps.executeUpdate();
                                 } catch (Exception e){
-                                    plugin.getLogger().warning("Wiping playtime for player failed! See message: "+e.getMessage());
+                                    plugin.getLogger().warning("Setting playtime for player failed! See message: "+e.getMessage());
                                     return;
                                 }
 
@@ -737,8 +754,11 @@ public class CommandManager implements CommandExecutor, Listener {
                                     plugin.getMainPlaytimeMap().put(targetPlayer.getUniqueId(), 0);
                                 }
 
+                                //Adding the placeholder in the DB
+                                plugin.getDatabaseManager().addPlaytimePlaceholder(targetPlayer.getUniqueId(), plugin.getDatabaseManager().formatTime(secondsFromPlaytime),null);
+
                                 //Removing the staff from the caching set
-                                setPlaytimesUuidSet.remove(targetPlayer.getUniqueId());
+                                setPlaytimesUuidSet.remove(player.getUniqueId());
 
                                 Bukkit.getScheduler().runTask(plugin, () -> {
                                     String message = plugin.getConfig().getString("setplaytime-command.done-chat-message", "&a&lSuccessfully set the playtime of &e&l%player_name% &ato &e&l%playtime_value%&a!")
@@ -825,7 +845,7 @@ public class CommandManager implements CommandExecutor, Listener {
     private long getSecondsFromPlaytimeString(String playtime){
         long total_seconds = 0;
 
-        Pattern Time_Pattern = Pattern.compile("(\\\\d+)\\\\s*([dhmsDHMS])");
+        Pattern Time_Pattern = Pattern.compile("(\\d+)\\s*([dhmsDHMS])");
         Matcher matcher = Time_Pattern.matcher(playtime);
 
         while(matcher.find()){

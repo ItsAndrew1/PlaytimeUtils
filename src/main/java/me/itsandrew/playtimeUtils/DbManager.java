@@ -161,7 +161,15 @@ public class DbManager {
     }
 
     public void addPlaytimePlaceholder(UUID playerUUID, String mainPlaytime, String tournamentPlaytime){
-        String sql = "INSERT INTO placeholdersCache VALUES (?, ?, ?)";
+        String isSqlite = plugin.getConfig().getString("database.type", "sqlite");
+        String sql;
+        if(isSqlite.equals("sqlite")){
+            sql = "INSERT OR REPLACE INTO placeholdersCache (uuid, mainPlaytime, tournamentPlaytime) VALUES (?, ?, ?)";
+        }
+        else{
+            sql = "INSERT INTO placeholdersCache (uuid, mainPlaytime, tournamentPlaytime) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE mainPlaytime = VALUES(mainPlaytime), tournamentPlaytime= VALUES(tournamentPlaytime)";
+        }
+
         try(Connection connection = dataSource.getConnection(); PreparedStatement ps = connection.prepareStatement(sql)){
             ps.setString(1, playerUUID.toString());
             ps.setString(2, mainPlaytime);
@@ -183,7 +191,7 @@ public class DbManager {
         return formatTime(seconds);
     }
 
-    public String formatTime(int seconds){
+    public String formatTime(long seconds){
         if(seconds <= 0) return "0s";
 
         //Building the string

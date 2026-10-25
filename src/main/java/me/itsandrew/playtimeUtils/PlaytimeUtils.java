@@ -60,7 +60,7 @@ public final class PlaytimeUtils extends JavaPlugin implements Listener {
     private final RemoveRewardsGUIs removeRewardsGUIs = new RemoveRewardsGUIs(this);
     private GivingRewards givingRewardsSystem;
     private final PlayerChatCheck playerChatCheck = new PlayerChatCheck(this);
-    private CommandManager commandManager = new CommandManager(this);
+    private final CommandManager commandManager = new CommandManager(this);
 
     private final PlaceholdersManager placeholdersManager = new PlaceholdersManager(this);
     private PlaytimeRewardsGUI playtimeRewardsGUI;
@@ -360,7 +360,6 @@ public final class PlaytimeUtils extends JavaPlugin implements Listener {
 
                 String tournamentString = databaseManager.getTournamentPlaytimeString(playerUUID);
 
-                //Something is not right with this adding...
                 databaseManager.addPlaytimePlaceholder(playerUUID, mainPlaytimeString, tournamentString);
             }
             else databaseManager.addPlaytimePlaceholder(playerUUID, mainPlaytimeString, null);
