@@ -75,6 +75,23 @@ resetplaytimes-command:
     volume: 1.0
     pitch: 1.4
 
+#Configure some things about the "setplaytime" command
+#Placeholder: %playtime_value% -> Displays the playtime you want to set for the target player
+setplaytime-command:
+  warning-chat-message: "&7&l[&4&l!&7&l] &eThis will set the player's playtime to &l%playtime_value%&e! If you wish to continue, &crun this command again."
+  warning-sound:
+    name: block.note_block.pling
+    volume: 1.0
+    pitch: 1.0
+
+  #Placeholders: %player_name% -> The target player's IGN
+  #              %playtime_value% -> The playtime you want to set for the target player
+  done-chat-message: "&a&lSuccessfully set the playtime of &e&l%player_name% &ato &e&l%playtime_value%&a!"
+  done-sound:
+    name: entity.player.levelup
+    volume: 1.0
+    pitch: 1.4
+
 #Configure the sound / titles when a player joins for the first time. Use '&' for styles/colors.
 #First join means if the player is not registered in the database.
 #You can also use PAPI placeholders!

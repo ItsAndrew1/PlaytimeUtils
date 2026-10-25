@@ -82,8 +82,8 @@ public class DbManager {
         String playtimeTable = """
                 CREATE TABLE IF NOT EXISTS playersPlaytime (
                     uuid TEXT PRIMARY KEY,
-                    mainPlaytime INTEGER,
-                    tournamentPlaytime INTEGER
+                    mainPlaytime BIGINT,
+                    tournamentPlaytime BIGINT
                 )
                 """;
         try(Connection connection = dataSource.getConnection(); PreparedStatement statement = connection.prepareStatement(playtimeTable)) {

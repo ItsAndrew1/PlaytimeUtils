@@ -27,6 +27,8 @@ import java.util.Locale;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class CommandManager implements CommandExecutor, Listener {
     private final PlaytimeUtils plugin;
@@ -643,30 +645,34 @@ public class CommandManager implements CommandExecutor, Listener {
                         }
 
                         if(resetPlaytimesUuidSet.contains(player.getUniqueId())){
-                            //Wiping out the main playtime from the DB
                             Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+                                //Wiping out the main playtime from the DB
                                 String SQL = "UPDATE playersPlaytime SET mainPlaytime = 0";
                                 try(Connection connection = plugin.getDatabaseManager().getDataSource().getConnection(); PreparedStatement ps = connection.prepareStatement(SQL)){
                                     ps.executeUpdate();
                                 } catch (Exception e) {
                                     plugin.getLogger().warning("Wiping main playtime failed! See message: "+e.getMessage());
+                                    return;
                                 }
+                                //Wiping from the main playtime map
+                                plugin.getMainPlaytimeMap().clear();
+                                for(Player p : Bukkit.getOnlinePlayers()) plugin.getMainPlaytimeMap().put(p.getUniqueId(), 0);
+                                resetPlaytimesUuidSet.remove(player.getUniqueId());
+
+                                Bukkit.getScheduler().runTask(plugin, () -> {
+                                    Component warningMessage = LegacyComponentSerializer.legacyAmpersand().deserialize(plugin.getConfig().getString("resetplaytimes-command.done-chat-message", "&a&lSuccessfully wiped out the &lmain playtimes&a."));
+                                    player.sendMessage(warningMessage);
+
+                                    String soundName = plugin.getConfig().getString("resetplaytimes-command.done-sound.name", "entity.player.levelup");
+                                    float soundVol = plugin.getConfig().getInt("resetplaytimes-command.done-sound.volume", 1);
+                                    float soundPitch = plugin.getConfig().getInt("resetplaytimes-command.done-sound.pitch", 1);
+                                    Sound sound = Registry.SOUNDS.get(NamespacedKey.minecraft(soundName.toLowerCase()));
+                                    player.playSound(player.getLocation(), sound, soundPitch, soundVol);
+
+                                    //Sending an alert in the server's logger.
+                                    plugin.getLogger().warning("[!] Staff: "+player.getName()+" wiped out every player's MAIN PLAYTIME.");
+                                });
                             });
-
-                            //Wiping from the main playtime map
-                            plugin.getMainPlaytimeMap().clear();
-                            for(Player p : Bukkit.getOnlinePlayers()) plugin.getMainPlaytimeMap().put(p.getUniqueId(), 0);
-
-                            Component warningMessage = LegacyComponentSerializer.legacyAmpersand().deserialize(plugin.getConfig().getString("resetplaytimes-command.done-chat-message", "&a&lSuccessfully wiped out the &lmain playtimes&a."));
-                            player.sendMessage(warningMessage);
-
-                            String soundName = plugin.getConfig().getString("resetplaytimes-command.done-sound.name", "entity.player.levelup");
-                            float soundVol = plugin.getConfig().getInt("resetplaytimes-command.done-sound.volume", 1);
-                            float soundPitch = plugin.getConfig().getInt("resetplaytimes-command.done-sound.pitch", 1);
-                            Sound sound = Registry.SOUNDS.get(NamespacedKey.minecraft(soundName.toLowerCase()));
-                            player.playSound(player.getLocation(), sound, soundPitch, soundVol);
-
-                            resetPlaytimesUuidSet.remove(player.getUniqueId());
                         }
                         else{
                             Component warningMessage = LegacyComponentSerializer.legacyAmpersand().deserialize(plugin.getConfig().getString("resetplaytimes-command.warning-chat-message", "&7&l[&4&l!&7&l] &eThis will wipe out every player's &lmain &eplaytime! If you wish to continue, &crun this command again."));
@@ -679,6 +685,88 @@ public class CommandManager implements CommandExecutor, Listener {
                             player.playSound(player.getLocation(), sound, soundPitch, soundVol);
 
                             resetPlaytimesUuidSet.add(player.getUniqueId());
+                        }
+                    }
+
+                    // /ptu setplaytime <ign> <playtime>
+                    case "setplaytime" -> {
+                        if(!player.hasPermission("playtimeutils.ptutils.setplaytime")){
+                            noPermission(player);
+                            return true;
+                        }
+
+                        if(args.length < 3){
+                            player.sendMessage(LegacyComponentSerializer.legacySection().deserialize("&cUsage: &l/ptutils setplaytime <IGN> <playtime &e-> ex: 2d 4h 30m 35s>"));
+                            player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
+                            return true;
+                        }
+
+                        OfflinePlayer targetPlayer = Bukkit.getOfflinePlayer(args[1]);
+                        if(!targetPlayer.hasPlayedBefore()){
+                            player.sendMessage(LegacyComponentSerializer.legacyAmpersand().deserialize("&cThis player hasn't played on the server before!"));
+                            player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
+                            return true;
+                        }
+
+                        //Getting the seconds from the input
+                        StringBuilder playtimeBuilder = new StringBuilder();
+                        for(int i = 2; i < args.length; i++){
+                            playtimeBuilder.append(args[i]).append(" ");
+                        }
+                        String playtime = playtimeBuilder.toString().trim();
+                        long secondsFromPlaytime = getSecondsFromPlaytimeString(playtime);
+
+                        if(setPlaytimesUuidSet.contains(player.getUniqueId())){
+                            Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+                                //Changing the main playtime of the target player in DB
+                                String SQL = "UPDATE playersPlaytime SET mainPlaytime = ? WHERE uuid = ?";
+                                try(Connection connection = plugin.getDatabaseManager().getDataSource().getConnection(); PreparedStatement ps = connection.prepareStatement(SQL)){
+                                    ps.setLong(1, secondsFromPlaytime);
+                                    ps.setString(2, targetPlayer.getUniqueId().toString());
+
+                                } catch (Exception e){
+                                    plugin.getLogger().warning("Wiping playtime for player failed! See message: "+e.getMessage());
+                                    return;
+                                }
+
+                                //Wiping the current value from the main playtime map
+                                if(targetPlayer.isOnline()){
+                                    plugin.getMainPlaytimeMap().remove(targetPlayer.getUniqueId());
+                                    plugin.getMainPlaytimeMap().put(targetPlayer.getUniqueId(), 0);
+                                }
+
+                                //Removing the staff from the caching set
+                                setPlaytimesUuidSet.remove(targetPlayer.getUniqueId());
+
+                                Bukkit.getScheduler().runTask(plugin, () -> {
+                                    String message = plugin.getConfig().getString("setplaytime-command.done-chat-message", "&a&lSuccessfully set the playtime of &e&l%player_name% &ato &e&l%playtime_value%&a!")
+                                            .replace("%player_name%", targetPlayer.getName())
+                                            .replace("%playtime_value%", playtime);
+                                    player.sendMessage(LegacyComponentSerializer.legacyAmpersand().deserialize(message));
+
+                                    String soundName = plugin.getConfig().getString("setplaytime-command.done-sound.name", "entity.player.levelup");
+                                    float volume = plugin.getConfig().getInt("setplaytime-command.done-sound.volume", 1);
+                                    float pitch = plugin.getConfig().getInt("setplaytime-command.done-sound.pitch", 1);
+                                    Sound sound = Registry.SOUNDS.get(NamespacedKey.minecraft(soundName.toLowerCase()));
+                                    player.playSound(player.getLocation(), sound, volume, pitch);
+
+                                    //Sending a warning log.
+                                    plugin.getLogger().warning("[!] Staff: "+player.getName()+" set "+targetPlayer.getName()+"'s main playtime to "+playtime+".");
+                                });
+                            });
+                        }
+                        else{
+                            setPlaytimesUuidSet.add(player.getUniqueId());
+
+                            String message = plugin.getConfig().getString("setplaytime-command.warning-chat-message", "&7&l[&4&l!&7&l] &eThis will set the player's playtime to &l%playtime_value%&e! If you wish to continue, &crun this command again.")
+                                    .replace("%playtime_value%", playtime);
+                            player.sendMessage(LegacyComponentSerializer.legacyAmpersand().deserialize(message));
+
+                            String soundName = plugin.getConfig().getString("setplaytime-command.warning-sound.name", "block.note_block.pling");
+                            float volume = plugin.getConfig().getInt("setplaytime-command.warning-sound.volume", 1);
+                            float pitch = plugin.getConfig().getInt("setplaytime-command.warning-sound.pitch", 1);
+                            Sound sound = Registry.SOUNDS.get(NamespacedKey.minecraft(soundName.toLowerCase()));
+                            player.playSound(player.getLocation(), sound, volume, pitch);
                         }
                     }
                 }
@@ -723,5 +811,26 @@ public class CommandManager implements CommandExecutor, Listener {
 
         player.sendMessage(noPermissionMessage);
         player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
+    }
+
+    private long getSecondsFromPlaytimeString(String playtime){
+        long total_seconds = 0;
+
+        Pattern Time_Pattern = Pattern.compile("(\\\\d+)\\\\s*([dhmsDHMS])");
+        Matcher matcher = Time_Pattern.matcher(playtime);
+
+        while(matcher.find()){
+            long value = Long.parseLong(matcher.group(1));
+            char unit = matcher.group(2).toLowerCase().charAt(0);
+
+            switch (unit) {
+                case 'd' -> total_seconds += value * 86400L;
+                case 'h' -> total_seconds += value * 3600L;
+                case 'm' -> total_seconds += value * 60L;
+                case 's' -> total_seconds += value;
+            }
+        }
+
+        return total_seconds;
     }
 }
