@@ -14,7 +14,9 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BookMeta;
 import org.jetbrains.annotations.NotNull;
@@ -780,6 +782,13 @@ public class CommandManager implements CommandExecutor, Listener {
         }
 
         return false;
+    }
+
+    //Removing the staff from the caching sets if they quit
+    @EventHandler
+    public void onPlayerQuit(PlayerQuitEvent e){
+        setPlaytimesUuidSet.remove(e.getPlayer().getUniqueId());
+        resetPlaytimesUuidSet.remove(e.getPlayer().getUniqueId());
     }
 
     private boolean isUrlValid(String url){

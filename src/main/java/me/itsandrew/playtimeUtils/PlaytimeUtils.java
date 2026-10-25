@@ -60,6 +60,7 @@ public final class PlaytimeUtils extends JavaPlugin implements Listener {
     private final RemoveRewardsGUIs removeRewardsGUIs = new RemoveRewardsGUIs(this);
     private GivingRewards givingRewardsSystem;
     private final PlayerChatCheck playerChatCheck = new PlayerChatCheck(this);
+    private CommandManager commandManager = new CommandManager(this);
 
     private final PlaceholdersManager placeholdersManager = new PlaceholdersManager(this);
     private PlaytimeRewardsGUI playtimeRewardsGUI;
@@ -244,10 +245,10 @@ public final class PlaytimeUtils extends JavaPlugin implements Listener {
         }, 0, 100);
 
         //Registering commands and the TABs.
-        getCommand("myplaytime").setExecutor(new CommandManager(this));
-        getCommand("playtime").setExecutor(new CommandManager(this));
-        getCommand("topplaytime").setExecutor(new CommandManager(this));
-        getCommand("ptutils").setExecutor(new CommandManager(this));
+        getCommand("myplaytime").setExecutor(commandManager);
+        getCommand("playtime").setExecutor(commandManager);
+        getCommand("topplaytime").setExecutor(commandManager);
+        getCommand("ptutils").setExecutor(commandManager);
 
         getCommand("myplaytime").setTabCompleter(new CommandTABs());
         getCommand("ptutils").setTabCompleter(new CommandTABs());
@@ -264,6 +265,7 @@ public final class PlaytimeUtils extends JavaPlugin implements Listener {
         getServer().getPluginManager().registerEvents(playtimeRewardsGUI, this);
         getServer().getPluginManager().registerEvents(givingRewardsSystem, this);
         getServer().getPluginManager().registerEvents(playerChatCheck, this);
+        getServer().getPluginManager().registerEvents(commandManager, this);
     }
 
     private void removeAfkPrefixNodeFromPlayer(Player player){
